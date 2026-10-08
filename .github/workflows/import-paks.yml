@@ -1,0 +1,38 @@
+name: Import Discord paks
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pak-hub-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: bot/package-lock.json
+      - name: Install importer dependencies
+        run: npm ci
+        working-directory: bot
+      - name: Import new paks
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_GUILD_ID: ${{ vars.DISCORD_GUILD_ID }}
+          DISCORD_PAK_CHANNEL_ID: ${{ vars.DISCORD_PAK_CHANNEL_ID }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_RELEASE_REPO: ${{ github.repository }}
+          PAK_HUB_IMPORT_URL: ${{ vars.PAK_HUB_IMPORT_URL }}
+          PAK_HUB_STATE_URL: ${{ vars.PAK_HUB_STATE_URL }}
+          PAK_HUB_IMPORT_TOKEN: ${{ secrets.PAK_HUB_IMPORT_TOKEN }}
+          PAK_HUB_RUN_ONCE: '1'
+        run: node bot/index.mjs

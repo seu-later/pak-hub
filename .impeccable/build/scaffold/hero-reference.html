@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Scaffold reference: 02-archive-ledger.png</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Passion+One:wght@400&display=swap">
+  <link rel="stylesheet" href="layout.css">
+  <style>html,body{margin:0}body{background:#181826}.region{box-sizing:border-box}.region.text p{white-space:pre-wrap}</style>
+</head>
+<body>
+<!-- Reference only. Every region sits at its measured box inside a comp-aspect frame. Take the boxes (layout.css), keep your own semantic structure. -->
+<main class="comp-frame" style="max-width:1520px">
+  <div class="r-masthead region chrome" data-region="masthead"><!-- top navigation bar and hazard stripe --></div>
+  <div class="r-brand region text" data-region="brand"><!-- PAK HUB wordmark --><p style="font-size:var(--r-brand-font);line-height:1.05;margin:0">brand</p></div>
+  <div class="r-page-title region text" data-region="page-title"><!-- PAK ARCHIVE INDEX headline --><p style="font-size:var(--r-page-title-font);font-family:var(--r-page-title-family),sans-serif;font-weight:var(--r-page-title-weight);line-height:1.05;margin:0">page-title</p></div>
+  <div class="r-intro region text" data-region="intro"><!-- subtitle below the headline --><p style="font-size:var(--r-intro-font);line-height:1.05;margin:0">intro</p></div>
+  <div class="r-search region control" data-region="search"><!-- full width search control: match the control's lettering and visible shape to the crop (comp-spec.mjs --crop search); a control need not have button chrome --></div>
+  <div class="r-categories region control" data-region="categories"><!-- horizontal category tabs: match the control's lettering and visible shape to the crop (comp-spec.mjs --crop categories); a control need not have button chrome --></div>
+  <div class="r-ledger region control" data-region="ledger"><!-- catalog table with its rows and expanded detail disclosure: match the control's lettering and visible shape to the crop (comp-spec.mjs --crop ledger); a control need not have button chrome --></div>
+  <div class="r-table-head region text" data-region="table-head"><!-- ledger column labels --><p style="font-size:var(--r-table-head-font);line-height:1.05;margin:0">table-head</p></div>
+  <div class="r-expanded-title region text" data-region="expanded-title"><!-- selected mod title --><p style="font-size:var(--r-expanded-title-font);line-height:1.05;margin:0">expanded-title</p></div>
+  <div class="r-expanded-meta region text" data-region="expanded-meta"><!-- mod attribution metadata --><p style="font-size:var(--r-expanded-meta-font);line-height:1.05;margin:0">expanded-meta</p></div>
+  <div class="r-summary-heading region text" data-region="summary-heading"><!-- mod summary section label --><p style="font-size:var(--r-summary-heading-font);line-height:1.05;margin:0">summary-heading</p></div>
+  <div class="r-summary-copy region text" data-region="summary-copy"><!-- mod description paragraph --><p style="font-size:var(--r-summary-copy-font);line-height:1.05;margin:0">summary-copy</p></div>
+  <div class="r-release-heading region text" data-region="release-heading"><!-- release list section label --><p style="font-size:var(--r-release-heading-font);line-height:1.05;margin:0">release-heading</p></div>
+  <div class="r-release-list region text" data-region="release-list"><!-- release history entries --><p style="font-size:var(--r-release-list-font);line-height:1.05;margin:0">release-list</p></div>
+  <div class="r-download-heading region text" data-region="download-heading"><!-- pak downloads heading --><p style="font-size:var(--r-download-heading-font);line-height:1.05;margin:0">download-heading</p></div>
+  <div class="r-download-options region control" data-region="download-options"><!-- file variant selection: match the control's lettering and visible shape to the crop (comp-spec.mjs --crop download-options); a control need not have button chrome --></div>
+  <div class="r-download-button region control" data-region="download-button"><!-- download action: match the control's lettering and visible shape to the crop (comp-spec.mjs --crop download-button); a control need not have button chrome --></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,11 @@
+.dev.vars
+.wrangler/
+.impeccable/build/headless-profile/
+node_modules/
+bot/.env
+bot/state.json
+bot/state.json.tmp
+*.sqlite
+*.sqlite3
+*.db
+*.log

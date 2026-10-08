@@ -1,0 +1,1276 @@
+{
+  "tool": "comp-spec",
+  "version": 1,
+  "createdAt": "2026-10-07T14:41:12.345Z",
+  "comp": ".impeccable\\mocks\\02-archive-ledger.png",
+  "warnings": [
+    "region ledger: \"container\": true set in the regions file (the region-size refusal is overridden: one undivided element)"
+  ],
+  "uncoveredInkCells": [],
+  "compSize": {
+    "width": 1520,
+    "height": 1035
+  },
+  "aspect": 1.4686,
+  "orientation": "landscape",
+  "palette": [
+    {
+      "hex": "#181826",
+      "coverage": 0.8252
+    },
+    {
+      "hex": "#152525",
+      "coverage": 0.086
+    },
+    {
+      "hex": "#433625",
+      "coverage": 0.0474
+    },
+    {
+      "hex": "#495159",
+      "coverage": 0.0211
+    },
+    {
+      "hex": "#f8c12b",
+      "coverage": 0.0203
+    }
+  ],
+  "bands": [
+    {
+      "y": 0.069,
+      "strength": 0.5299
+    },
+    {
+      "y": 0.1034,
+      "strength": 0.3683
+    },
+    {
+      "y": 0.1494,
+      "strength": 0.2584
+    },
+    {
+      "y": 0.1954,
+      "strength": 0.2752
+    },
+    {
+      "y": 0.2414,
+      "strength": 0.2873
+    },
+    {
+      "y": 0.2759,
+      "strength": 0.3038
+    },
+    {
+      "y": 0.4368,
+      "strength": 0.2199
+    },
+    {
+      "y": 0.5057,
+      "strength": 0.2483
+    },
+    {
+      "y": 0.5402,
+      "strength": 0.2736
+    },
+    {
+      "y": 0.5862,
+      "strength": 0.2496
+    },
+    {
+      "y": 0.6322,
+      "strength": 0.2173
+    },
+    {
+      "y": 0.6667,
+      "strength": 0.2021
+    },
+    {
+      "y": 0.7241,
+      "strength": 0.3653
+    },
+    {
+      "y": 0.7586,
+      "strength": 0.4491
+    },
+    {
+      "y": 0.8046,
+      "strength": 0.3333
+    },
+    {
+      "y": 0.8736,
+      "strength": 0.2146
+    }
+  ],
+  "regions": [
+    {
+      "id": "masthead",
+      "kind": "chrome",
+      "note": "top navigation bar and hazard stripe",
+      "grid": "A0:J0",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 0,
+        "w": 1520,
+        "h": 104
+      },
+      "aspect": 14.6154,
+      "palette": [
+        {
+          "hex": "#181828",
+          "coverage": 0.8286
+        },
+        {
+          "hex": "#e7ad45",
+          "coverage": 0.0987
+        },
+        {
+          "hex": "#121a1a",
+          "coverage": 0.0418
+        },
+        {
+          "hex": "#5b686b",
+          "coverage": 0.0237
+        },
+        {
+          "hex": "#9e9867",
+          "coverage": 0.0072
+        }
+      ],
+      "detail": {
+        "energy": 25.8675
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      }
+    },
+    {
+      "id": "brand",
+      "kind": "text",
+      "note": "PAK HUB wordmark",
+      "grid": "A0:B0",
+      "coverBox": {
+        "x": 0,
+        "y": 0,
+        "w": 0.2,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 0.2,
+        "h": 0.0754
+      },
+      "px": {
+        "x": 0,
+        "y": 0,
+        "w": 304,
+        "h": 78
+      },
+      "aspect": 3.8974,
+      "palette": [
+        {
+          "hex": "#e7ac44",
+          "coverage": 0.5822
+        },
+        {
+          "hex": "#161727",
+          "coverage": 0.2254
+        },
+        {
+          "hex": "#131b1b",
+          "coverage": 0.1354
+        },
+        {
+          "hex": "#9a9868",
+          "coverage": 0.0342
+        },
+        {
+          "hex": "#7e6633",
+          "coverage": 0.0227
+        }
+      ],
+      "detail": {
+        "energy": 30.2831
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 9,
+          "capHeightPx": 36,
+          "inkIsDark": true,
+          "allCaps": true,
+          "advance": 0.8063,
+          "advTall": 0.8063,
+          "advX": null,
+          "gap": 0.1668,
+          "xRatio": null,
+          "stemW": 0.2955,
+          "contrast": 1.2329,
+          "serif": 0.9908,
+          "densTall": 0.7805,
+          "densX": null,
+          "weight": 0.7805
+        },
+        "widthClass": "wide",
+        "weightClass": "black"
+      }
+    },
+    {
+      "id": "page-title",
+      "kind": "text",
+      "note": "PAK ARCHIVE INDEX headline",
+      "grid": "A1:D1",
+      "box": {
+        "x": 0,
+        "y": 0.1,
+        "w": 0.4,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 104,
+        "w": 608,
+        "h": 104
+      },
+      "aspect": 5.8462,
+      "palette": [
+        {
+          "hex": "#171725",
+          "coverage": 0.6864
+        },
+        {
+          "hex": "#f8bf2d",
+          "coverage": 0.168
+        },
+        {
+          "hex": "#0f1c1c",
+          "coverage": 0.1138
+        },
+        {
+          "hex": "#be8f2a",
+          "coverage": 0.0187
+        },
+        {
+          "hex": "#d4dee3",
+          "coverage": 0.0131
+        }
+      ],
+      "detail": {
+        "energy": 49.5134
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 15,
+          "capHeightPx": 38,
+          "inkIsDark": false,
+          "allCaps": true,
+          "advance": 0.7895,
+          "advTall": 0.7895,
+          "advX": null,
+          "gap": 0.1711,
+          "xRatio": null,
+          "stemW": 0.2968,
+          "contrast": 1.2129,
+          "serif": 0.9912,
+          "densTall": 0.7897,
+          "densX": null,
+          "weight": 0.7897
+        },
+        "widthClass": "wide",
+        "weightClass": "black",
+        "chosen": {
+          "family": "Passion One",
+          "weight": 400,
+          "fontSizePx": 61,
+          "source": "index",
+          "fp": {
+            "lines": 1,
+            "glyphs": 15,
+            "capHeightPx": 38,
+            "inkIsDark": true,
+            "allCaps": true,
+            "advance": 0.6842,
+            "advTall": 0.6842,
+            "advX": null,
+            "gap": 0.1316,
+            "xRatio": null,
+            "stemW": 0.2729,
+            "contrast": 1.1999,
+            "serif": 1,
+            "densTall": 0.7901,
+            "densX": null,
+            "weight": 0.7901
+          },
+          "stamp": "0cd1690ec2ef"
+        }
+      }
+    },
+    {
+      "id": "intro",
+      "kind": "text",
+      "note": "subtitle below the headline",
+      "grid": "A1:H1",
+      "box": {
+        "x": 0,
+        "y": 0.1,
+        "w": 0.8,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 104,
+        "w": 1216,
+        "h": 104
+      },
+      "aspect": 11.6923,
+      "palette": [
+        {
+          "hex": "#171726",
+          "coverage": 0.8378
+        },
+        {
+          "hex": "#f8bf2d",
+          "coverage": 0.0812
+        },
+        {
+          "hex": "#132323",
+          "coverage": 0.0629
+        },
+        {
+          "hex": "#aab2ba",
+          "coverage": 0.0103
+        },
+        {
+          "hex": "#bd8f2a",
+          "coverage": 0.0078
+        }
+      ],
+      "detail": {
+        "energy": 37.2323
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 15,
+          "capHeightPx": 38,
+          "inkIsDark": false,
+          "allCaps": true,
+          "advance": 0.7894,
+          "advTall": 0.7894,
+          "advX": null,
+          "gap": 0.171,
+          "xRatio": null,
+          "stemW": 0.2974,
+          "contrast": 1.2112,
+          "serif": 0.991,
+          "densTall": 0.7917,
+          "densX": null,
+          "weight": 0.7917
+        },
+        "widthClass": "wide",
+        "weightClass": "black"
+      }
+    },
+    {
+      "id": "search",
+      "kind": "control",
+      "note": "full width search control",
+      "grid": "A2:J2",
+      "box": {
+        "x": 0,
+        "y": 0.2,
+        "w": 1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 207,
+        "w": 1520,
+        "h": 104
+      },
+      "aspect": 14.6154,
+      "palette": [
+        {
+          "hex": "#181929",
+          "coverage": 0.6079
+        },
+        {
+          "hex": "#182727",
+          "coverage": 0.3703
+        },
+        {
+          "hex": "#bec6ce",
+          "coverage": 0.0076
+        },
+        {
+          "hex": "#828e92",
+          "coverage": 0.0076
+        },
+        {
+          "hex": "#3e444e",
+          "coverage": 0.0066
+        }
+      ],
+      "detail": {
+        "energy": 15.6147
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      }
+    },
+    {
+      "id": "categories",
+      "kind": "control",
+      "note": "horizontal category tabs",
+      "grid": "A2:J2",
+      "box": {
+        "x": 0,
+        "y": 0.2,
+        "w": 1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 207,
+        "w": 1520,
+        "h": 104
+      },
+      "aspect": 14.6154,
+      "palette": [
+        {
+          "hex": "#181929",
+          "coverage": 0.6079
+        },
+        {
+          "hex": "#182727",
+          "coverage": 0.3703
+        },
+        {
+          "hex": "#bec6ce",
+          "coverage": 0.0076
+        },
+        {
+          "hex": "#828e92",
+          "coverage": 0.0076
+        },
+        {
+          "hex": "#3e444e",
+          "coverage": 0.0066
+        }
+      ],
+      "detail": {
+        "energy": 15.6147
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      }
+    },
+    {
+      "id": "ledger",
+      "kind": "control",
+      "note": "catalog table with its rows and expanded detail disclosure",
+      "grid": "A3:J9",
+      "container": true,
+      "box": {
+        "x": 0,
+        "y": 0.3,
+        "w": 1,
+        "h": 0.7
+      },
+      "px": {
+        "x": 0,
+        "y": 311,
+        "w": 1520,
+        "h": 725
+      },
+      "aspect": 2.0966,
+      "palette": [
+        {
+          "hex": "#171825",
+          "coverage": 0.8891
+        },
+        {
+          "hex": "#433626",
+          "coverage": 0.0704
+        },
+        {
+          "hex": "#f8c32a",
+          "coverage": 0.0168
+        },
+        {
+          "hex": "#61676c",
+          "coverage": 0.0121
+        },
+        {
+          "hex": "#e1e4e7",
+          "coverage": 0.0116
+        }
+      ],
+      "detail": {
+        "energy": 19.965
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      }
+    },
+    {
+      "id": "table-head",
+      "kind": "text",
+      "note": "ledger column labels",
+      "grid": "A3:J3",
+      "coverBox": {
+        "x": 0,
+        "y": 0.3,
+        "w": 1,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.0118,
+        "y": 0.3121,
+        "w": 0.975,
+        "h": 0.0889
+      },
+      "px": {
+        "x": 18,
+        "y": 323,
+        "w": 1482,
+        "h": 92
+      },
+      "aspect": 16.1087,
+      "palette": [
+        {
+          "hex": "#181826",
+          "coverage": 0.9385
+        },
+        {
+          "hex": "#8d9698",
+          "coverage": 0.039
+        },
+        {
+          "hex": "#212f2f",
+          "coverage": 0.011
+        },
+        {
+          "hex": "#e9eced",
+          "coverage": 0.0087
+        },
+        {
+          "hex": "#c9c9d5",
+          "coverage": 0.0028
+        }
+      ],
+      "detail": {
+        "energy": 15.2816
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "type": {
+        "comp": {
+          "lines": 2,
+          "glyphs": 82,
+          "capHeightPx": 12.4,
+          "inkIsDark": false,
+          "allCaps": true,
+          "advance": 0.566,
+          "advTall": 0.6151,
+          "advX": null,
+          "gap": 0.1061,
+          "xRatio": null,
+          "stemW": 0.1852,
+          "contrast": 1.088,
+          "serif": 0.599,
+          "densTall": 0.6511,
+          "densX": null,
+          "weight": 0.6511
+        },
+        "widthClass": "normal",
+        "weightClass": "bold"
+      }
+    },
+    {
+      "id": "expanded-title",
+      "kind": "text",
+      "note": "selected mod title",
+      "grid": "A5:D6",
+      "box": {
+        "x": 0,
+        "y": 0.5,
+        "w": 0.4,
+        "h": 0.2
+      },
+      "px": {
+        "x": 0,
+        "y": 518,
+        "w": 608,
+        "h": 207
+      },
+      "aspect": 2.9372,
+      "palette": [
+        {
+          "hex": "#161720",
+          "coverage": 0.7849
+        },
+        {
+          "hex": "#453827",
+          "coverage": 0.1496
+        },
+        {
+          "hex": "#f7c12d",
+          "coverage": 0.0254
+        },
+        {
+          "hex": "#dbdfe0",
+          "coverage": 0.0216
+        },
+        {
+          "hex": "#50545b",
+          "coverage": 0.0184
+        }
+      ],
+      "detail": {
+        "energy": 33.084
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "type": {
+        "comp": {
+          "lines": 2,
+          "glyphs": 23,
+          "capHeightPx": 34,
+          "inkIsDark": false,
+          "allCaps": false,
+          "advance": 0.422,
+          "advTall": 0.422,
+          "advX": 0.422,
+          "gap": 0.0515,
+          "xRatio": 0.5641,
+          "stemW": 0.1403,
+          "contrast": 3.1013,
+          "serif": 0.9967,
+          "densTall": 0.4789,
+          "densX": 0.8027,
+          "weight": 0.4789
+        },
+        "widthClass": "condensed",
+        "weightClass": "regular"
+      }
+    },
+    {
+      "id": "expanded-meta",
+      "kind": "text",
+      "note": "mod attribution metadata",
+      "grid": "A6:G6",
+      "box": {
+        "x": 0,
+        "y": 0.6,
+        "w": 0.7,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 621,
+        "w": 1064,
+        "h": 104
+      },
+      "aspect": 10.2308,
+      "palette": [
+        {
+          "hex": "#171822",
+          "coverage": 0.8857
+        },
+        {
+          "hex": "#767b81",
+          "coverage": 0.0475
+        },
+        {
+          "hex": "#bdc2c8",
+          "coverage": 0.0354
+        },
+        {
+          "hex": "#40464e",
+          "coverage": 0.0179
+        },
+        {
+          "hex": "#edf0f2",
+          "coverage": 0.0136
+        }
+      ],
+      "detail": {
+        "energy": 26.7742
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "type": {
+        "comp": {
+          "lines": 1,
+          "glyphs": 70,
+          "capHeightPx": 32.9,
+          "inkIsDark": false,
+          "allCaps": false,
+          "advance": 0.2129,
+          "advTall": 0.2129,
+          "advX": null,
+          "gap": 0.0608,
+          "xRatio": 0.5778,
+          "stemW": 0.0536,
+          "contrast": 0.947,
+          "serif": 1.0007,
+          "densTall": 0.2798,
+          "densX": null,
+          "weight": 0.2798
+        },
+        "widthClass": "compressed",
+        "weightClass": "light"
+      }
+    },
+    {
+      "id": "summary-heading",
+      "kind": "text",
+      "note": "mod summary section label",
+      "grid": "A6:D7",
+      "box": {
+        "x": 0,
+        "y": 0.6,
+        "w": 0.4,
+        "h": 0.2
+      },
+      "px": {
+        "x": 0,
+        "y": 621,
+        "w": 608,
+        "h": 207
+      },
+      "aspect": 2.9372,
+      "palette": [
+        {
+          "hex": "#171823",
+          "coverage": 0.9135
+        },
+        {
+          "hex": "#747a80",
+          "coverage": 0.0285
+        },
+        {
+          "hex": "#b2b7bd",
+          "coverage": 0.026
+        },
+        {
+          "hex": "#e0e5e8",
+          "coverage": 0.0208
+        },
+        {
+          "hex": "#32383d",
+          "coverage": 0.0112
+        }
+      ],
+      "detail": {
+        "energy": 26.6445
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "type": {
+        "comp": {
+          "lines": 5,
+          "glyphs": 227,
+          "capHeightPx": 10.8,
+          "inkIsDark": false,
+          "allCaps": false,
+          "advance": 0.5939,
+          "advTall": 0.6252,
+          "advX": 0.5899,
+          "gap": 0.1107,
+          "xRatio": 0.7162,
+          "stemW": 0.1752,
+          "contrast": 1.0683,
+          "serif": 0.3421,
+          "densTall": 0.5726,
+          "densX": 0.6069,
+          "weight": 0.5726
+        },
+        "widthClass": "normal",
+        "weightClass": "bold"
+      }
+    },
+    {
+      "id": "summary-copy",
+      "kind": "text",
+      "note": "mod description paragraph",
+      "grid": "A6:D7",
+      "box": {
+        "x": 0,
+        "y": 0.6,
+        "w": 0.4,
+        "h": 0.2
+      },
+      "px": {
+        "x": 0,
+        "y": 621,
+        "w": 608,
+        "h": 207
+      },
+      "aspect": 2.9372,
+      "palette": [
+        {
+          "hex": "#171823",
+          "coverage": 0.9135
+        },
+        {
+          "hex": "#747a80",
+          "coverage": 0.0285
+        },
+        {
+          "hex": "#b2b7bd",
+          "coverage": 0.026
+        },
+        {
+          "hex": "#e0e5e8",
+          "coverage": 0.0208
+        },
+        {
+          "hex": "#32383d",
+          "coverage": 0.0112
+        }
+      ],
+      "detail": {
+        "energy": 26.6445
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "type": {
+        "comp": {
+          "lines": 5,
+          "glyphs": 227,
+          "capHeightPx": 10.8,
+          "inkIsDark": false,
+          "allCaps": false,
+          "advance": 0.5939,
+          "advTall": 0.6252,
+          "advX": 0.5899,
+          "gap": 0.1107,
+          "xRatio": 0.7162,
+          "stemW": 0.1752,
+          "contrast": 1.0683,
+          "serif": 0.3421,
+          "densTall": 0.5726,
+          "densX": 0.6069,
+          "weight": 0.5726
+        },
+        "widthClass": "normal",
+        "weightClass": "bold"
+      }
+    },
+    {
+      "id": "release-heading",
+      "kind": "text",
+      "note": "release list section label",
+      "grid": "D6:G6",
+      "box": {
+        "x": 0.3,
+        "y": 0.6,
+        "w": 0.4,
+        "h": 0.1
+      },
+      "px": {
+        "x": 456,
+        "y": 621,
+        "w": 608,
+        "h": 104
+      },
+      "aspect": 5.8462,
+      "palette": [
+        {
+          "hex": "#171821",
+          "coverage": 0.916
+        },
+        {
+          "hex": "#74787e",
+          "coverage": 0.041
+        },
+        {
+          "hex": "#bdc2c6",
+          "coverage": 0.0213
+        },
+        {
+          "hex": "#424950",
+          "coverage": 0.0124
+        },
+        {
+          "hex": "#f1f3f3",
+          "coverage": 0.0092
+        }
+      ],
+      "detail": {
+        "energy": 20.6723
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "type": {
+        "comp": {
+          "lines": 2,
+          "glyphs": 46,
+          "capHeightPx": 10.6,
+          "inkIsDark": false,
+          "allCaps": true,
+          "advance": 0.6349,
+          "advTall": 0.6349,
+          "advX": null,
+          "gap": 0.1561,
+          "xRatio": null,
+          "stemW": 0.2002,
+          "contrast": 1.1385,
+          "serif": 1.0979,
+          "densTall": 0.5823,
+          "densX": null,
+          "weight": 0.5823
+        },
+        "widthClass": "normal",
+        "weightClass": "bold"
+      }
+    },
+    {
+      "id": "release-list",
+      "kind": "text",
+      "note": "release history entries",
+      "grid": "D6:G7",
+      "box": {
+        "x": 0.3,
+        "y": 0.6,
+        "w": 0.4,
+        "h": 0.2
+      },
+      "px": {
+        "x": 456,
+        "y": 621,
+        "w": 608,
+        "h": 207
+      },
+      "aspect": 2.9372,
+      "palette": [
+        {
+          "hex": "#171823",
+          "coverage": 0.9357
+        },
+        {
+          "hex": "#6e727a",
+          "coverage": 0.0272
+        },
+        {
+          "hex": "#bbc0c6",
+          "coverage": 0.0187
+        },
+        {
+          "hex": "#3d444a",
+          "coverage": 0.0108
+        },
+        {
+          "hex": "#eff2f3",
+          "coverage": 0.0076
+        }
+      ],
+      "detail": {
+        "energy": 18.0311
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "type": {
+        "comp": {
+          "lines": 4,
+          "glyphs": 122,
+          "capHeightPx": 10.7,
+          "inkIsDark": false,
+          "allCaps": true,
+          "advance": 0.6244,
+          "advTall": 0.6349,
+          "advX": null,
+          "gap": 0.125,
+          "xRatio": null,
+          "stemW": 0.1856,
+          "contrast": 1.1294,
+          "serif": 1.1077,
+          "densTall": 0.5774,
+          "densX": null,
+          "weight": 0.5774
+        },
+        "widthClass": "normal",
+        "weightClass": "bold"
+      }
+    },
+    {
+      "id": "download-heading",
+      "kind": "text",
+      "note": "pak downloads heading",
+      "grid": "H6:J6",
+      "coverBox": {
+        "x": 0.7,
+        "y": 0.6,
+        "w": 0.3,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.7,
+        "y": 0.6232,
+        "w": 0.2684,
+        "h": 0.0773
+      },
+      "px": {
+        "x": 1064,
+        "y": 645,
+        "w": 408,
+        "h": 80
+      },
+      "aspect": 5.1,
+      "palette": [
+        {
+          "hex": "#342b20",
+          "coverage": 0.509
+        },
+        {
+          "hex": "#161621",
+          "coverage": 0.4406
+        },
+        {
+          "hex": "#ebece9",
+          "coverage": 0.018
+        },
+        {
+          "hex": "#b0b0ab",
+          "coverage": 0.0169
+        },
+        {
+          "hex": "#3d3d21",
+          "coverage": 0.0155
+        }
+      ],
+      "detail": {
+        "energy": 28.4878
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "type": {
+        "comp": {
+          "lines": 2,
+          "glyphs": 50,
+          "capHeightPx": 9.4,
+          "inkIsDark": false,
+          "allCaps": true,
+          "advance": 0.6535,
+          "advTall": 0.6535,
+          "advX": null,
+          "gap": 0.1955,
+          "xRatio": null,
+          "stemW": 0.2362,
+          "contrast": 1.0238,
+          "serif": 1.088,
+          "densTall": 0.6561,
+          "densX": null,
+          "weight": 0.6561
+        },
+        "widthClass": "normal",
+        "weightClass": "bold"
+      }
+    },
+    {
+      "id": "download-options",
+      "kind": "control",
+      "note": "file variant selection",
+      "grid": "H6:J7",
+      "coverBox": {
+        "x": 0.7,
+        "y": 0.6,
+        "w": 0.3,
+        "h": 0.2
+      },
+      "box": {
+        "x": 0.7,
+        "y": 0.6232,
+        "w": 0.2684,
+        "h": 0.1768
+      },
+      "px": {
+        "x": 1064,
+        "y": 645,
+        "w": 408,
+        "h": 183
+      },
+      "aspect": 2.2295,
+      "palette": [
+        {
+          "hex": "#161720",
+          "coverage": 0.5307
+        },
+        {
+          "hex": "#342b20",
+          "coverage": 0.2368
+        },
+        {
+          "hex": "#f8c327",
+          "coverage": 0.1958
+        },
+        {
+          "hex": "#7b6221",
+          "coverage": 0.0186
+        },
+        {
+          "hex": "#b4891b",
+          "coverage": 0.0182
+        }
+      ],
+      "detail": {
+        "energy": 31.2921
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": true,
+        "rules": false
+      }
+    },
+    {
+      "id": "download-button",
+      "kind": "control",
+      "note": "download action",
+      "grid": "H7:J7",
+      "coverBox": {
+        "x": 0.7,
+        "y": 0.7,
+        "w": 0.3,
+        "h": 0.1
+      },
+      "box": {
+        "x": 0.7,
+        "y": 0.7005,
+        "w": 0.2684,
+        "h": 0.1005
+      },
+      "px": {
+        "x": 1064,
+        "y": 725,
+        "w": 408,
+        "h": 104
+      },
+      "aspect": 3.9231,
+      "palette": [
+        {
+          "hex": "#15171f",
+          "coverage": 0.5847
+        },
+        {
+          "hex": "#f8c328",
+          "coverage": 0.3363
+        },
+        {
+          "hex": "#343729",
+          "coverage": 0.032
+        },
+        {
+          "hex": "#484418",
+          "coverage": 0.0298
+        },
+        {
+          "hex": "#e5e9eb",
+          "coverage": 0.0172
+        }
+      ],
+      "detail": {
+        "energy": 34.4263
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      }
+    }
+  ],
+  "compSha256": "1e286806a87e8565891aeefae6e69b26ef86ba9c827bea468f77e41a6722d02f",
+  "regionsSource": {
+    "path": ".impeccable\\build\\regions.json",
+    "sha256": "f35e5b2fd01f41bd08f568d434371baf983edaffbbf9742997c7e27d3ca0995d"
+  }
+}

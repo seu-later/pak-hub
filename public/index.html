@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#171821">
+    <meta name="description" content="Search the community Pak Hub archive for Deep Rock Galactic mods, releases, and pak variants.">
+    <title>Pak Hub — Pak Archive Index</title>
+    <link rel="preload" href="assets/WhiteRabbit.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#catalog">Skip to the pak archive</a>
+    <div class="app-shell" id="app-shell">
+      <header class="site-header r-masthead">
+        <a class="brand-block r-brand" href="#catalog" aria-label="Pak Hub catalog home">
+          <span class="brand-pip" aria-hidden="true"></span>
+          <span class="brand-name">PAK HUB</span>
+          <span class="brand-cut" aria-hidden="true"></span>
+        </a>
+        <nav class="primary-nav" aria-label="Primary navigation">
+          <a class="nav-current" href="#catalog" aria-current="page">CATALOG</a>
+        </nav>
+        <div class="header-hazard" aria-hidden="true"></div>
+        <p class="header-note">MODS KEEP<br>THE CAVES INTERESTING</p>
+      </header>
+
+      <main id="catalog" class="catalog-stage">
+        <section class="page-intro" aria-labelledby="page-title">
+          <h1 id="page-title" class="r-page-title">PAK ARCHIVE INDEX</h1>
+          <p class="page-lede r-intro">Search and browse community pak mods for Deep Rock Galactic. New tools. New visuals. New ways to play.</p>
+          <p id="demo-notice" class="demo-notice" hidden>
+            <span class="signal-dot" aria-hidden="true"></span>
+            <span><strong>DEMO DATA</strong> Synthetic preview · downloads disabled</span>
+          </p>
+        </section>
+
+        <form class="search-bar r-search" role="search">
+          <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="10.8" cy="10.8" r="6.8"></circle>
+            <path d="m16 16 4.7 4.7"></path>
+          </svg>
+          <label class="visually-hidden" for="search-field">Search pak mods</label>
+          <input id="search-field" name="q" type="search" maxlength="100" placeholder="Search pak mods by name, creator, keyword..." autocomplete="off">
+          <button id="clear-search" class="clear-search" type="button" aria-label="Clear search" hidden>×</button>
+        </form>
+
+        <nav id="category-filters" class="category-filters r-categories" aria-label="Filter by category"></nav>
+
+        <section class="archive-shell r-ledger" aria-label="Pak mod archive">
+          <table class="ledger-table" aria-label="Pak mod catalog">
+            <colgroup>
+              <col class="col-name">
+              <col class="col-category">
+              <col class="col-creator">
+              <col class="col-release">
+              <col class="col-added">
+              <col class="col-open">
+            </colgroup>
+            <thead>
+              <tr class="ledger-head r-table-head">
+                <th class="column-name" scope="col">
+                  <button class="sort-button" type="button" data-sort="name" aria-label="Sort by mod name">NAME</button>
+                </th>
+                <th class="column-category" scope="col">CATEGORY</th>
+                <th class="column-creator" scope="col">CREATOR</th>
+                <th class="column-release" scope="col">
+                  <button class="sort-button sort-active" type="button" data-sort="newest" aria-label="Sort by newest release">
+                  RELEASE <span class="sort-caret" aria-hidden="true">▼</span>
+                  </button>
+                </th>
+                <th class="column-added" scope="col">
+                  <button class="sort-button sort-active" type="button" data-sort="newest" aria-label="Sort by date added">
+                  ADDED <span class="sort-caret" aria-hidden="true">▼</span>
+                  </button>
+                </th>
+                <th class="column-open" scope="col"><span class="visually-hidden">Open mod details</span></th>
+              </tr>
+            </thead>
+            <tbody id="mod-rows"></tbody>
+          </table>
+          <div id="archive-state" class="archive-state" role="status" aria-live="polite" hidden></div>
+          <div class="archive-footer">
+            <p id="result-count" class="result-count" aria-live="polite"></p>
+            <button id="load-more" class="load-more" type="button" hidden>LOAD MORE <span aria-hidden="true">↓</span></button>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>PAK HUB // COMMUNITY ARCHIVE</span>
+        <span>FILE REPORTS: USE THE SOURCE LINK ON EACH MOD</span>
+        <span class="footer-status"><i aria-hidden="true"></i> ARCHIVE LINK READY</span>
+      </footer>
+      <p id="live-status" class="visually-hidden" role="status" aria-live="polite"></p>
+    </div>
+  </body>
+</html>

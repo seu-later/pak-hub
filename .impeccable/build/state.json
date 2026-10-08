@@ -1,0 +1,264 @@
+{
+  "tool": "build-phase",
+  "version": 2,
+  "startedAt": "2026-10-07T14:39:22.112Z",
+  "comp": ".impeccable\\mocks\\02-archive-ledger.png",
+  "direction": null,
+  "breakpoint": "1520x1035",
+  "artifact": "public\\index.html",
+  "phase": "hero",
+  "phases": {
+    "comps": {
+      "status": "skipped",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [
+        {
+          "at": "2026-10-07T14:39:22.112Z",
+          "text": "started with an approved comp; the comp round happened before this state (surface round or manual)"
+        }
+      ],
+      "gate": null,
+      "forced": null
+    },
+    "spec": {
+      "status": "closed",
+      "openedAt": "2026-10-07T14:39:22.112Z",
+      "closedAt": "2026-10-07T14:41:31.401Z",
+      "attempts": 1,
+      "notes": [],
+      "gate": {
+        "ok": true,
+        "reasons": [],
+        "summary": "17 regions, 0 plates, 11 text regions measured",
+        "at": "2026-10-07T14:41:31.401Z"
+      },
+      "forced": null
+    },
+    "plates": {
+      "status": "closed",
+      "openedAt": "2026-10-07T14:41:31.401Z",
+      "closedAt": "2026-10-07T14:48:04.950Z",
+      "attempts": 2,
+      "notes": [],
+      "gate": {
+        "ok": true,
+        "reasons": [],
+        "summary": "no plates owed",
+        "at": "2026-10-07T14:48:04.946Z"
+      },
+      "forced": null
+    },
+    "hero": {
+      "status": "open",
+      "openedAt": "2026-10-07T14:48:04.950Z",
+      "closedAt": null,
+      "attempts": 5,
+      "notes": [],
+      "gate": {
+        "ok": false,
+        "reasons": [
+          "region download-button (control) is contradicted (structure 61%, detail added 0%): this control differs from the comp: inspect its lettering and visible shape separately against the crop and the measured readings; preserve the region's control classification",
+          "control download-options drifts to 59% (structure 66%, color 51%): open .impeccable/review/diff/hero/regions/download-options.png and compare its lettering and visible shape separately; use the measured readings and preserve the region's control classification"
+        ],
+        "regionReasons": {
+          "download-button": [
+            "region download-button (control) is contradicted (structure 61%, detail added 0%): this control differs from the comp: inspect its lettering and visible shape separately against the crop and the measured readings; preserve the region's control classification"
+          ],
+          "download-options": [
+            "control download-options drifts to 59% (structure 66%, color 51%): open .impeccable/review/diff/hero/regions/download-options.png and compare its lettering and visible shape separately; use the measured readings and preserve the region's control classification"
+          ]
+        },
+        "summary": "hero 81% (match)",
+        "score": 0.8064,
+        "verdict": "match",
+        "report": ".impeccable/review/diff/hero/report.json",
+        "sideBySide": "C:/Users/seu/Documents/drgmodding/PakHub/.impeccable/review/diff/hero/side-by-side.png",
+        "worst": [
+          "download-button contradicted 51%",
+          "download-options drift 59%"
+        ],
+        "worstIds": [
+          "download-button",
+          "download-options"
+        ],
+        "worstCrops": [
+          {
+            "id": "download-button",
+            "verdict": "contradicted",
+            "score": {
+              "overall": 0.5146,
+              "structure": 0.6099,
+              "color": 0.3917,
+              "colorIntersection": 0.2606,
+              "paletteMatch": 0.4623,
+              "detail": 0.5152,
+              "detailRaw": 0.5152,
+              "detailAdded": 0,
+              "bands": 0.7273
+            },
+            "file": ".impeccable/review/diff/hero/regions/download-button.png"
+          },
+          {
+            "id": "download-options",
+            "verdict": "drift",
+            "score": {
+              "overall": 0.5929,
+              "structure": 0.6569,
+              "color": 0.5095,
+              "colorIntersection": 0.3358,
+              "paletteMatch": 0.6031,
+              "detail": 0.5948,
+              "detailRaw": 0.5948,
+              "detailAdded": 0,
+              "bands": 0.92
+            },
+            "file": ".impeccable/review/diff/hero/regions/download-options.png"
+          }
+        ],
+        "advisories": [
+          "(advisory, unchanged for 3+ attempts) text brand: cap height 26.3px in the build, 36px in the comp (-27%); set font-size so the cap height renders at 36px",
+          "(advisory, unchanged for 3+ attempts) text page-title: cap height 28.5px in the build, 38px in the comp (-25%); set font-size so the cap height renders at 38px (font-match ranked Passion One 400 at 61px)",
+          "(advisory, unchanged for 3+ attempts) text intro: cap height 28.5px in the build, 38px in the comp (-25%); set font-size so the cap height renders at 38px",
+          "(advisory, unchanged for 3+ attempts) text search: cap height 8.5px in the build, 15.2px in the comp (-44%); set font-size so the cap height renders at 15.2px",
+          "(advisory, unchanged for 3+ attempts) text categories: cap height 8.5px in the build, 15.2px in the comp (-44%); set font-size so the cap height renders at 15.2px",
+          "(advisory, unchanged for 3+ attempts) text expanded-title: cap height 9.3px in the build, 34px in the comp (-73%); set font-size so the cap height renders at 34px",
+          "(advisory, unchanged for 3+ attempts) text expanded-meta: cap height 10.8px in the build, 32.9px in the comp (-67%); set font-size so the cap height renders at 32.9px",
+          "(advisory, unchanged for 3+ attempts) text search: 1 line in the build, 2 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape",
+          "(advisory, unchanged for 3+ attempts) text categories: 1 line in the build, 2 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape",
+          "(advisory, unchanged for 3+ attempts) text expanded-title: 4 lines in the build, 2 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape",
+          "(advisory, unchanged for 3+ attempts) text summary-heading: 3 lines in the build, 5 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape",
+          "(advisory, unchanged for 3+ attempts) text summary-copy: 3 lines in the build, 5 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape",
+          "(advisory, unchanged for 3+ attempts) text release-heading: 3 lines in the build, 2 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape",
+          "(advisory, unchanged for 3+ attempts) text release-list: 3 lines in the build, 4 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape",
+          "(advisory, unchanged for 3+ attempts) text brand: ink is #5a1828 in the build, #9a9868 in the comp; use the comp's colour",
+          "(advisory, unchanged for 3+ attempts) text intro: ink is #687878 in the build, #f8bf2d in the comp; use the comp's colour",
+          "(advisory, unchanged for 3+ attempts) text expanded-meta: ink is #c1a172 in the build, #767b81 in the comp; use the comp's colour",
+          "(advisory, unchanged for 3+ attempts) text download-heading: ink is #64b4d2 in the build, #ebece9 in the comp; use the comp's colour",
+          "(advisory, unchanged for 3+ attempts) control download-button: its rule sits 1px into the box in the comp and 57px in the build (+56px), so the strip is taller than the comp's; match the height, not only the position"
+        ],
+        "regionVerdicts": {
+          "masthead": "drift",
+          "brand": "drift",
+          "page-title": "drift",
+          "intro": "match",
+          "search": "drift",
+          "categories": "drift",
+          "ledger": "drift",
+          "table-head": "match",
+          "expanded-title": "drift",
+          "expanded-meta": "drift",
+          "summary-heading": "drift",
+          "summary-copy": "drift",
+          "release-heading": "drift",
+          "release-list": "drift",
+          "download-heading": "drift",
+          "download-options": "drift",
+          "download-button": "contradicted"
+        },
+        "at": "2026-10-07T15:46:18.708Z"
+      },
+      "forced": null,
+      "records": 8,
+      "readingsSeen": {
+        "chrome masthead: its rule sits 68px into the box in the comp and 58px in the build (-10px), so the strip is shorter than the comp's; match the height, not only the position": 1,
+        "text brand: cap height 26.3px in the build, 36px in the comp (-27%); set font-size so the cap height renders at 36px": 7,
+        "text page-title: cap height 28.5px in the build, 38px in the comp (-25%); set font-size so the cap height renders at 38px (font-match ranked Passion One 400 at 61px)": 7,
+        "text intro: cap height 28.5px in the build, 38px in the comp (-25%); set font-size so the cap height renders at 38px": 7,
+        "text search: cap height 8.5px in the build, 15.2px in the comp (-44%); set font-size so the cap height renders at 15.2px": 7,
+        "text categories: cap height 8.5px in the build, 15.2px in the comp (-44%); set font-size so the cap height renders at 15.2px": 7,
+        "text expanded-title: cap height 9.3px in the build, 34px in the comp (-73%); set font-size so the cap height renders at 34px": 10,
+        "text expanded-meta: cap height 10.8px in the build, 32.9px in the comp (-67%); set font-size so the cap height renders at 32.9px": 10,
+        "text search: 1 line in the build, 2 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape": 7,
+        "text categories: 1 line in the build, 2 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape": 7,
+        "text expanded-title: 4 lines in the build, 2 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape": 10,
+        "text summary-heading: 3 lines in the build, 5 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape": 10,
+        "text summary-copy: 3 lines in the build, 5 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape": 10,
+        "text release-heading: 3 lines in the build, 2 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape": 10,
+        "text release-list: 3 lines in the build, 4 in the comp; the measure (max-width, font-size, letter-spacing) wraps it differently, so the block is a different shape": 10,
+        "text brand: ink is #5a1828 in the build, #9a9868 in the comp; use the comp's colour": 7,
+        "text intro: ink is #687878 in the build, #f8bf2d in the comp; use the comp's colour": 7,
+        "text expanded-meta: ink is #c1a172 in the build, #767b81 in the comp; use the comp's colour": 10,
+        "text download-heading: ink is #64b4d2 in the build, #ebece9 in the comp; use the comp's colour": 7,
+        "control download-button: its rule sits 1px into the box in the comp and 57px in the build (+56px), so the strip is taller than the comp's; match the height, not only the position": 7,
+        "text intro: cap height 15.1px in the build, 38px in the comp (-60%); set font-size so the cap height renders at 38px": 3,
+        "text page-title: the face renders 59% lighter than the comp's (ink density 0.32 vs 0.79); raise a weight step or use the ranked face": 3,
+        "text intro: ink is #697879 in the build, #f8bf2d in the comp; use the comp's colour": 3
+      },
+      "history": [
+        {
+          "at": "2026-10-07T15:29:45.082Z",
+          "score": 0.8064,
+          "worstIds": [
+            "download-button",
+            "download-options"
+          ],
+          "blockingReasons": [
+            "region download-button (control) is contradicted (structure 61%, detail added 0%): this control differs from the comp: inspect its lettering and visible shape separately against the crop and the measured readings; preserve the region's control classification",
+            "control download-options drifts to 59% (structure 66%, color 51%): open .impeccable/review/diff/hero/regions/download-options.png and compare its lettering and visible shape separately; use the measured readings and preserve the region's control classification"
+          ],
+          "regionVerdicts": {
+            "masthead": "drift",
+            "brand": "drift",
+            "page-title": "drift",
+            "intro": "match",
+            "search": "drift",
+            "categories": "drift",
+            "ledger": "drift",
+            "table-head": "match",
+            "expanded-title": "drift",
+            "expanded-meta": "drift",
+            "summary-heading": "drift",
+            "summary-copy": "drift",
+            "release-heading": "drift",
+            "release-list": "drift",
+            "download-heading": "drift",
+            "download-options": "drift",
+            "download-button": "contradicted"
+          },
+          "artifactHash": "d4df1dc74733"
+        }
+      ]
+    },
+    "sections": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "motion": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "responsive": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    },
+    "review": {
+      "status": "pending",
+      "openedAt": null,
+      "closedAt": null,
+      "attempts": 0,
+      "notes": [],
+      "gate": null,
+      "forced": null
+    }
+  },
+  "finish": null,
+  "sessionId": "01a115ff-39b8-7931-a9bf-eb1bb0dba32f",
+  "plates": {}
+}
