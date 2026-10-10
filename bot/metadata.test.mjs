@@ -1,27 +1,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { pakAttachments, parseReleaseMetadata, selectReleaseAsset, slugify, uniqueAssetName } from "./metadata.mjs";
+import { pakAttachments, parsePostMetadata, selectReleaseAsset, slugify, uniqueAssetName } from "./metadata.mjs";
 
-test("uses only explicit version text and keeps exact labels", () => {
+test("uses the root post title and summary without interpreting category or version fields", () => {
   const root = { content: "Cool Mod\nCreator: ModMaker\nCategory: Visuals\nSummary: Clear colors" };
-  const release = parseReleaseMetadata({ content: "Version: 1.4 beta" }, root);
+  const post = parsePostMetadata(root);
 
-  assert.equal(release.version, "1.4 beta");
-  assert.equal(release.name, "Cool Mod");
-  assert.equal(release.creator, "ModMaker");
-  assert.equal(release.category, "Visuals");
-  assert.equal(release.summary, "Clear colors");
+  assert.deepEqual(post, { name: "Cool Mod", summary: "Clear colors" });
 });
 
-test("keeps unlabeled versions unversioned and filters non-pak files", () => {
-  const root = { content: "Cool Mod" };
-  const release = parseReleaseMetadata({ content: "Build 7.1 is ready" }, root);
+test("uses a thread name when the root has no title and filters non-pak files", () => {
+  const root = { content: "Creator: ModMaker\nCategory: Visuals" };
+  const post = parsePostMetadata(root, "Cool Mod thread");
   const attachments = new Map([
     ["a", { name: "mod.PAK" }],
     ["b", { name: "readme.txt" }],
   ]);
 
-  assert.equal(release.version, "Unversioned");
+  assert.equal(post.name, "Cool Mod thread");
+  assert.equal("category" in post, false);
+  assert.equal("version" in post, false);
   assert.deepEqual(pakAttachments({ attachments }).map((attachment) => attachment.name), ["mod.PAK"]);
 });
 

@@ -6,7 +6,9 @@ import { onRequestPost } from "./import.js";
 
 test("moving a root release into a later thread removes its empty standalone mod", async () => {
   const database = new DatabaseSync(":memory:");
-  database.exec(readFileSync(new URL("../../migrations/0001_initial.sql", import.meta.url), "utf8"));
+  for (const migration of ["0001_initial.sql", "0002_import_state.sql", "0003_discord_posts.sql"]) {
+    database.exec(readFileSync(new URL(`../../migrations/${migration}`, import.meta.url), "utf8"));
+  }
   const adapter = {
     prepare(sql) {
       const statement = database.prepare(sql);
@@ -66,5 +68,33 @@ test("moving a root release into a later thread removes its empty standalone mod
 
   assert.deepEqual(database.prepare("SELECT slug FROM mods ORDER BY slug").all().map((row) => row.slug), ["sample-mod-thread"]);
   assert.equal(database.prepare("SELECT COUNT(*) AS count FROM releases").get().count, 1);
+  database.close();
+});
+
+test("Discord post migration backfills root metadata and sender for existing rows", () => {
+  const database = new DatabaseSync(":memory:");
+  database.exec(readFileSync(new URL("../../migrations/0001_initial.sql", import.meta.url), "utf8"));
+  database.exec(`
+    INSERT INTO mods (id, slug, name, uploader_name) VALUES (1, 'sample-mod', 'Sample Mod', 'seu');
+    INSERT INTO releases (
+      id, mod_id, source_channel_id, source_message_id, source_message_url, published_at, changelog
+    ) VALUES (
+      1, 1, '123456789012345679', '123456789012345680',
+      'https://discord.com/channels/123456789012345678/123456789012345679/123456789012345680',
+      '2026-10-08T15:12:00.000Z', 'Sample Mod\nInitial message'
+    );
+  `);
+  database.exec(readFileSync(new URL("../../migrations/0002_import_state.sql", import.meta.url), "utf8"));
+  database.prepare("INSERT INTO import_state (id, state_json) VALUES (1, ?)").run('{"channelCursor":"123456789012345680","threadCursors":{}}');
+  database.exec(readFileSync(new URL("../../migrations/0003_discord_posts.sql", import.meta.url), "utf8"));
+
+  const root = database.prepare("SELECT root_message_id, root_posted_at, root_post_content FROM mods").get();
+  assert.equal(root.root_message_id, "123456789012345680");
+  assert.equal(root.root_posted_at, "2026-10-08T15:12:00.000Z");
+  assert.equal(root.root_post_content, "Sample Mod\nInitial message");
+  const post = database.prepare("SELECT posted_by, post_content FROM releases").get();
+  assert.equal(post.posted_by, "seu");
+  assert.equal(post.post_content, "Sample Mod\nInitial message");
+  assert.equal(database.prepare("SELECT COUNT(*) AS count FROM import_state").get().count, 0);
   database.close();
 });

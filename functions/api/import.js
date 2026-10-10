@@ -76,30 +76,34 @@ export async function onRequestPost({ request, env }) {
   const sourceChannelId = text(payload.source_channel_id, 22);
   const sourceMessageId = text(payload.source_message_id, 22);
   const modSourceId = text(payload.mod_source_id, 22);
+  const rootMessageId = text(payload.root_message_id, 22) || modSourceId;
   const sourceMessageUrl = text(payload.source_message_url, 300);
+  const rootMessageUrl = text(payload.root_message_url, 300) || sourceMessageUrl;
   const sourceThreadId = text(payload.source_thread_id, 22) || null;
   const sourceThreadUrl = payload.source_thread_url ? text(payload.source_thread_url, 300) : null;
   const summary = text(payload.summary, 500);
-  const category = text(payload.category, 40, "Other") || "Other";
-  const creator = text(payload.creator, 80, "Unknown") || "Unknown";
   const uploader = text(payload.uploader, 80, "Unknown") || "Unknown";
-  const version = text(payload.version, 100, "Unversioned") || "Unversioned";
-  const channel = ["stable", "beta", "untested", "unknown"].includes(payload.channel) ? payload.channel : "unknown";
-  const changelog = text(payload.changelog, 1500);
+  const rootUploader = text(payload.root_uploader, 80, uploader) || uploader;
+  const postContent = text(payload.post_content, 1500);
+  const rootPostContent = text(payload.root_post_content, 1500);
   const publishedAtInput = text(payload.published_at, 40);
   const publishedAt = publishedAtInput && Number.isFinite(Date.parse(publishedAtInput))
     ? new Date(publishedAtInput).toISOString()
     : new Date().toISOString();
-  const recommended = typeof payload.is_recommended === "boolean" ? payload.is_recommended : null;
+  const rootPostedAtInput = text(payload.root_posted_at, 40);
+  const rootPostedAt = rootPostedAtInput && Number.isFinite(Date.parse(rootPostedAtInput))
+    ? new Date(rootPostedAtInput).toISOString()
+    : publishedAt;
   const files = Array.isArray(payload.files) ? payload.files : [];
 
   if (!name || !validSnowflake(sourceChannelId) || !validSnowflake(sourceMessageId) ||
-      !validSnowflake(modSourceId) || !validDiscordUrl(sourceMessageUrl) ||
+      !validSnowflake(modSourceId) || !validSnowflake(rootMessageId) || !validDiscordUrl(sourceMessageUrl) ||
+      !validDiscordUrl(rootMessageUrl) ||
       (sourceThreadId && !validSnowflake(sourceThreadId)) ||
       (sourceThreadUrl && !validDiscordUrl(sourceThreadUrl, true))) {
     return json({ error: "Required mod or Discord source fields are missing or invalid." }, 400);
   }
-  if (!files.length || files.length > 10) return json({ error: "Provide between 1 and 10 pak files for this release." }, 400);
+  if (!files.length || files.length > 10) return json({ error: "Provide between 1 and 10 pak files for this post." }, 400);
 
   const normalizedFiles = [];
   for (const file of files) {
@@ -127,46 +131,52 @@ export async function onRequestPost({ request, env }) {
 
   try {
     await env.DB.prepare(`
-      INSERT INTO mods (slug, name, summary, category, creator_name, uploader_name)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO mods (
+        slug, name, summary, creator_name, uploader_name, root_message_id, root_posted_at,
+        root_message_url, root_post_content
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(slug) DO UPDATE SET
         name = excluded.name,
         summary = excluded.summary,
-        category = excluded.category,
         creator_name = excluded.creator_name,
         uploader_name = excluded.uploader_name,
+        root_message_id = excluded.root_message_id,
+        root_posted_at = excluded.root_posted_at,
+        root_message_url = excluded.root_message_url,
+        root_post_content = excluded.root_post_content,
         updated_at = CURRENT_TIMESTAMP
-    `).bind(slug, name, summary, category, creator, uploader).run();
+    `).bind(slug, name, summary, rootUploader, rootUploader, rootMessageId, rootPostedAt, rootMessageUrl, rootPostContent).run();
 
     const mod = await env.DB.prepare("SELECT id FROM mods WHERE slug = ?").bind(slug).first();
     if (!mod) throw new Error("Mod row was not available after import.");
     const previousRelease = await env.DB.prepare("SELECT mod_id FROM releases WHERE source_message_id = ?")
       .bind(sourceMessageId).first();
-    if (recommended === true) {
-      await env.DB.prepare("UPDATE releases SET is_recommended = 0 WHERE mod_id = ?").bind(mod.id).run();
-    }
 
     const releaseValues = [
-      mod.id, version, channel, changelog, publishedAt, recommended === true ? 1 : 0,
+      mod.id, "Unversioned", "unknown", postContent, publishedAt, 0,
       sourceChannelId, sourceMessageId, sourceMessageUrl, sourceThreadId, sourceThreadUrl,
+      uploader, postContent,
     ];
     await env.DB.prepare(`
       INSERT INTO releases (
         mod_id, version_label, channel, changelog, published_at, is_recommended,
-        source_channel_id, source_message_id, source_message_url, source_thread_id, source_thread_url
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        source_channel_id, source_message_id, source_message_url, source_thread_id, source_thread_url,
+        posted_by, post_content
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(source_message_id) DO UPDATE SET
         mod_id = excluded.mod_id,
         version_label = excluded.version_label,
         channel = excluded.channel,
         changelog = excluded.changelog,
         published_at = excluded.published_at,
-        is_recommended = CASE WHEN ? IS NULL THEN releases.is_recommended ELSE excluded.is_recommended END,
+        is_recommended = excluded.is_recommended,
         source_channel_id = excluded.source_channel_id,
         source_message_url = excluded.source_message_url,
         source_thread_id = excluded.source_thread_id,
-        source_thread_url = excluded.source_thread_url
-    `).bind(...releaseValues, recommended === null ? null : recommended ? 1 : 0).run();
+        source_thread_url = excluded.source_thread_url,
+        posted_by = excluded.posted_by,
+        post_content = excluded.post_content
+    `).bind(...releaseValues).run();
 
     const release = await env.DB.prepare("SELECT id FROM releases WHERE source_message_id = ?").bind(sourceMessageId).first();
     if (!release) throw new Error("Release row was not available after import.");
@@ -186,9 +196,9 @@ export async function onRequestPost({ request, env }) {
         .bind(previousRelease.mod_id, previousRelease.mod_id).run();
     }
 
-    return json({ ok: true, slug, release_id: release.id, file_count: normalizedFiles.length }, 201, { "cache-control": "no-store" });
+    return json({ ok: true, slug, post_id: release.id, file_count: normalizedFiles.length }, 201, { "cache-control": "no-store" });
   } catch (error) {
     console.error("Pak Hub import failed", error);
-    return json({ error: "The release could not be saved. Retry the same import after checking the GitHub asset metadata." }, 500);
+    return json({ error: "The pak post could not be saved. Retry the same import after checking the GitHub asset metadata." }, 500);
   }
 }

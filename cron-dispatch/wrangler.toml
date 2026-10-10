@@ -6,5 +6,5 @@ compatibility_date = "2026-10-07"
 crons = ["*/15 * * * *"]
 
 [vars]
-GITHUB_REPO = "REPLACE_WITH_OWNER/REPOSITORY"
+GITHUB_REPO = "seu-later/pak-hub"
 GITHUB_BRANCH = "main"

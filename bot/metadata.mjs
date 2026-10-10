@@ -24,25 +24,15 @@ export function slugify(name, rootId) {
   return `${base}-${BigInt(rootId).toString(36)}`;
 }
 
-export function parseReleaseMetadata(message, rootMessage, threadName = "") {
+export function parsePostMetadata(rootMessage, threadName = "") {
   const rootContent = rootMessage?.content || "";
   const name = titleFrom(rootContent) || cleanText(threadName).slice(0, 100) ||
     cleanText(rootMessage?.embeds?.[0]?.title) ||
     String(rootMessage?.attachments?.first()?.name || "pak-mod.pak").replace(/\.pak$/i, "").slice(0, 100);
-  const postContent = String(message.content || "").trim();
-  const labeledVersion = postContent.match(/^\s*(?:version|ver)\s*:\s*(.+)$/im)?.[1];
-  const prefixedVersion = postContent.match(/(?:^|[\s([{])((?:v|V)\d+(?:[._+-][\w]+)*)\b/)?.[1];
-  const channelInput = readField(postContent, ["channel"]).toLowerCase();
-  const channel = ["stable", "beta", "untested"].includes(channelInput) ? channelInput : "unknown";
 
   return {
     name: name || "Pak mod",
     summary: readField(rootContent, ["summary", "description"]).slice(0, 500),
-    category: readField(rootContent, ["category"]).slice(0, 40) || "Other",
-    creator: readField(rootContent, ["creator", "author"]).slice(0, 80) || "Unknown",
-    version: cleanText(labeledVersion || prefixedVersion) || "Unversioned",
-    channel,
-    changelog: cleanText(postContent).slice(0, 1500),
   };
 }
 

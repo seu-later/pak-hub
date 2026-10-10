@@ -9,7 +9,7 @@ import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import { ChannelType, Client, Events, GatewayIntentBits } from "discord.js";
 import { messagesSince } from "./history.mjs";
-import { pakAttachments, parseReleaseMetadata, selectReleaseAsset, slugify } from "./metadata.mjs";
+import { pakAttachments, parsePostMetadata, selectReleaseAsset, slugify } from "./metadata.mjs";
 
 const MAX_FILE_SIZE = 2147483647;
 const MAX_FILES_PER_MESSAGE = 10;
@@ -121,7 +121,7 @@ async function githubJson(path, options = {}) {
   return payload;
 }
 
-async function githubReleaseFor(message, metadata) {
+async function githubReleaseFor(message) {
   const tag = `pakhub-discord-${message.id}`;
   const path = `/releases/tags/${encodeURIComponent(tag)}`;
   const existing = await githubJson(path, { allow404: true });
@@ -132,10 +132,10 @@ async function githubReleaseFor(message, metadata) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       tag_name: tag,
-      name: `${metadata.name} — ${metadata.version}`.slice(0, 120),
+      name: `Pak Hub import ${message.id}`,
       body: `Imported from the Pak Hub source channel.\n\nSource post: ${message.url}`,
       draft: false,
-      prerelease: metadata.channel === "beta" || metadata.channel === "untested",
+      prerelease: false,
       generate_release_notes: false,
     }),
   });
@@ -291,23 +291,24 @@ async function processMessage(message, thread = null) {
     if (attachments.length > MAX_FILES_PER_MESSAGE) throw new Error(`Message ${message.id} has more than ${MAX_FILES_PER_MESSAGE} pak files; split it into separate posts.`);
 
     const rootMessage = await rootFor(message, threadChannel);
-    const metadata = parseReleaseMetadata(message, rootMessage, threadChannel?.name || "");
-    const modSourceId = threadChannel?.id || message.id;
-    const { release, tag } = await githubReleaseFor(message, metadata);
+    const metadata = parsePostMetadata(rootMessage, threadChannel?.name || "");
+    const modSourceId = rootMessage.id;
+    const { release, tag } = await githubReleaseFor(message);
     const files = await releaseAssets(message, attachments, release);
+    const discordName = (author) => author?.member?.displayName || author?.author?.globalName || author?.author?.username || "Unknown";
     const payload = {
       slug: slugify(metadata.name, modSourceId),
       mod_source_id: modSourceId,
+      root_message_id: rootMessage.id,
+      root_uploader: discordName(rootMessage),
+      root_posted_at: rootMessage.createdAt.toISOString(),
+      root_message_url: rootMessage.url,
+      root_post_content: rootMessage.content || "",
       name: metadata.name,
       summary: metadata.summary,
-      category: metadata.category,
-      creator: metadata.creator,
-      uploader: message.member?.displayName || message.author.username,
-      version: metadata.version,
-      channel: metadata.channel,
-      changelog: metadata.changelog,
+      uploader: discordName(message),
+      post_content: message.content || "",
       published_at: message.createdAt.toISOString(),
-      is_recommended: null,
       source_channel_id: pakChannelId,
       source_message_id: message.id,
       source_message_url: message.url,
@@ -317,7 +318,7 @@ async function processMessage(message, thread = null) {
       github_tag: tag,
     };
     await importMetadata(payload);
-    console.log(`Imported ${metadata.name} ${metadata.version} from Discord message ${message.id}.`);
+    console.log(`Imported ${metadata.name} from Discord message ${message.id}.`);
   }
 
   updateCursor(message, isThread ? threadChannel : null);
