@@ -42,7 +42,7 @@ function validGithubUrl(value, repository) {
     const filename = remainder.slice(remainder.lastIndexOf("/") + 1);
     return url.protocol === "https:" && url.hostname === "github.com" && !url.port &&
       !url.username && !url.password && !url.search && !url.hash &&
-      remainder.includes("/") && filename.toLowerCase().endsWith(".pak");
+      remainder.includes("/") && /\.(?:pak|zip)$/i.test(filename);
   } catch {
     return false;
   }
@@ -103,7 +103,7 @@ export async function onRequestPost({ request, env }) {
       (sourceThreadUrl && !validDiscordUrl(sourceThreadUrl, true))) {
     return json({ error: "Required mod or Discord source fields are missing or invalid." }, 400);
   }
-  if (!files.length || files.length > 10) return json({ error: "Provide between 1 and 10 pak files for this post." }, 400);
+  if (!files.length || files.length > 10) return json({ error: "Provide between 1 and 10 pack files for this post." }, 400);
 
   const normalizedFiles = [];
   for (const file of files) {
@@ -115,11 +115,11 @@ export async function onRequestPost({ request, env }) {
     const tag = text(file?.github_tag, 100);
     const downloadUrl = text(file?.download_url, 500);
 
-    if (!filename || filename.includes("/") || !filename.toLowerCase().endsWith(".pak") ||
+    if (!filename || filename.includes("/") || !/\.(?:pak|zip)$/i.test(filename) ||
         !Number.isSafeInteger(size) || size < 1 || size > MAX_FILE_SIZE ||
         !/^[a-f0-9]{64}$/.test(sha256) || !assetId || !tag ||
         !validGithubUrl(downloadUrl, env.GITHUB_RELEASE_REPO)) {
-      return json({ error: `Invalid pak file metadata: ${filename || "unnamed file"}.` }, 400);
+      return json({ error: `Invalid pack file metadata: ${filename || "unnamed file"}.` }, 400);
     }
     normalizedFiles.push({ filename, variant, size, sha256, assetId, tag, downloadUrl });
   }

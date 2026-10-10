@@ -2,6 +2,11 @@ name: Import Discord paks
 
 on:
   workflow_dispatch:
+    inputs:
+      replay_thread_id:
+        description: Optional Discord thread ID to replay after changing import rules
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -34,5 +39,6 @@ jobs:
           PAK_HUB_IMPORT_URL: ${{ vars.PAK_HUB_IMPORT_URL }}
           PAK_HUB_STATE_URL: ${{ vars.PAK_HUB_STATE_URL }}
           PAK_HUB_IMPORT_TOKEN: ${{ secrets.PAK_HUB_IMPORT_TOKEN }}
+          PAK_HUB_REPLAY_THREAD_ID: ${{ inputs.replay_thread_id }}
           PAK_HUB_RUN_ONCE: '1'
         run: node bot/index.mjs

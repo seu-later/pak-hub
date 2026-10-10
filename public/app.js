@@ -616,7 +616,7 @@ function renderModRow(mod, index) {
   }
   nameWrap.append(metadata);
   button.append(nameWrap);
-  button.append(node("span", "file-count", `${mod.fileCount} ${mod.fileCount === 1 ? "pak" : "paks"}`));
+  button.append(node("span", "file-count", `${mod.fileCount} ${mod.fileCount === 1 ? "file" : "files"}`));
   const cell = node("td", "column-name");
   cell.append(button);
   row.append(cell);
@@ -627,7 +627,7 @@ function isSafeDownload(value) {
   try {
     const url = new URL(value);
     return url.protocol === "https:" && url.hostname === "github.com" &&
-      url.pathname.toLowerCase().endsWith(".pak") && !url.username && !url.password;
+      /\.(?:pak|zip)$/i.test(url.pathname) && !url.username && !url.password;
   } catch {
     return false;
   }
@@ -752,7 +752,7 @@ function renderThreadList(posts) {
     if (post.files.length) {
       meta.append(document.createTextNode(" · "));
       meta.append(node("span", "thread-item-count",
-        `${post.files.length} ${post.files.length === 1 ? "pak" : "paks"}`));
+        `${post.files.length} ${post.files.length === 1 ? "file" : "files"}`));
     }
     item.append(meta);
     if (post.content) item.append(node("p", "thread-item-content", post.content));

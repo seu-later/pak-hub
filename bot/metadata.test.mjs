@@ -9,18 +9,19 @@ test("uses the root post title and summary without interpreting category or vers
   assert.deepEqual(post, { name: "Cool Mod", summary: "Clear colors" });
 });
 
-test("uses a thread name when the root has no title and filters non-pak files", () => {
+test("uses a thread name when the root has no title and filters non-pack files", () => {
   const root = { content: "Creator: ModMaker\nCategory: Visuals" };
   const post = parsePostMetadata(root, "Cool Mod thread");
   const attachments = new Map([
     ["a", { name: "mod.PAK" }],
-    ["b", { name: "readme.txt" }],
+    ["b", { name: "skinpack.zip" }],
+    ["c", { name: "readme.txt" }],
   ]);
 
   assert.equal(post.name, "Cool Mod thread");
   assert.equal("category" in post, false);
   assert.equal("version" in post, false);
-  assert.deepEqual(pakAttachments({ attachments }).map((attachment) => attachment.name), ["mod.PAK"]);
+  assert.deepEqual(pakAttachments({ attachments }).map((attachment) => attachment.name), ["mod.PAK", "skinpack.zip"]);
 });
 
 test("keeps a thread's mod slug stable and disambiguates duplicate release names", () => {
@@ -31,6 +32,7 @@ test("keeps a thread's mod slug stable and disambiguates duplicate release names
   assert.equal(first, second);
   assert.equal(uniqueAssetName("same.pak", 0, "a".repeat(64), new Set()), "same.pak");
   assert.equal(uniqueAssetName("same.pak", 1, "b".repeat(64), new Set()), "same-2.pak");
+  assert.equal(uniqueAssetName("skinpack.zip", 0, "d".repeat(64), new Set()), "skinpack.zip");
   assert.equal(uniqueAssetName("Café same file?.pak", 0, "c".repeat(64), new Set()), "Cafe-same-file.pak");
   assert.equal(uniqueAssetName("same.pak", 0, "a".repeat(64), new Set(["same.pak"])), `same-${"a".repeat(10)}.pak`);
   assert.equal(uniqueAssetName("same.pak", 0, "a".repeat(64), new Set(["same.pak", `same-${"a".repeat(10)}.pak`])), `same-${"a".repeat(10)}.pak`);

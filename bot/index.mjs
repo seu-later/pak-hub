@@ -37,6 +37,7 @@ const importToken = required("PAK_HUB_IMPORT_TOKEN");
 const importUrl = new URL(required("PAK_HUB_IMPORT_URL"));
 const stateUrl = process.env.PAK_HUB_STATE_URL ? new URL(process.env.PAK_HUB_STATE_URL) : null;
 const runOnce = process.env.PAK_HUB_RUN_ONCE === "1";
+const replayThreadId = process.env.PAK_HUB_REPLAY_THREAD_ID?.trim() || null;
 const releaseRepo = required("GITHUB_RELEASE_REPO");
 const [releaseOwner, releaseName] = releaseRepo.split("/");
 
@@ -47,6 +48,7 @@ if (stateUrl && (stateUrl.protocol !== "https:" || stateUrl.pathname !== "/api/i
   throw new Error("PAK_HUB_STATE_URL must be an HTTPS /api/import-state URL.");
 }
 if (runOnce && !stateUrl) throw new Error("Set PAK_HUB_STATE_URL when PAK_HUB_RUN_ONCE=1 so scheduled runs can resume.");
+if (replayThreadId && !/^\d{16,22}$/.test(replayThreadId)) throw new Error("PAK_HUB_REPLAY_THREAD_ID must be a Discord thread ID.");
 
 const githubBase = `https://api.github.com/repos/${encodeURIComponent(releaseOwner)}/${encodeURIComponent(releaseName)}`;
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
@@ -66,6 +68,7 @@ if (stateUrl) {
     if (error.code !== "ENOENT") throw new Error("bot/state.json is unreadable; fix or remove that local checkpoint before starting.");
   }
 }
+if (replayThreadId) delete state.threadCursors[replayThreadId];
 
 await mkdir(TEMP_DIR, { recursive: true });
 
@@ -142,7 +145,7 @@ async function githubReleaseFor(message) {
   return { release, tag };
 }
 
-async function downloadPak(attachment) {
+async function downloadAttachment(attachment) {
   const url = new URL(attachment.url);
   if (url.protocol !== "https:" || !["cdn.discordapp.com", "media.discordapp.net"].includes(url.hostname)) {
     throw new Error(`Discord returned an unexpected attachment host for ${attachment.name}.`);
@@ -154,7 +157,7 @@ async function downloadPak(attachment) {
   const response = await fetch(url);
   if (!response.ok || !response.body) throw new Error(`Could not download ${attachment.name} from Discord (${response.status}).`);
 
-  const path = join(TEMP_DIR, `${messageSafeId(attachment.id)}-${Date.now()}.pak`);
+  const path = join(TEMP_DIR, `${messageSafeId(attachment.id)}-${Date.now()}.download`);
   const hash = createHash("sha256");
   let size = 0;
   const meter = new Transform({
@@ -222,7 +225,7 @@ async function releaseAssets(message, attachments, release) {
   const files = [];
 
   for (const [index, attachment] of attachments.entries()) {
-    const downloaded = await downloadPak(attachment);
+    const downloaded = await downloadAttachment(attachment);
     try {
       const { uploadName, asset: existingAsset } = selectReleaseAsset(
         attachment.name, index, downloaded.sha256, existingAssets,
@@ -288,7 +291,7 @@ async function processMessage(message, thread = null) {
 
   const attachments = pakAttachments(message);
   if (!message.author?.bot && attachments.length) {
-    if (attachments.length > MAX_FILES_PER_MESSAGE) throw new Error(`Message ${message.id} has more than ${MAX_FILES_PER_MESSAGE} pak files; split it into separate posts.`);
+    if (attachments.length > MAX_FILES_PER_MESSAGE) throw new Error(`Message ${message.id} has more than ${MAX_FILES_PER_MESSAGE} pack files; split it into separate posts.`);
 
     const rootMessage = await rootFor(message, threadChannel);
     const metadata = parsePostMetadata(rootMessage, threadChannel?.name || "");

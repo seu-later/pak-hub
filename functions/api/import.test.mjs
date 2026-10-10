@@ -71,6 +71,60 @@ test("moving a root release into a later thread removes its empty standalone mod
   database.close();
 });
 
+test("accepts zip files as downloadable release assets", async () => {
+  const database = new DatabaseSync(":memory:");
+  for (const migration of ["0001_initial.sql", "0002_import_state.sql", "0003_discord_posts.sql"]) {
+    database.exec(readFileSync(new URL(`../../migrations/${migration}`, import.meta.url), "utf8"));
+  }
+  const adapter = {
+    prepare(sql) {
+      const statement = database.prepare(sql);
+      return {
+        bind(...values) {
+          return {
+            run: async () => statement.run(...values),
+            first: async () => statement.get(...values) || null,
+          };
+        },
+      };
+    },
+    async batch(statements) {
+      for (const statement of statements) await statement.run();
+    },
+  };
+  const guild = "123456789012345678";
+  const channel = "123456789012345679";
+  const message = "123456789012345680";
+  const response = await onRequestPost({
+    env: { DB: adapter, PAK_HUB_IMPORT_TOKEN: "test-secret", GITHUB_RELEASE_REPO: "owner/pak-assets" },
+    request: new Request("https://example.com/api/import", {
+      method: "POST",
+      headers: { authorization: "Bearer test-secret", "content-type": "application/json" },
+      body: JSON.stringify({
+        slug: "skin-pack",
+        mod_source_id: message,
+        name: "Skin pack",
+        source_channel_id: channel,
+        source_message_id: message,
+        source_message_url: `https://discord.com/channels/${guild}/${channel}/${message}`,
+        files: [{
+          filename: "skinpack.zip",
+          variant: "skinpack.zip",
+          size_bytes: 1024,
+          sha256: "a".repeat(64),
+          github_asset_id: "123",
+          github_tag: `pakhub-discord-${message}`,
+          download_url: `https://github.com/owner/pak-assets/releases/download/pakhub-discord-${message}/skinpack.zip`,
+        }],
+      }),
+    }),
+  });
+
+  assert.equal(response.status, 201);
+  assert.equal(database.prepare("SELECT original_filename FROM pak_files").get().original_filename, "skinpack.zip");
+  database.close();
+});
+
 test("Discord post migration backfills root metadata and sender for existing rows", () => {
   const database = new DatabaseSync(":memory:");
   database.exec(readFileSync(new URL("../../migrations/0001_initial.sql", import.meta.url), "utf8"));

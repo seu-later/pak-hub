@@ -28,7 +28,7 @@ export function parsePostMetadata(rootMessage, threadName = "") {
   const rootContent = rootMessage?.content || "";
   const name = titleFrom(rootContent) || cleanText(threadName).slice(0, 100) ||
     cleanText(rootMessage?.embeds?.[0]?.title) ||
-    String(rootMessage?.attachments?.first()?.name || "pak-mod.pak").replace(/\.pak$/i, "").slice(0, 100);
+    String(rootMessage?.attachments?.first()?.name || "pak-mod.pak").replace(/\.(?:pak|zip)$/i, "").slice(0, 100);
 
   return {
     name: name || "Pak mod",
@@ -38,19 +38,20 @@ export function parsePostMetadata(rootMessage, threadName = "") {
 
 export function pakAttachments(message) {
   return [...message.attachments.values()].filter((attachment) =>
-    typeof attachment.name === "string" && attachment.name.toLowerCase().endsWith(".pak"));
+    typeof attachment.name === "string" && /\.(?:pak|zip)$/i.test(attachment.name));
 }
 
 export function uniqueAssetName(filename, index, digest, existingNames) {
-  const dot = filename.toLowerCase().lastIndexOf(".pak");
+  const extension = /\.zip$/i.test(filename) ? ".zip" : ".pak";
+  const dot = filename.lastIndexOf(".");
   const stem = (dot >= 0 ? filename.slice(0, dot) : filename).normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-zA-Z0-9_-]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 120) || "pak-file";
   const suffix = index > 0 ? `-${index + 1}` : "";
-  let candidate = `${stem}${suffix}.pak`;
-  if (existingNames.has(candidate)) candidate = `${stem}${suffix}-${digest.slice(0, 10)}.pak`;
+  let candidate = `${stem}${suffix}${extension}`;
+  if (existingNames.has(candidate)) candidate = `${stem}${suffix}-${digest.slice(0, 10)}${extension}`;
   return candidate;
 }
 
