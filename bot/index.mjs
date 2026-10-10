@@ -8,6 +8,7 @@ import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import { ChannelType, Client, Events, GatewayIntentBits } from "discord.js";
+import { ignoreUnknownMessage } from "./discord-errors.mjs";
 import { messagesSince } from "./history.mjs";
 import { pakAttachments, parsePostMetadata, selectReleaseAsset, slugify } from "./metadata.mjs";
 
@@ -328,6 +329,23 @@ async function processMessage(message, thread = null) {
   await saveState();
 }
 
+function reportUnknownMessage(error, label) {
+  console.warn(`Skipping ${label}: ${error.message || "Unknown Message"}.`);
+}
+
+async function processMessageSafely(message, thread = null) {
+  return ignoreUnknownMessage(
+    `Discord message ${message.id}${thread ? ` in thread ${thread.id}` : ` in channel ${message.channelId}`}`,
+    () => processMessage(message, thread),
+    async (error, label) => {
+      reportUnknownMessage(error, label);
+      const cursorThread = thread || (message.channel?.isThread?.() ? message.channel : null);
+      updateCursor(message, cursorThread);
+      await saveState();
+    },
+  );
+}
+
 function enqueue(task) {
   if (halted) return Promise.resolve();
   const result = queue.then(() => halted ? undefined : task());
@@ -344,7 +362,7 @@ async function scanMessages(channel, thread = null) {
   const cursor = thread ? state.threadCursors[thread.id] : state.channelCursor;
   for (const message of await messagesSince(channel, cursor, () => delay(250))) {
     if (halted) return;
-    await processMessage(message, thread);
+    await processMessageSafely(message, thread);
   }
 }
 
@@ -375,9 +393,14 @@ async function backfill() {
   for (const thread of threads.values()) {
     if (halted) return;
     rootMessages.delete(thread.id);
-    const root = await thread.fetchStarterMessage();
+    const root = await ignoreUnknownMessage(
+      `starter message for thread ${thread.id}`,
+      () => thread.fetchStarterMessage(),
+      reportUnknownMessage,
+    );
+    if (!root) continue;
     rootMessages.set(thread.id, root);
-    if (!state.threadCursors[thread.id] && root) await processMessage(root, thread);
+    if (!state.threadCursors[thread.id]) await processMessageSafely(root, thread);
     await scanMessages(thread, thread);
   }
   if (runOnce) {
@@ -390,7 +413,7 @@ async function backfill() {
 
 if (!runOnce) {
   client.on(Events.MessageCreate, (message) => {
-    if (isSourceMessage(message)) void enqueue(() => processMessage(message));
+    if (isSourceMessage(message)) void enqueue(() => processMessageSafely(message));
   });
 }
 
