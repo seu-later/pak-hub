@@ -64,7 +64,6 @@ const localPreview = window.location.protocol === "file:" ||
 
 const state = {
   demo: previewMode === "1" || (localPreview && previewMode !== "0"),
-  view: "browse",
   query: "",
   sort: "newest",
   page: 1,
@@ -82,9 +81,6 @@ const state = {
   catalogRequest: 0,
   detailRequest: 0,
   detailController: null,
-  wheelRemainder: 0,
-  collapseTimer: 0,
-  leavingSlug: null,
 };
 
 const elements = {
@@ -104,13 +100,9 @@ const elements = {
   searchToggle: document.getElementById("search-toggle"),
   search: document.getElementById("search-field"),
   clearSearch: document.getElementById("clear-search"),
-  browseView: document.getElementById("browse-view"),
-  browseTitles: document.getElementById("browse-titles"),
-  browseDossier: document.getElementById("browse-dossier"),
-  listView: document.getElementById("list-view"),
+  detailPanel: document.getElementById("detail-panel"),
+  detailPanelContent: document.getElementById("detail-panel-content"),
   resultCount: document.getElementById("result-count"),
-  browseViewButton: document.getElementById("browse-view-button"),
-  listViewButton: document.getElementById("list-view-button"),
   rows: document.getElementById("mod-rows"),
   archiveState: document.getElementById("archive-state"),
   loadMore: document.getElementById("load-more"),
@@ -455,7 +447,7 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matc
 let rowObserver = null;
 
 function observeRows() {
-  const rows = elements.rows.querySelectorAll(".ledger-row, .detail-row");
+  const rows = elements.rows.querySelectorAll(".ledger-row");
   if (!rowObserver) {
     rows.forEach((row) => row.classList.add("in-view"));
     return;
@@ -472,7 +464,7 @@ function cancelDetailRequest() {
 function ensureSelection() {
   if (state.mods.some((mod) => mod.slug === state.selectedSlug)) return false;
   const previousSlug = state.selectedSlug;
-  state.selectedSlug = state.view === "browse" ? state.mods[0]?.slug || null : null;
+  state.selectedSlug = state.mods[0]?.slug || null;
   state.detail = null;
   state.detailStatus = state.selectedSlug ? "loading" : "idle";
   if (previousSlug !== state.selectedSlug) cancelDetailRequest();
@@ -480,7 +472,7 @@ function ensureSelection() {
 }
 
 function renderArchiveState() {
-  const shouldShow = state.view === "list" && Boolean(state.error || state.mods.length === 0);
+  const shouldShow = Boolean(state.error || state.mods.length === 0);
   elements.archiveState.hidden = !shouldShow;
   if (!shouldShow) {
     elements.archiveState.replaceChildren();
@@ -503,47 +495,6 @@ function renderArchiveState() {
     }
   }
   elements.archiveState.replaceChildren(content);
-}
-
-function renderBrowseTitles() {
-  const selectedIndex = state.mods.findIndex((mod) => mod.slug === state.selectedSlug);
-  const spatial = !reducedMotion && !window.matchMedia("(max-width: 700px)").matches;
-  const fragment = document.createDocumentFragment();
-  state.mods.forEach((mod, index) => {
-    const offset = index - selectedIndex;
-    const distance = Math.abs(offset);
-    const title = node("button", `browse-title${distance === 0 ? " is-selected" : ""}`, mod.name);
-    title.type = "button";
-    title.dataset.action = "select-mod";
-    title.dataset.slug = mod.slug;
-    title.setAttribute("aria-label", `Select ${mod.name}`);
-    title.setAttribute("aria-pressed", String(distance === 0));
-    title.setAttribute("aria-hidden", String(spatial && distance > 6));
-    title.tabIndex = spatial ? distance === 0 ? 0 : -1 : 0;
-    title.style.setProperty("--title-offset-y", `${offset * 50}px`);
-    title.style.setProperty("--title-offset-x", `${Math.sign(offset) * Math.min(28, distance * 6)}px`);
-    title.style.setProperty("--title-size", distance === 0 ? "22px"
-      : distance === 1 ? "17px"
-        : distance === 2 ? "15.6px" : `${Math.max(10, 15.6 - (distance - 2) * 1.4)}px`);
-    title.style.setProperty("--title-opacity", distance === 0 ? "1"
-      : String(Math.max(0.059, 0.537 - (distance - 1) * 0.053)));
-    title.style.setProperty("--title-depth", String(100 - distance));
-    fragment.append(title);
-  });
-  elements.browseTitles.replaceChildren(fragment);
-  if (spatial && selectedIndex >= 0) {
-    const titles = Array.from(elements.browseTitles.querySelectorAll(".browse-title"));
-    for (const direction of [-1, 1]) {
-      let offset = 0;
-      let previous = titles[selectedIndex];
-      for (let index = selectedIndex + direction; index >= 0 && index < titles.length; index += direction) {
-        const current = titles[index];
-        offset += 50 + Math.max(0, Math.max(previous.offsetHeight, current.offsetHeight) - 34);
-        current.style.setProperty("--title-offset-y", `${direction * offset}px`);
-        previous = current;
-      }
-    }
-  }
 }
 
 function renderSortState() {
@@ -593,7 +544,7 @@ function rowButton(mod, className, label) {
   button.type = "button";
   button.dataset.action = "select-mod";
   button.dataset.slug = mod.slug;
-  button.setAttribute("aria-expanded", String(state.selectedSlug === mod.slug));
+  button.setAttribute("aria-current", String(state.selectedSlug === mod.slug));
   button.setAttribute("aria-label", label);
   return button;
 }
@@ -603,7 +554,9 @@ function renderModRow(mod, index) {
   const seen = visitedSlugs.has(mod.slug);
   const row = node("tr", `ledger-row${selected ? " is-selected" : ""}${seen && !selected ? " is-visited" : ""}`);
   row.style.setProperty("--entry-order", String(index % 12));
-  const button = rowButton(mod, "mod-select", `${selected ? "Collapse" : "Expand"} ${mod.name}`);
+  const button = rowButton(mod, "mod-select", `Preview ${mod.name}`);
+  button.addEventListener("pointerenter", () => previewMod(mod.slug));
+  button.addEventListener("focus", () => previewMod(mod.slug));
   const nameWrap = node("span", "mod-name-wrap");
   nameWrap.append(node("span", "mod-name", mod.name));
   const metadata = node("span", "mod-meta");
@@ -783,7 +736,6 @@ function renderDossierContent(mod, className = "mod-dossier") {
   const dossier = node("article", className);
   dossier.setAttribute("aria-label", `${mod.name} pak post details`);
   if (state.detailStatus === "ready") dossier.classList.add("dossier-ready");
-  if (state.leavingSlug === mod.slug) dossier.classList.add("is-leaving");
 
   if (state.detailStatus === "loading") {
     const skeleton = node("div", "loading-skeleton");
@@ -811,25 +763,27 @@ function renderDossierContent(mod, className = "mod-dossier") {
   return dossier;
 }
 
-function renderDossier(mod) {
-  const row = node("tr", "detail-row");
-  const cell = node("td", "");
-  cell.append(renderDossierContent(mod));
-  row.append(cell);
-  return row;
+function renderSelectionState() {
+  elements.rows.querySelectorAll(".ledger-row").forEach((row) => {
+    const button = row.querySelector(".mod-select");
+    const selected = button?.dataset.slug === state.selectedSlug;
+    row.classList.toggle("is-selected", selected);
+    row.classList.toggle("is-visited", Boolean(button && visitedSlugs.has(button.dataset.slug) && !selected));
+    button?.setAttribute("aria-current", String(selected));
+  });
 }
 
-function renderBrowseDossier() {
+function renderPreviewPanel() {
   const mod = state.mods.find((item) => item.slug === state.selectedSlug);
-  elements.browseDossier.setAttribute("aria-busy", String(Boolean(mod && state.detailStatus === "loading")));
+  elements.detailPanel.setAttribute("aria-busy", String(Boolean(mod && state.detailStatus === "loading")));
   const dossier = mod
-    ? renderDossierContent(mod, "mod-dossier browse-dossier-content")
-    : node("article", "mod-dossier browse-dossier-content");
+    ? renderDossierContent(mod, "mod-dossier preview-dossier-content")
+    : node("article", "mod-dossier preview-dossier-content");
 
   if (mod) {
-    dossier.prepend(node("h3", "browse-dossier-title", mod.name));
+    dossier.prepend(node("h3", "preview-dossier-title", mod.name));
     if (state.error) {
-      const notice = node("div", "browse-error");
+      const notice = node("div", "preview-error");
       notice.append(node("p", "", "Catalog refresh failed. Showing the current results."));
       const retry = node("button", "retry-button", "Retry catalog");
       retry.type = "button";
@@ -843,30 +797,24 @@ function renderBrowseDossier() {
     for (let index = 0; index < 3; index += 1) skeleton.append(node("span", "skeleton-row"));
     dossier.append(skeleton);
   } else if (state.error) {
-    dossier.append(node("p", "browse-empty-detail", "The archive could not be loaded."));
+    dossier.append(node("p", "preview-empty-detail", "The archive could not be loaded."));
     const retry = node("button", "retry-button", "Retry catalog");
     retry.type = "button";
     retry.dataset.action = "retry-catalog";
     dossier.append(retry);
   } else {
-    dossier.append(node("p", "browse-empty-detail", state.mods.length
-      ? "No pak post is selected." : "No pak posts match this search."));
+    dossier.append(node("p", "preview-empty-detail", state.mods.length
+      ? "Hover or focus a pak post to preview it." : "No pak posts match this search."));
   }
 
-  elements.browseDossier.replaceChildren(dossier);
+  elements.detailPanelContent.replaceChildren(dossier);
 }
 
 function renderCatalog() {
-  const focusedButton = document.activeElement?.matches(".mod-select, .browse-title")
+  const focusedButton = document.activeElement?.matches(".mod-select")
     ? document.activeElement : null;
   const focusedSlug = focusedButton?.dataset.slug;
-  document.body.classList.toggle("view-browse", state.view === "browse");
-  document.body.classList.toggle("view-list", state.view === "list");
-  elements.browseView.hidden = state.view !== "browse";
-  elements.listView.hidden = state.view !== "list";
   renderSortState();
-  elements.browseViewButton.setAttribute("aria-pressed", String(state.view === "browse"));
-  elements.listViewButton.setAttribute("aria-pressed", String(state.view === "list"));
   const count = state.loading && state.mods.length === 0
     ? "Loading" : `${state.mods.length} / ${state.total || state.mods.length}`;
   elements.resultCount.textContent = count;
@@ -882,18 +830,14 @@ function renderCatalog() {
   state.mods.forEach((mod, index) => {
     const modRow = renderModRow(mod, index);
     fragment.append(modRow);
-    if (state.selectedSlug === mod.slug) fragment.append(renderDossier(mod));
   });
   elements.rows.replaceChildren(fragment);
-  renderBrowseTitles();
-  renderBrowseDossier();
+  renderPreviewPanel();
   observeRows();
   renderArchiveState();
   updateStageHeight();
   if (focusedSlug) {
-    const buttons = state.view === "browse"
-      ? elements.browseTitles.querySelectorAll(".browse-title")
-      : elements.rows.querySelectorAll(".mod-select");
+    const buttons = elements.rows.querySelectorAll(".mod-select");
     Array.from(buttons).find((button) => button.dataset.slug === focusedSlug)?.focus({ preventScroll: true });
   }
 }
@@ -906,7 +850,8 @@ async function loadDetails(slug) {
   const request = ++state.detailRequest;
   state.detail = null;
   state.detailStatus = "loading";
-  renderCatalog();
+  renderSelectionState();
+  renderPreviewPanel();
 
   if (state.demo) {
     const demo = demoMods.find((item) => item.slug === slug);
@@ -915,7 +860,7 @@ async function loadDetails(slug) {
       threadPosts: demo.threadPosts,
     } : { initialPost: {}, threadPosts: [] };
     state.detailStatus = "ready";
-    renderCatalog();
+    renderPreviewPanel();
     return;
   }
 
@@ -935,51 +880,31 @@ async function loadDetails(slug) {
     };
     state.detailStatus = "ready";
     state.detailController = null;
-    renderCatalog();
+    renderPreviewPanel();
   } catch (error) {
     if (error.name === "AbortError" || request !== state.detailRequest || state.selectedSlug !== slug) return;
     state.detailController = null;
     state.detailStatus = "error";
-    renderCatalog();
+    renderPreviewPanel();
   }
 }
 
-function selectMod(slug) {
-  if (state.selectedSlug === slug) {
-    if (state.view === "browse") return;
-    const modName = state.mods.find((mod) => mod.slug === slug)?.name || "Pak post";
-    cancelDetailRequest();
-    state.wheelRemainder = 0;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      state.selectedSlug = null;
-      state.detail = null;
-      state.detailStatus = "idle";
-      renderCatalog();
-    } else {
-      state.leavingSlug = slug;
-      renderCatalog();
-      state.collapseTimer = window.setTimeout(() => {
-        state.selectedSlug = null;
-        state.detail = null;
-        state.detailStatus = "idle";
-        state.leavingSlug = null;
-        state.collapseTimer = 0;
-        renderCatalog();
-      }, 180);
-    }
-    announce(`${modName} collapsed.`);
+function previewMod(slug, { scroll = false } = {}) {
+  const mod = state.mods.find((item) => item.slug === slug);
+  if (!mod) return;
+  if (state.selectedSlug === slug && state.detailStatus !== "error") {
+    if (scroll) elements.detailPanel.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "nearest" });
     return;
   }
-  window.clearTimeout(state.collapseTimer);
-  state.collapseTimer = 0;
-  state.leavingSlug = null;
   const modName = state.mods.find((mod) => mod.slug === slug)?.name || "Pak post";
   state.selectedSlug = slug;
   state.detail = null;
   state.detailStatus = "loading";
   markSeen(slug);
+  renderSelectionState();
   loadDetails(slug);
-  announce(`${modName} opened.`);
+  if (scroll) elements.detailPanel.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "nearest" });
+  announce(`${modName} preview selected.`);
 }
 
 async function loadCatalog({ append = false } = {}) {
@@ -1052,59 +977,6 @@ function updateSort(sort) {
   loadCatalog();
 }
 
-function setView(view) {
-  if (view === state.view) return;
-  state.view = view;
-  state.wheelRemainder = 0;
-  const selectionChanged = ensureSelection();
-  renderCatalog();
-  if (selectionChanged && state.selectedSlug) loadDetails(state.selectedSlug);
-}
-
-function focusBrowseTitle(slug) {
-  const title = Array.from(elements.browseTitles.querySelectorAll(".browse-title"))
-    .find((button) => button.dataset.slug === slug);
-  title?.focus({ preventScroll: true });
-}
-
-function handleBrowseKeydown(event) {
-  const selectedIndex = state.mods.findIndex((mod) => mod.slug === state.selectedSlug);
-  let nextIndex = selectedIndex;
-  if (event.key === "ArrowDown") nextIndex = Math.min(state.mods.length - 1, selectedIndex + 1);
-  else if (event.key === "ArrowUp") nextIndex = Math.max(0, selectedIndex - 1);
-  else if (event.key === "Home") nextIndex = 0;
-  else if (event.key === "End") nextIndex = state.mods.length - 1;
-  else return;
-
-  event.preventDefault();
-  if (nextIndex === selectedIndex || nextIndex < 0) return;
-  const slug = state.mods[nextIndex].slug;
-  selectMod(slug);
-  window.requestAnimationFrame(() => focusBrowseTitle(slug));
-}
-
-function handleBrowseWheel(event) {
-  if (state.view !== "browse" || window.matchMedia("(max-width: 700px)").matches || !event.deltaY) return;
-  event.preventDefault();
-  const delta = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? event.deltaY * 40
-    : event.deltaMode === WheelEvent.DOM_DELTA_PAGE ? event.deltaY * window.innerHeight
-      : event.deltaY;
-  state.wheelRemainder += delta;
-  const steps = Math.trunc(state.wheelRemainder / 60);
-  if (!steps) return;
-  state.wheelRemainder -= steps * 60;
-  const selectedIndex = state.mods.findIndex((mod) => mod.slug === state.selectedSlug);
-  const nextIndex = Math.max(0, Math.min(state.mods.length - 1, selectedIndex + steps));
-  if (nextIndex === selectedIndex) {
-    state.wheelRemainder = 0;
-    return;
-  }
-  const slug = state.mods[nextIndex].slug;
-  const shouldRefocus = elements.browseTitles.contains(document.activeElement);
-  selectMod(slug);
-  if (shouldRefocus) window.requestAnimationFrame(() => focusBrowseTitle(slug));
-}
-
 let searchTimer = 0;
 function setSearchOpen(open) {
   state.searchOpen = open;
@@ -1166,15 +1038,7 @@ document.querySelectorAll(".sort-button").forEach((button) => {
   button.addEventListener("click", () => updateSort(button.dataset.sort));
 });
 
-elements.browseViewButton.addEventListener("click", () => setView("browse"));
-elements.listViewButton.addEventListener("click", () => setView("list"));
-elements.browseTitles.addEventListener("click", (event) => {
-  const target = event.target.closest("button[data-action]");
-  if (target?.dataset.action === "select-mod") selectMod(target.dataset.slug);
-});
-elements.browseTitles.addEventListener("keydown", handleBrowseKeydown);
-elements.browseTitles.addEventListener("wheel", handleBrowseWheel, { passive: false });
-elements.browseDossier.addEventListener("click", (event) => {
+elements.detailPanel.addEventListener("click", (event) => {
   const target = event.target.closest("button[data-action]");
   if (!target) return;
   if (target.dataset.action === "retry-detail") loadDetails(target.dataset.slug);
@@ -1184,16 +1048,12 @@ elements.browseDossier.addEventListener("click", (event) => {
 elements.rows.addEventListener("click", (event) => {
   const target = event.target.closest("button[data-action]");
   if (!target) return;
-  if (target.dataset.action === "select-mod") selectMod(target.dataset.slug);
+  if (target.dataset.action === "select-mod") previewMod(target.dataset.slug, { scroll: true });
   else if (target.dataset.action === "retry-detail") loadDetails(target.dataset.slug);
 });
 
 elements.loadMore.addEventListener("click", () => loadCatalog({ append: true }));
 window.addEventListener("resize", () => {
-  const focusedSlug = elements.browseTitles.contains(document.activeElement)
-    ? document.activeElement.dataset.slug : null;
-  renderBrowseTitles();
-  if (focusedSlug) focusBrowseTitle(focusedSlug);
   updateStageHeight();
   updateSortIndicator(false);
 });

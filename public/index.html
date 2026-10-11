@@ -9,10 +9,10 @@
     <link rel="preload" href="assets/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="assets/WhiteRabbit.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="assets/city-rain.png" as="image" fetchpriority="high">
-    <link rel="stylesheet" href="styles.css?v=20261009e">
-    <script src="app.js?v=20261009e" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20261011a">
+    <script src="app.js?v=20261011a" defer></script>
   </head>
-  <body class="view-browse">
+  <body class="view-list">
     <a class="skip-link" href="#catalog">Skip to the pak archive</a>
     <div class="world-bg" aria-hidden="true">
       <img id="world-img" class="world-img" src="assets/city-rain.png" alt="" fetchpriority="high">
@@ -72,28 +72,23 @@
                   <span class="sort-indicator" aria-hidden="true"></span>
                 </div>
                 <span id="result-count" class="result-count" role="status" aria-live="polite"></span>
-                <div class="view-switch" role="group" aria-label="Archive view">
-                  <button id="browse-view-button" class="view-button" type="button" aria-pressed="true">Browse</button>
-                  <button id="list-view-button" class="view-button" type="button" aria-pressed="false">List</button>
-                </div>
               </div>
             </div>
-            <div id="browse-view" class="browse-layout" aria-label="Pak post archive browser">
-              <section class="browse-index" aria-label="Pak post title selector">
-                <div id="browse-titles" class="browse-titles" role="group" aria-label="Pak post titles"></div>
-                <p class="browse-hint"><span aria-hidden="true">↕</span> Scroll titles or use ↑ / ↓</p>
+            <div class="catalog-workspace" aria-label="Pak post archive browser">
+              <section class="catalog-list-panel" aria-label="Pak post list">
+                <p class="catalog-help">Hover or focus a post to preview its description and files.</p>
+                <div class="list-view">
+                  <table class="ledger-table" aria-label="Pak post catalog">
+                    <thead class="visually-hidden">
+                      <tr><th scope="col">Pak post</th></tr>
+                    </thead>
+                    <tbody id="mod-rows"></tbody>
+                  </table>
+                </div>
               </section>
-              <section class="browse-detail" aria-label="Selected pak post">
-                <div id="browse-dossier" class="browse-dossier" aria-live="polite" aria-busy="false"></div>
-              </section>
-            </div>
-            <div id="list-view" class="list-view" hidden>
-              <table class="ledger-table" aria-label="Pak post catalog">
-                <thead class="visually-hidden">
-                  <tr><th scope="col">Pak post</th></tr>
-                </thead>
-                <tbody id="mod-rows"></tbody>
-              </table>
+              <aside id="detail-panel" class="detail-panel" aria-label="Pak post preview" aria-live="polite" aria-busy="false">
+                <div id="detail-panel-content"></div>
+              </aside>
             </div>
             <div id="archive-state" class="archive-state" role="status" aria-live="polite" hidden></div>
             <div class="archive-footer">
