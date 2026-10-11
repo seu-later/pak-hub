@@ -18,6 +18,7 @@ bot/state.json.tmp
 # Local dump-import artifacts (default --manifest/--sql outputs)
 pak-dump-manifest.json
 pak-dump-import.sql
+pak-dump-progress.txt
 
 # Local exporter output
 EU-pak-mods/

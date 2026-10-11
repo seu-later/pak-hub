@@ -26,6 +26,8 @@ const SERIES_MIN_SIBLINGS = 3;
 const WRANGLER = process.platform === "win32" ? "wrangler.cmd" : "wrangler";
 const SHELL = process.platform === "win32";
 const REMOTE = ["--remote"];
+/* With a shell, arguments are concatenated: quote paths (exports use spaces). */
+const quote = (value) => (SHELL ? `"${value}"` : value);
 
 function trimSeparators(value) {
   return value.replace(/^[-_. ]+|[-_. ]+$/g, "");
@@ -165,8 +167,10 @@ async function main() {
   const bucket = flagValue("--bucket", "pak-dump");
   const manifestPath = flagValue("--manifest", "pak-dump-manifest.json");
   const sqlPath = flagValue("--sql", "pak-dump-import.sql");
+  const progressPath = flagValue("--progress", "pak-dump-progress.txt");
   const upload = args.includes("--upload");
   const apply = args.includes("--apply");
+  let failures = [];
 
   const paths = await collectFiles(dir);
   console.log(`Scanned ${paths.length} files.`);
@@ -226,17 +230,40 @@ async function main() {
   console.log(`Wrote ${manifestPath} and ${sqlPath} (${records.length} rows).`);
 
   if (upload) {
+    let done = new Set();
+    try {
+      const previous = await fs.readFile(progressPath, "utf8");
+      done = new Set(previous.split(/\r?\n/).filter(Boolean));
+    } catch { /* first run: no progress file yet */ }
+    console.log(`Resuming with ${done.size} files already uploaded.`);
+    failures = [];
     for (const [index, record] of records.entries()) {
+      if (done.has(record.r2Key)) continue;
       process.stdout.write(`[${index + 1}/${records.length}] ${record.r2Key} ... `);
-      await execFileAsync(WRANGLER, ["r2", "object", "put", ...REMOTE, `${bucket}/${record.r2Key}`, "--file", record.representative], { shell: SHELL });
-      console.log("ok");
+      try {
+        await execFileAsync(WRANGLER,
+          ["r2", "object", "put", ...REMOTE, `${bucket}/${record.r2Key}`, "--file", quote(record.representative)],
+          { shell: SHELL });
+        await fs.appendFile(progressPath, `${record.r2Key}\n`);
+        console.log("ok");
+      } catch (error) {
+        console.log(`FAILED: ${String(error?.message || error).split("\n")[0]}`);
+        failures.push(record.r2Key);
+      }
+    }
+    if (failures.length) {
+      console.error(`${failures.length} uploads failed; fix and re-run to resume.`);
+      for (const key of failures) console.error(`  missing: ${key}`);
+      process.exitCode = 1;
     }
   } else {
     console.log("Dry run: pass --upload to push files to R2.");
   }
 
-  if (apply) {
-    await execFileAsync(WRANGLER, ["d1", "execute", "pak-hub", ...REMOTE, "--file", sqlPath], { maxBuffer: 64 * 1024 * 1024, shell: SHELL });
+  if (failures.length) {
+    console.log("Skipping D1 apply until all uploads succeed.");
+  } else if (apply) {
+    await execFileAsync(WRANGLER, ["d1", "execute", "pak-hub", ...REMOTE, "--file", quote(sqlPath)], { maxBuffer: 64 * 1024 * 1024, shell: SHELL });
     console.log("D1 inserts applied.");
   } else {
     console.log("Dry run: pass --apply to insert rows into D1.");
