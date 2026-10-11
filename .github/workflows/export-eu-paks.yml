@@ -1,0 +1,39 @@
+name: Export Discord pak files
+
+on:
+  workflow_dispatch:
+    inputs:
+      guild_id:
+        description: Discord server ID to export
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: bot/package-lock.json
+      - name: Install exporter dependencies
+        run: npm ci
+        working-directory: bot
+      - name: Export pak and zip attachments
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_GUILD_ID: ${{ inputs.guild_id }}
+        run: node bot/export.mjs
+      - name: Upload export folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: eu-pak-mods
+          path: EU-pak-mods
+          if-no-files-found: error
+          compression-level: 0
