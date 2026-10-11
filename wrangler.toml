@@ -8,5 +8,9 @@ database_name = "pak-hub"
 database_id = "9461308a-d1c7-450f-b78b-f99645653c16"
 migrations_dir = "migrations"
 
+[[r2_buckets]]
+binding = "DUMP"
+bucket_name = "pak-dump"
+
 [vars]
 GITHUB_RELEASE_REPO = "seu-later/pak-hub"

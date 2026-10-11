@@ -8,3 +8,16 @@ bot/state.json.tmp
 *.sqlite3
 *.db
 *.log
+
+# Local browser QA harness state
+.playwright-mcp/
+
+# Loose review captures at the repo root (shipped assets live in public/assets)
+/*.png
+
+# Local dump-import artifacts (default --manifest/--sql outputs)
+pak-dump-manifest.json
+pak-dump-import.sql
+
+# Local exporter output
+EU-pak-mods/

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#060907">
+    <meta name="description" content="Search and download loose community Deep Rock Galactic pak files from the Pak Hub pack dump.">
+    <title>Pak Hub — Pack Dump</title>
+    <link rel="preload" href="assets/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/WhiteRabbit.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="assets/city-rain.png" as="image" fetchpriority="high">
+    <link rel="stylesheet" href="styles.css?v=20261011e">
+    <script src="dump.js?v=20261011a" defer></script>
+  </head>
+  <body class="view-list">
+    <a class="skip-link" href="#dump">Skip to the pack dump</a>
+    <div class="world-bg" aria-hidden="true">
+      <img id="world-img" class="world-img" src="assets/city-rain.png" alt="" fetchpriority="high">
+      <div class="world-veil"></div>
+    </div>
+    <div class="app-shell" id="app-shell">
+      <header class="site-header">
+        <canvas id="signal-rain" class="signal-rain" aria-hidden="true"></canvas>
+        <div class="signal-scan" aria-hidden="true"></div>
+        <div class="header-inner">
+          <nav class="primary-nav" aria-label="Primary navigation">
+            <a href="index.html">Catalog</a>
+            <a href="dump.html" aria-current="page">Pack Dump</a>
+            <a href="about.html">About</a>
+          </nav>
+        </div>
+        <div class="hero-title">
+          <h1 id="page-title" class="visually-hidden">Pak Hub pack dump</h1>
+        </div>
+      </header>
+
+      <main id="dump" class="catalog-stage" aria-labelledby="page-title">
+        <div class="catalog-inner">
+          <section class="archive-shell" aria-label="Pack dump archive">
+            <div id="archive-toolbar" class="archive-toolbar">
+              <div class="archive-heading-group">
+                <h2 data-split>Pack dump</h2>
+                <button id="search-toggle" class="search-toggle" type="button" aria-label="Open search" aria-expanded="false" aria-controls="search-form">
+                  <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="10.8" cy="10.8" r="6.8"></circle>
+                    <path d="m16 16 4.7 4.7"></path>
+                  </svg>
+                  <svg class="close-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m6 6 12 12M18 6 6 18"></path>
+                  </svg>
+                </button>
+              </div>
+              <form id="search-form" class="search-bar" role="search" aria-hidden="true">
+                <label class="visually-hidden" for="search-field">Search pack dump</label>
+                <input id="search-field" name="q" type="search" maxlength="100" placeholder="" autocomplete="off" tabindex="-1">
+                <button id="clear-search" class="clear-search" type="button" aria-label="Clear search" hidden>
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"></path></svg>
+                </button>
+              </form>
+              <div class="archive-controls">
+                <span id="result-count" class="result-count" role="status" aria-live="polite"></span>
+              </div>
+            </div>
+            <div class="catalog-workspace" aria-label="Pack dump browser">
+              <section class="catalog-list-panel" aria-label="Pack dump list">
+                <div class="list-view">
+                  <table class="ledger-table" aria-label="Pack dump files">
+                    <thead class="visually-hidden">
+                      <tr><th scope="col">Pack file</th></tr>
+                    </thead>
+                    <tbody id="dump-rows"></tbody>
+                  </table>
+                  <div id="load-sentinel" class="load-sentinel" aria-hidden="true" hidden></div>
+                </div>
+              </section>
+              <aside id="detail-panel" class="detail-panel" aria-label="Pack file preview" aria-live="polite" aria-busy="false">
+                <div id="detail-panel-content"></div>
+              </aside>
+            </div>
+            <div id="archive-state" class="archive-state" role="status" aria-live="polite" hidden></div>
+            <div class="archive-footer">
+              <button id="load-more" class="load-more" type="button" hidden>More</button>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <p id="live-status" class="visually-hidden" role="status" aria-live="polite"></p>
+    </div>
+  </body>
+</html>
