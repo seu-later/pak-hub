@@ -1667,6 +1667,7 @@ body.view-list .archive-toolbar {
   justify-content: center;
   padding: 68px 32px 0;
   text-align: center;
+  pointer-events: none;
 }
 
 .about-center h1 {
