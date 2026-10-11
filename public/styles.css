@@ -1188,11 +1188,11 @@ input:focus-visible {
 }
 
 @keyframes title-decode {
-  0% { opacity: 0; clip-path: inset(0 100% 0 0); filter: blur(3px); }
-  45% { opacity: 1; clip-path: inset(0 20% 0 0); filter: blur(0); }
+  0% { opacity: 0; clip-path: inset(-30% 100% -30% 0); filter: blur(3px); }
+  45% { opacity: 1; clip-path: inset(-30% 20% -30% 0); filter: blur(0); }
   60% { transform: translateX(2px); text-shadow: -2px 0 var(--red), 2px 0 var(--phosphor); }
   75% { transform: translateX(-1px); text-shadow: none; }
-  100% { opacity: 1; clip-path: inset(0); transform: translateX(0); }
+  100% { opacity: 1; clip-path: inset(-30% 0); transform: translateX(0); }
 }
 
 @keyframes post-reveal {
@@ -1443,14 +1443,16 @@ input:focus-visible {
 
   .archive-shell.motion-ready,
   .ledger-row,
-  .mod-dossier,
-  .about-hero-copy,
-  .about-note,
-  .about-note.motion-ready {
+  .mod-dossier {
     clip-path: none;
     opacity: 1;
     transform: none;
     filter: none;
+  }
+
+  .about-center h1 {
+    clip-path: none;
+    animation: none;
   }
 }
 
@@ -1643,115 +1645,40 @@ body.view-list .archive-toolbar {
 }
 
 .view-about .site-header {
-  min-height: clamp(440px, 48vw, 620px);
-  height: min(72svh, 620px);
+  height: 100svh;
+  min-height: 480px;
 }
 
-.view-about .header-inner,
-.view-about .hero-title {
+.view-about .header-inner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
   width: min(1480px, calc(100% - 64px));
-}
-
-.view-about .hero-title {
-  padding-bottom: clamp(64px, 10vw, 126px);
-}
-
-.view-about .hero-title h1 {
-  max-width: 12ch;
-}
-
-.about-hero-copy {
-  max-width: 42ch;
-  margin: 22px 0 0;
-  color: var(--ink);
-  font-size: 15px;
-  line-height: 1.6;
-  animation: hero-copy-in 800ms var(--ease-boot) 520ms both;
-}
-
-.about-page {
-  flex: 1 0 auto;
-}
-
-.about-inner {
-  width: min(1180px, calc(100% - 64px));
   margin: 0 auto;
 }
 
-.about-note {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: clamp(36px, 7vw, 110px);
-  align-items: start;
-  padding: clamp(64px, 10vw, 128px) 0 clamp(80px, 12vw, 150px);
+.about-center {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 68px 32px 0;
+  text-align: center;
 }
 
-.about-note h2 {
-  max-width: 15ch;
+.about-center h1 {
   margin: 0;
   color: var(--ink-bright);
   font-family: var(--font-display);
-  font-size: clamp(30px, 3.6vw, 46px);
+  font-size: clamp(44px, 7vw, 88px);
   font-weight: 400;
   letter-spacing: 0.01em;
-  line-height: 1.08;
-  text-wrap: balance;
-}
-
-.about-note-body {
-  max-width: 54ch;
-  padding-top: 8px;
-  border-top: 1px solid var(--line);
-}
-
-.about-note-body p {
-  margin: 20px 0 0;
-  color: var(--ink);
-  font-size: 14px;
-  line-height: 1.75;
-}
-
-.about-note-body p:first-of-type {
-  margin-top: 24px;
-}
-
-.about-note-body code {
-  color: var(--ink-bright);
-  font-family: var(--font-mono);
-  font-size: 0.92em;
-}
-
-.about-note-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 28px;
-  color: var(--phosphor);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  text-underline-offset: 4px;
-}
-
-.about-note-link:hover {
-  color: var(--ink-bright);
-}
-
-.about-note.motion-ready {
-  opacity: 0;
-  transform: translateY(22px);
-  filter: blur(6px);
-}
-
-.about-note.motion-ready.motion-visible {
-  opacity: 1;
-  transform: translateY(0);
-  filter: blur(0);
-  transition:
-    opacity 700ms var(--ease-boot),
-    transform 700ms var(--ease-boot),
-    filter 700ms var(--ease-boot);
+  line-height: 0.95;
+  text-shadow: 0 0 18px rgba(51, 255, 119, 0.35), 0 0 2px rgba(51, 255, 119, 0.6);
+  animation: title-decode 900ms steps(12) 300ms both;
 }
 
 @media (max-width: 900px) and (min-width: 701px) {
@@ -1850,45 +1777,15 @@ body.view-list .archive-toolbar {
 }
 
 @media (max-width: 700px) {
-  .view-about .site-header {
-    min-height: 430px;
-    height: min(76svh, 560px);
-  }
-
-  .view-about .header-inner,
-  .view-about .hero-title {
+  .view-about .header-inner {
     width: calc(100% - 36px);
   }
 
-  .view-about .hero-title {
-    padding-bottom: 62px;
+  .about-center {
+    padding: 64px 18px 0;
   }
 
-  .view-about .hero-title h1 {
-    max-width: 10ch;
-    font-size: clamp(46px, 14vw, 68px);
-  }
-
-  .about-hero-copy {
-    max-width: 34ch;
-    font-size: 14px;
-  }
-
-  .about-inner {
-    width: calc(100% - 36px);
-  }
-
-  .about-note {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 30px;
-    padding: 52px 0 84px;
-  }
-
-  .about-note h2 {
-    font-size: clamp(28px, 8.6vw, 36px);
-  }
-
-  .about-note-body {
-    padding-top: 22px;
+  .about-center h1 {
+    font-size: clamp(40px, 13vw, 60px);
   }
 }

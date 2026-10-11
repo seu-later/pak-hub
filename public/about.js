@@ -1,7 +1,6 @@
 (function () {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const header = document.querySelector(".site-header");
-  const heroTitle = document.querySelector(".hero-title");
   const canvas = document.getElementById("signal-rain");
   const worldImg = document.getElementById("world-img");
 
@@ -91,33 +90,5 @@
     window.requestAnimationFrame(frame);
   }
 
-  function initializeHeroScroll() {
-    if (reducedMotion.matches) return;
-    let ticking = false;
-    window.addEventListener("scroll", () => {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(() => {
-        ticking = false;
-        const shift = Math.min(window.scrollY * 0.12, 120);
-        heroTitle?.style.setProperty("--hero-shift", `${shift}px`);
-        header?.style.setProperty("--hero-fade", String(Math.max(0, 1 - window.scrollY / 700)));
-      });
-    }, { passive: true });
-  }
-
-  function initializeNoteReveal() {
-    const note = document.querySelector(".about-note");
-    if (!note || reducedMotion.matches || !("IntersectionObserver" in window)) return;
-    note.classList.add("motion-ready");
-    new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        note.classList.toggle("motion-visible", entry.isIntersecting);
-      });
-    }, { threshold: 0.18 }).observe(note);
-  }
-
   initializeSignalRain();
-  initializeHeroScroll();
-  initializeNoteReveal();
 })();
