@@ -9,16 +9,18 @@
     <link rel="preload" href="assets/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="assets/WhiteRabbit.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="assets/city-rain.png" as="image" fetchpriority="high">
-    <link rel="stylesheet" href="styles.css?v=20261011c">
+    <link rel="stylesheet" href="styles.css?v=20261011d">
+    <script src="about.js?v=20261011a" defer></script>
   </head>
   <body class="view-about">
     <a class="skip-link" href="#about">Skip to About</a>
     <div class="world-bg" aria-hidden="true">
-      <img class="world-img" src="assets/city-rain.png" alt="" fetchpriority="high">
+      <img id="world-img" class="world-img" src="assets/city-rain.png" alt="" fetchpriority="high">
       <div class="world-veil"></div>
     </div>
     <div class="app-shell">
-      <header class="site-header about-header">
+      <header class="site-header">
+        <canvas id="signal-rain" class="signal-rain" aria-hidden="true"></canvas>
         <div class="signal-scan" aria-hidden="true"></div>
         <div class="header-inner">
           <nav class="primary-nav" aria-label="Primary navigation">
@@ -26,8 +28,7 @@
             <a href="about.html" aria-current="page">About</a>
           </nav>
         </div>
-        <div class="hero-title about-hero-title">
-          <p class="about-kicker">PAK HUB / MAINTAINER NOTE</p>
+        <div class="hero-title">
           <h1 id="page-title">Built by seu.</h1>
           <p class="about-hero-copy">A small, focused catalog for the people who make and use Deep Rock Galactic pak mods.</p>
         </div>
@@ -35,47 +36,13 @@
 
       <main id="about" class="about-page" aria-labelledby="page-title">
         <div class="about-inner">
-          <section class="about-intro" aria-labelledby="about-purpose-title">
-            <div class="about-signal-card">
-              <div class="about-signal-card-head">
-                <span>CHANNEL / PAK HUB</span>
-                <span aria-hidden="true">01</span>
-              </div>
-              <svg class="about-trace" viewBox="0 0 520 180" role="img" aria-label="A signal trace connecting the catalog, its source, and its author">
-                <path class="about-trace-grid" d="M0 30H520M0 90H520M0 150H520M80 0V180M260 0V180M440 0V180"></path>
-                <path class="about-trace-path" d="M12 132H94L126 100H208L244 126H332L370 62H508"></path>
-                <circle class="about-trace-node about-trace-node-one" cx="94" cy="132" r="4"></circle>
-                <circle class="about-trace-node about-trace-node-two" cx="244" cy="126" r="4"></circle>
-                <circle class="about-trace-node about-trace-node-three" cx="370" cy="62" r="4"></circle>
-              </svg>
-              <p class="about-signal-label">SOURCE → INDEX → DOWNLOAD</p>
-              <p class="about-signal-value">Keep the useful parts visible.</p>
-            </div>
-
-            <div class="about-copy">
-              <h2 id="about-purpose-title">A catalog that keeps the source in view.</h2>
+          <section class="about-note" aria-labelledby="about-note-title">
+            <h2 id="about-note-title">A catalog that keeps the source in view.</h2>
+            <div class="about-note-body">
               <p>I'm seu, the author and maintainer of Pak Hub. I built it to make the Deep Rock Galactic pak channel easier to search and use.</p>
               <p>Each entry keeps the original post, author, date, thread updates, source links, and downloadable <code>.pak</code> or <code>.zip</code> files together in one place.</p>
-              <a class="about-back-link" href="index.html#catalog">Browse pak posts <span aria-hidden="true">↗</span></a>
+              <a class="about-note-link" href="index.html#catalog">Browse pak posts <span aria-hidden="true">↗</span></a>
             </div>
-          </section>
-
-          <section class="about-principles" aria-label="Pak Hub principles">
-            <article class="about-principle">
-              <span class="about-principle-number">01</span>
-              <h2>Source first</h2>
-              <p>The original post and its thread stay attached to every entry.</p>
-            </article>
-            <article class="about-principle">
-              <span class="about-principle-number">02</span>
-              <h2>Pack friendly</h2>
-              <p>Downloadable <code>.pak</code> and <code>.zip</code> files remain easy to find.</p>
-            </article>
-            <article class="about-principle">
-              <span class="about-principle-number">03</span>
-              <h2>Made to scan</h2>
-              <p>Search, sort, and preview a post without losing the context around it.</p>
-            </article>
           </section>
         </div>
       </main>
