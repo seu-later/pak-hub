@@ -9,8 +9,8 @@
     <link rel="preload" href="assets/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="assets/WhiteRabbit.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="assets/city-rain.png" as="image" fetchpriority="high">
-    <link rel="stylesheet" href="styles.css?v=20261011c">
-    <script src="app.js?v=20261011b" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20261011e">
+    <script src="app.js?v=20261011c" defer></script>
   </head>
   <body class="view-list">
     <a class="skip-link" href="#catalog">Skip to the catalog</a>
@@ -19,7 +19,7 @@
       <div class="world-veil"></div>
     </div>
     <div class="scroll-progress" aria-hidden="true"><span id="scroll-progress-bar"></span></div>
-    <div class="cursor" id="cursor" aria-hidden="true"><span class="cursor-label" id="cursor-label">OPEN</span></div>
+    <div class="cursor" id="cursor" aria-hidden="true"></div>
     <div class="app-shell" id="app-shell">
       <header class="site-header">
         <canvas id="signal-rain" class="signal-rain" aria-hidden="true"></canvas>
@@ -69,7 +69,6 @@
             </div>
             <div class="catalog-workspace" aria-label="Pak post archive browser">
               <section class="catalog-list-panel" aria-label="Pak post list">
-                <p class="catalog-help">Hover or focus a post to preview its description and files.</p>
                 <div class="list-view">
                   <table class="ledger-table" aria-label="Pak post catalog">
                     <thead class="visually-hidden">
@@ -77,6 +76,7 @@
                     </thead>
                     <tbody id="mod-rows"></tbody>
                   </table>
+                  <div id="load-sentinel" class="load-sentinel" aria-hidden="true" hidden></div>
                 </div>
               </section>
               <aside id="detail-panel" class="detail-panel" aria-label="Pak post preview" aria-live="polite" aria-busy="false">

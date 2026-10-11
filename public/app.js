@@ -81,7 +81,15 @@ const state = {
   catalogRequest: 0,
   detailRequest: 0,
   detailController: null,
+  autoPages: 0,
 };
+
+/* Hover must linger before it steals the preview, so a diagonal sweep toward
+ * the detail panel crosses rows without triggering each one. Focus and click
+ * stay instant. Auto-appended catalog pages are capped per result set; the
+ * More button remains as the explicit fallback. */
+const HOVER_PREVIEW_DELAY = 150;
+const AUTO_PAGE_CAP = 3;
 
 const elements = {
   stage: document.querySelector(".catalog-stage"),
@@ -90,7 +98,6 @@ const elements = {
   rain: document.getElementById("signal-rain"),
   worldImg: document.getElementById("world-img"),
   cursor: document.getElementById("cursor"),
-  cursorLabel: document.getElementById("cursor-label"),
   progressBar: document.getElementById("scroll-progress-bar"),
   archiveToolbar: document.getElementById("archive-toolbar"),
   searchForm: document.getElementById("search-form"),
@@ -103,6 +110,7 @@ const elements = {
   rows: document.getElementById("mod-rows"),
   archiveState: document.getElementById("archive-state"),
   loadMore: document.getElementById("load-more"),
+  sentinel: document.getElementById("load-sentinel"),
   liveStatus: document.getElementById("live-status"),
 };
 
@@ -295,7 +303,7 @@ function initializeSplitText() {
   targets.forEach((el) => observer.observe(el));
 }
 
-/* Shift-style cursor follower: OPEN on rows, VIEW on links, SEND on buttons. */
+/* Cursor follower ring. Desktop fine pointers only. */
 function initializeCursor() {
   const cursor = elements.cursor;
   if (!cursor || !finePointer || reducedMotion) return;
@@ -317,11 +325,6 @@ function initializeCursor() {
     const btn = e.target.closest?.("button");
     hot = Boolean(row || link || btn);
     cursor.classList.toggle("is-hot", hot);
-    if (elements.cursorLabel) {
-      elements.cursorLabel.textContent = row
-        ? (row.getAttribute("aria-expanded") === "true" ? "CLOSE" : "OPEN")
-        : link ? "VIEW" : btn ? "PRESS" : "OPEN";
-    }
     wake();
   }, { passive: true });
   document.addEventListener("pointerleave", () => {
@@ -520,7 +523,12 @@ function renderModRow(mod, index) {
   const row = node("tr", `ledger-row${selected ? " is-selected" : ""}${seen && !selected ? " is-visited" : ""}`);
   row.style.setProperty("--entry-order", String(index % 12));
   const button = rowButton(mod, "mod-select", `Preview ${mod.name}`);
-  button.addEventListener("pointerenter", () => previewMod(mod.slug));
+  let hoverTimer = 0;
+  button.addEventListener("pointerenter", () => {
+    window.clearTimeout(hoverTimer);
+    hoverTimer = window.setTimeout(() => previewMod(mod.slug), HOVER_PREVIEW_DELAY);
+  });
+  button.addEventListener("pointerleave", () => window.clearTimeout(hoverTimer));
   button.addEventListener("focus", () => previewMod(mod.slug));
   const nameWrap = node("span", "mod-name-wrap");
   nameWrap.append(node("span", "mod-name", mod.name));
@@ -767,9 +775,8 @@ function renderPreviewPanel() {
     retry.type = "button";
     retry.dataset.action = "retry-catalog";
     dossier.append(retry);
-  } else {
-    dossier.append(node("p", "preview-empty-detail", state.mods.length
-      ? "Hover or focus a pak post to preview it." : "No pak posts match this search."));
+  } else if (!state.mods.length) {
+    dossier.append(node("p", "preview-empty-detail", "No pak posts match this search."));
   }
 
   elements.detailPanelContent.replaceChildren(dossier);
@@ -789,6 +796,10 @@ function renderCatalog() {
   elements.search.value = state.query;
   elements.loadMore.hidden = !state.hasMore;
   elements.loadMore.textContent = state.moreError ? "Retry" : "More";
+  if (elements.sentinel) {
+    elements.sentinel.hidden = !state.hasMore || Boolean(state.error) ||
+      state.moreError || state.autoPages >= AUTO_PAGE_CAP;
+  }
   const fragment = document.createDocumentFragment();
   state.mods.forEach((mod, index) => {
     const modRow = renderModRow(mod, index);
@@ -870,7 +881,22 @@ function previewMod(slug, { scroll = false } = {}) {
   announce(`${modName} preview selected.`);
 }
 
-async function loadCatalog({ append = false } = {}) {
+let loadObserver = null;
+function observeLoadSentinel() {
+  if (!elements.sentinel || typeof IntersectionObserver === "undefined") return;
+  if (loadObserver) return;
+  loadObserver = new IntersectionObserver((entries) => {
+    if (!entries.some((entry) => entry.isIntersecting)) return;
+    if (state.demo || state.loading || state.error || state.moreError || !state.hasMore) return;
+    if (state.autoPages >= AUTO_PAGE_CAP) return;
+    state.autoPages += 1;
+    loadCatalog({ append: true, auto: true });
+  }, { rootMargin: "600px 0px" });
+  loadObserver.observe(elements.sentinel);
+}
+
+async function loadCatalog({ append = false, auto = false } = {}) {
+  if (!append) state.autoPages = 0;
   if (state.demo) {
     const query = state.query.toLocaleLowerCase();
     let mods = demoMods.filter((mod) => !query ||
@@ -924,6 +950,7 @@ async function loadCatalog({ append = false } = {}) {
     state.moreError = false;
     const selectionChanged = ensureSelection();
     renderCatalog();
+    if (append && auto) announce(`${newMods.length} more pak posts loaded.`);
     if (selectionChanged && state.selectedSlug) loadDetails(state.selectedSlug);
   } catch (error) {
     if (error.name === "AbortError" || request !== state.catalogRequest) return;
@@ -1027,4 +1054,5 @@ initializeMagnetic();
 initializeScrollFx();
 initializeScrollReveals();
 initializeSignalRain();
+observeLoadSentinel();
 loadCatalog();
