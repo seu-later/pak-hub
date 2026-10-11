@@ -19,8 +19,11 @@ import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 const SERIES_MIN_SIBLINGS = 3;
-/* Node's execFile needs the explicit extension on Windows. */
+/* Node cannot spawn .cmd shims without a shell on Windows. Arguments here
+ * are generated (hex keys) or point at the user's own files, so shell use
+ * is safe. */
 const WRANGLER = process.platform === "win32" ? "wrangler.cmd" : "wrangler";
+const SHELL = process.platform === "win32";
 
 function trimSeparators(value) {
   return value.replace(/^[-_. ]+|[-_. ]+$/g, "");
@@ -223,7 +226,7 @@ async function main() {
   if (upload) {
     for (const [index, record] of records.entries()) {
       process.stdout.write(`[${index + 1}/${records.length}] ${record.r2Key} ... `);
-      await execFileAsync(WRANGLER, ["r2", "object", "put", `${bucket}/${record.r2Key}`, "--file", record.representative]);
+      await execFileAsync(WRANGLER, ["r2", "object", "put", `${bucket}/${record.r2Key}`, "--file", record.representative], { shell: SHELL });
       console.log("ok");
     }
   } else {
@@ -231,7 +234,7 @@ async function main() {
   }
 
   if (apply) {
-    await execFileAsync(WRANGLER, ["d1", "execute", "pak-hub", "--file", sqlPath], { maxBuffer: 64 * 1024 * 1024 });
+    await execFileAsync(WRANGLER, ["d1", "execute", "pak-hub", "--file", sqlPath], { maxBuffer: 64 * 1024 * 1024, shell: SHELL });
     console.log("D1 inserts applied.");
   } else {
     console.log("Dry run: pass --apply to insert rows into D1.");
