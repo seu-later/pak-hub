@@ -1,5 +1,9 @@
 import { json, unavailable } from "../_lib/http.js";
 
+/* Message links are emitted only for the allowlisted public server. Private
+ * rows carry the handle with no URL, and guild ids never leave the server. */
+const PUBLIC_DUMP_GUILD = "878318716801155233";
+
 /* Finals first, then prereleases, unversioned last; versions newest-first. */
 function dumpRank(file) {
   if (file.version) return file.prerelease ? 1 : 0;
@@ -78,7 +82,8 @@ export async function onRequestGet({ request, env }) {
     if (keys.length) {
       const placeholders = keys.map(() => "?").join(",");
       const { results: files } = await env.DB.prepare(`
-        SELECT base_key, base_name, version, prerelease, filename, size_bytes, r2_key
+        SELECT base_key, base_name, version, prerelease, filename, size_bytes, r2_key,
+          posted_by, source_message_url, source_guild
         FROM dump_files WHERE base_key IN (${placeholders})
       `).bind(...keys).all();
       filesByBase = new Map(keys.map((key) => [key, []]));
@@ -89,6 +94,8 @@ export async function onRequestGet({ request, env }) {
           prerelease: Number(file.prerelease || 0),
           sizeBytes: Number(file.size_bytes || 0),
           downloadUrl: `/api/dump-file/${file.r2_key}`,
+          postedBy: file.posted_by || "Unknown",
+          sourceUrl: file.source_guild === PUBLIC_DUMP_GUILD ? (file.source_message_url || "") : "",
         });
       }
     }

@@ -939,6 +939,23 @@ input:focus-visible {
   white-space: nowrap;
 }
 
+.pak-credit {
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.pak-credit-link {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pak-credit-link:hover {
+  color: var(--phosphor);
+}
+
 .pak-download,
 .pak-download-unavailable {
   display: inline-flex;

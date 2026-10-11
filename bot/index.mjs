@@ -299,7 +299,8 @@ async function processMessage(message, thread = null) {
     const modSourceId = rootMessage.id;
     const { release, tag } = await githubReleaseFor(message);
     const files = await releaseAssets(message, attachments, release);
-    const discordName = (author) => author?.member?.displayName || author?.author?.globalName || author?.author?.username || "Unknown";
+    /* Raw Discord usernames, not display names, so credits stay stable. */
+    const discordName = (author) => author?.author?.username || author?.member?.displayName || author?.author?.globalName || "Unknown";
     const payload = {
       slug: slugify(metadata.name, modSourceId),
       mod_source_id: modSourceId,

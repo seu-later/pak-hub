@@ -118,6 +118,20 @@ function renderVersionFile(file) {
   label.append(node("span", "pak-file-name", file.filename));
   /* Version rides in the mono measurement slot; prereleases show raw. */
   if (file.version) label.append(node("span", "pak-file-size", file.prerelease ? file.version : `v${file.version}`));
+  if (file.postedBy && file.postedBy !== "Unknown") {
+    const credit = node("span", "pak-credit", "by @");
+    if (file.sourceUrl) {
+      const link = node("a", "pak-credit-link", file.postedBy);
+      link.href = file.sourceUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.setAttribute("aria-label", `Open the Discord post by ${file.postedBy}`);
+      credit.append(link);
+    } else {
+      credit.append(document.createTextNode(file.postedBy));
+    }
+    label.append(credit);
+  }
   item.append(label);
 
   const download = node("a", "pak-download", "Download");

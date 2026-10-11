@@ -19,6 +19,8 @@ bot/state.json.tmp
 pak-dump-manifest.json
 pak-dump-import.sql
 pak-dump-progress.txt
+pak-dump-credits.sql
+pak-dump-credits-progress.txt
 
 # Local exporter output
 EU-pak-mods/

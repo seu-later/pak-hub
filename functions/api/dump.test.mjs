@@ -7,7 +7,7 @@ import { onRequestGet as getDumpFile } from "./dump-file/[key].js";
 
 function setup() {
   const database = new DatabaseSync(":memory:");
-  for (const migration of ["0001_initial.sql", "0002_import_state.sql", "0003_discord_posts.sql", "0004_dump.sql"]) {
+  for (const migration of ["0001_initial.sql", "0002_import_state.sql", "0003_discord_posts.sql", "0004_dump.sql", "0005_dump_credits.sql"]) {
     database.exec(readFileSync(new URL(`../../migrations/${migration}`, import.meta.url), "utf8"));
   }
   const DB = {
@@ -26,15 +26,21 @@ function setup() {
     },
   };
   const insert = database.prepare(`
-    INSERT INTO dump_files (base_key, base_name, version, prerelease, filename, size_bytes, sha256, r2_key)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO dump_files (base_key, base_name, version, prerelease, filename, size_bytes, sha256, r2_key,
+      posted_by, source_message_url, source_guild)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const rows = [
-    ["anti-asthma", "Anti-Asthma", "6", 0, "Anti-Asthma_v6.pak", 2048, "a".repeat(64), `${"a".repeat(64)}.pak`],
-    ["anti-asthma", "Anti-Asthma", "2", 0, "Anti-Asthma_v2.pak", 1024, "b".repeat(64), `${"b".repeat(64)}.pak`],
-    ["blueepc", "blueepc", "", 0, "blueepc.pak", 512, "c".repeat(64), `${"c".repeat(64)}.pak`],
-    ["custom-difficulty2", "custom-difficulty2", "beta-13", 1, "custom-difficulty2-beta-13.pak", 768, "d".repeat(64), `${"d".repeat(64)}.pak`],
-    ["custom-difficulty2", "custom-difficulty2", "beta-10", 1, "custom-difficulty2-beta-10.pak", 640, "e".repeat(64), `${"e".repeat(64)}.pak`],
+    ["anti-asthma", "Anti-Asthma", "6", 0, "Anti-Asthma_v6.pak", 2048, "a".repeat(64), `${"a".repeat(64)}.pak`,
+      "miner_x", "https://discord.com/channels/878318716801155233/111/100", "878318716801155233"],
+    ["anti-asthma", "Anti-Asthma", "2", 0, "Anti-Asthma_v2.pak", 1024, "b".repeat(64), `${"b".repeat(64)}.pak`,
+      "quiet_miner", "https://discord.com/channels/658769407241093142/222/300", "658769407241093142"],
+    ["blueepc", "blueepc", "", 0, "blueepc.pak", 512, "c".repeat(64), `${"c".repeat(64)}.pak`,
+      "Unknown", null, null],
+    ["custom-difficulty2", "custom-difficulty2", "beta-13", 1, "custom-difficulty2-beta-13.pak", 768, "d".repeat(64), `${"d".repeat(64)}.pak`,
+      "tester", null, null],
+    ["custom-difficulty2", "custom-difficulty2", "beta-10", 1, "custom-difficulty2-beta-10.pak", 640, "e".repeat(64), `${"e".repeat(64)}.pak`,
+      "tester", null, null],
   ];
   for (const row of rows) insert.run(...row);
   return { database, DB };
@@ -54,6 +60,11 @@ test("dump groups surface base names with newest versions first", async () => {
     ["Anti-Asthma_v6.pak", "Anti-Asthma_v2.pak"],
   );
   assert.equal(payload.groups[0].files[0].downloadUrl, `/api/dump-file/${"a".repeat(64)}.pak`);
+  assert.equal(payload.groups[0].files[0].postedBy, "miner_x");
+  assert.equal(payload.groups[0].files[0].sourceUrl, "https://discord.com/channels/878318716801155233/111/100");
+  assert.equal(payload.groups[0].files[1].postedBy, "quiet_miner");
+  assert.equal(payload.groups[0].files[1].sourceUrl, "");
+  assert.ok(!("source_guild" in payload.groups[0].files[0]));
   database.close();
 });
 
