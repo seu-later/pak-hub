@@ -171,6 +171,10 @@ async function main() {
   const upload = args.includes("--upload");
   const apply = args.includes("--apply");
   let failures = [];
+  let done = new Set();
+  try {
+    done = new Set((await fs.readFile(progressPath, "utf8")).split(/\r?\n/).filter(Boolean));
+  } catch { /* first run: no progress file yet */ }
 
   const paths = await collectFiles(dir);
   console.log(`Scanned ${paths.length} files.`);
@@ -230,11 +234,6 @@ async function main() {
   console.log(`Wrote ${manifestPath} and ${sqlPath} (${records.length} rows).`);
 
   if (upload) {
-    let done = new Set();
-    try {
-      const previous = await fs.readFile(progressPath, "utf8");
-      done = new Set(previous.split(/\r?\n/).filter(Boolean));
-    } catch { /* first run: no progress file yet */ }
     console.log(`Resuming with ${done.size} files already uploaded.`);
     failures = [];
     for (const [index, record] of records.entries()) {
@@ -245,6 +244,7 @@ async function main() {
           ["r2", "object", "put", ...REMOTE, `${bucket}/${record.r2Key}`, "--file", quote(record.representative)],
           { shell: SHELL });
         await fs.appendFile(progressPath, `${record.r2Key}\n`);
+        done.add(record.r2Key);
         console.log("ok");
       } catch (error) {
         console.log(`FAILED: ${String(error?.message || error).split("\n")[0]}`);
@@ -263,6 +263,16 @@ async function main() {
   if (failures.length) {
     console.log("Skipping D1 apply until all uploads succeed.");
   } else if (apply) {
+    /* Only rows whose files actually landed are inserted. */
+    const usable = done.size ? records.filter((record) => done.has(record.r2Key)) : records;
+    const skipped = records.length - usable.length;
+    const statements = usable.map((record) => (
+      "INSERT OR IGNORE INTO dump_files (base_key, base_name, version, prerelease, filename, size_bytes, sha256, r2_key) VALUES (" +
+      `'${sqlEscape(record.baseKey)}', '${sqlEscape(record.base)}', '${sqlEscape(record.version)}', ${record.prerelease}, ` +
+      `'${sqlEscape(record.filename)}', ${record.size}, '${record.sha}', '${record.r2Key}');`
+    ));
+    await fs.writeFile(sqlPath, `${statements.join("\n")}\n`);
+    console.log(`Applying ${usable.length} rows${skipped ? ` (${skipped} missing from R2, excluded)` : ""}.`);
     await execFileAsync(WRANGLER, ["d1", "execute", "pak-hub", ...REMOTE, "--file", quote(sqlPath)], { maxBuffer: 64 * 1024 * 1024, shell: SHELL });
     console.log("D1 inserts applied.");
   } else {
