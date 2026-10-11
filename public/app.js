@@ -87,14 +87,11 @@ const elements = {
   stage: document.querySelector(".catalog-stage"),
   header: document.querySelector(".site-header"),
   heroTitle: document.querySelector(".hero-title"),
-  heroStatus: document.getElementById("hero-status"),
-  signalText: document.getElementById("signal-text"),
   rain: document.getElementById("signal-rain"),
   worldImg: document.getElementById("world-img"),
   cursor: document.getElementById("cursor"),
   cursorLabel: document.getElementById("cursor-label"),
   progressBar: document.getElementById("scroll-progress-bar"),
-  tickerTrack: document.getElementById("ticker-track"),
   archiveToolbar: document.getElementById("archive-toolbar"),
   searchForm: document.getElementById("search-form"),
   searchToggle: document.getElementById("search-toggle"),
@@ -181,26 +178,6 @@ function compareByDate(left, right) {
   const leftDate = new Date(left.postedAt || 0).getTime();
   const rightDate = new Date(right.postedAt || 0).getTime();
   return (Number.isFinite(leftDate) ? leftDate : 0) - (Number.isFinite(rightDate) ? rightDate : 0);
-}
-
-function updateHeroStatus() {
-  if (!elements.heroStatus) return;
-  if (state.loading && state.mods.length === 0) {
-    elements.heroStatus.textContent = "TUNING SIGNAL_";
-    return;
-  }
-  if (state.error) {
-    elements.heroStatus.textContent = "SIGNAL INTERRUPTED — RETRY_";
-    if (elements.signalText) elements.signalText.textContent = "SIGNAL DOWN";
-    return;
-  }
-  if (elements.signalText) elements.signalText.textContent = "SIGNAL LIVE";
-  const total = state.total || state.mods.length;
-  const shown = state.mods.length;
-  const scope = state.query ? ` // FILTER "${state.query.toUpperCase().slice(0, 24)}"` : "";
-  elements.heroStatus.textContent = total
-    ? `${shown}/${total} PAKS DECODED${scope}_`
-    : `CHANNEL OPEN${scope}_`;
 }
 
 function initializeSignalRain() {
@@ -318,18 +295,6 @@ function initializeSplitText() {
   targets.forEach((el) => observer.observe(el));
 }
 
-function initializeTicker() {
-  const track = elements.tickerTrack;
-  if (!track || reducedMotion) return;
-  const chunk = track.querySelector(".ticker-chunk");
-  if (!chunk) return;
-  for (let n = 0; n < 3; n += 1) {
-    const copy = chunk.cloneNode(true);
-    copy.setAttribute("aria-hidden", "true");
-    track.append(copy);
-  }
-}
-
 /* Shift-style cursor follower: OPEN on rows, VIEW on links, SEND on buttons. */
 function initializeCursor() {
   const cursor = elements.cursor;
@@ -367,7 +332,7 @@ function initializeCursor() {
 /* Magnetic nudge on nav + download controls. */
 function initializeMagnetic() {
   if (!finePointer || reducedMotion) return;
-  document.querySelectorAll(".primary-nav a, .signal-status, .pak-download, .retry-button, .load-more").forEach((el) => {
+  document.querySelectorAll(".primary-nav a, .pak-download, .retry-button, .load-more").forEach((el) => {
     el.classList.add("magnetic");
     el.addEventListener("pointermove", (e) => {
       const r = el.getBoundingClientRect();
@@ -824,8 +789,6 @@ function renderCatalog() {
   elements.search.value = state.query;
   elements.loadMore.hidden = !state.hasMore;
   elements.loadMore.textContent = state.moreError ? "Retry" : "More";
-  updateHeroStatus();
-
   const fragment = document.createDocumentFragment();
   state.mods.forEach((mod, index) => {
     const modRow = renderModRow(mod, index);
@@ -1059,7 +1022,6 @@ window.addEventListener("resize", () => {
 });
 initializeWorldImage();
 initializeSplitText();
-initializeTicker();
 initializeCursor();
 initializeMagnetic();
 initializeScrollFx();

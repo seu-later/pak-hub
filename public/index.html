@@ -4,16 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#060907">
-    <meta name="description" content="Browse and download community Deep Rock Galactic pak mods.">
-    <title>Pak Hub — Pak Archive</title>
+    <meta name="description" content="Browse and download community Deep Rock Galactic pak mods from Pak Hub.">
+    <title>Pak Hub — Catalog</title>
     <link rel="preload" href="assets/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="assets/WhiteRabbit.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="assets/city-rain.png" as="image" fetchpriority="high">
-    <link rel="stylesheet" href="styles.css?v=20261011a">
-    <script src="app.js?v=20261011a" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20261011b">
+    <script src="app.js?v=20261011b" defer></script>
   </head>
   <body class="view-list">
-    <a class="skip-link" href="#catalog">Skip to the pak archive</a>
+    <a class="skip-link" href="#catalog">Skip to the catalog</a>
     <div class="world-bg" aria-hidden="true">
       <img id="world-img" class="world-img" src="assets/city-rain.png" alt="" fetchpriority="high">
       <div class="world-veil"></div>
@@ -27,20 +27,13 @@
         <div class="header-inner">
           <nav class="primary-nav" aria-label="Primary navigation">
             <a href="#catalog" aria-current="page">Catalog</a>
-            <span id="signal-status" class="signal-status" role="status" aria-live="polite"><span class="signal-dot" aria-hidden="true"></span><span id="signal-text">SIGNAL LIVE</span></span>
+            <a href="#about">About</a>
           </nav>
         </div>
         <div class="hero-title">
-          <h1 id="page-title" data-split>Pak archive</h1>
-          <p id="hero-status" class="hero-status" role="status" aria-live="polite">INDEXING CHANNEL FEED_</p>
+          <h1 id="page-title" class="visually-hidden">Pak Hub catalog</h1>
         </div>
       </header>
-
-      <div class="ticker" aria-hidden="true">
-        <div class="ticker-track" id="ticker-track">
-          <span class="ticker-chunk">PAK ARCHIVE&ensp;//&ensp;SIGNAL LIVE&ensp;//&ensp;RAIN OVER HALCYON&ensp;//&ensp;DECODE THE CHANNEL&ensp;//&ensp;</span>
-        </div>
-      </div>
 
       <main id="catalog" class="catalog-stage" aria-labelledby="page-title">
         <div class="catalog-inner">
@@ -97,6 +90,22 @@
           </section>
         </div>
       </main>
+
+      <section id="about" class="about-section" aria-labelledby="about-title">
+        <div class="about-inner">
+          <h2 id="about-title">About Pak Hub</h2>
+          <div class="about-grid">
+            <div>
+              <h3>I'm seu.</h3>
+              <p>I'm the author and maintainer of Pak Hub. I built it to make the Deep Rock Galactic pak channel easier to search and use.</p>
+            </div>
+            <div>
+              <p>Each entry keeps the original post, author, date, thread updates, source links, and downloadable <code>.pak</code> or <code>.zip</code> files together in one place.</p>
+              <a class="about-back-link" href="#catalog">Back to the catalog</a>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <p id="live-status" class="visually-hidden" role="status" aria-live="polite"></p>
     </div>
