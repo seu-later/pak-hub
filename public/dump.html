@@ -24,8 +24,9 @@
         <div class="signal-scan" aria-hidden="true"></div>
         <div class="header-inner">
           <nav class="primary-nav" aria-label="Primary navigation">
-            <a href="index.html">Catalog</a>
+            <a href="index.html">Pak List</a>
             <a href="dump.html" aria-current="page">Pak Dump</a>
+            <a href="dependencies.html">Dependencies</a>
             <a href="about.html">About</a>
           </nav>
         </div>
@@ -58,6 +59,11 @@
                 </button>
               </form>
               <div class="archive-controls">
+                <div class="sort-controls" role="group" aria-label="Sort pak dump">
+                  <button class="sort-button" type="button" data-sort="name" aria-label="Sort by pak name">Name</button>
+                  <button class="sort-button sort-active" type="button" data-sort="newest" aria-label="Sort by newest file"><span class="sort-label">Newest</span> <span class="sort-caret" aria-hidden="true"></span></button>
+                  <span class="sort-indicator" aria-hidden="true"></span>
+                </div>
                 <span id="result-count" class="result-count" role="status" aria-live="polite"></span>
               </div>
             </div>

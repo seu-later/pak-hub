@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#060907">
+    <meta name="description" content="The core dependencies commonly needed for modded difficulty play in Deep Rock Galactic.">
+    <title>Pak Hub — Dependencies</title>
+    <link rel="preload" href="assets/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/WhiteRabbit.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="assets/city-rain.png" as="image" fetchpriority="high">
+    <link rel="stylesheet" href="styles.css?v=20261012a">
+    <script src="about.js?v=20261011b" defer></script>
+  </head>
+  <body class="view-list view-dependencies">
+    <a class="skip-link" href="#dependencies">Skip to dependencies</a>
+    <div class="world-bg" aria-hidden="true">
+      <img id="world-img" class="world-img" src="assets/city-rain.png" alt="" fetchpriority="high">
+      <div class="world-veil"></div>
+    </div>
+    <div class="app-shell">
+      <header class="site-header">
+        <canvas id="signal-rain" class="signal-rain" aria-hidden="true"></canvas>
+        <div class="signal-scan" aria-hidden="true"></div>
+        <div class="header-inner">
+          <nav class="primary-nav" aria-label="Primary navigation">
+            <a href="index.html">Pak List</a>
+            <a href="dump.html">Pak Dump</a>
+            <a href="dependencies.html" aria-current="page">Dependencies</a>
+            <a href="about.html">About</a>
+          </nav>
+        </div>
+        <div class="hero-title">
+          <h1 id="page-title" class="visually-hidden">Pak Hub dependencies</h1>
+        </div>
+      </header>
+
+      <main id="dependencies" class="catalog-stage" aria-labelledby="page-title">
+        <div class="catalog-inner">
+          <section class="archive-shell dependencies-shell" aria-label="Common modded difficulty dependencies">
+            <div class="dependencies-heading">
+              <h2 data-split>Dependencies</h2>
+              <p>These are the usual first installs for modded difficulty lobbies.</p>
+            </div>
+            <ol class="dependencies-list">
+              <li class="dependency-item">
+                <div>
+                  <h3>Custom Difficulty 2 <span>(CD2)</span></h3>
+                  <p>The framework used by many custom difficulty packs.</p>
+                </div>
+                <a href="https://discord.com/channels/878318716801155233/932482102740537344/1558930849108332687" target="_blank" rel="noopener noreferrer">Discord source</a>
+              </li>
+              <li class="dependency-item">
+                <div>
+                  <h3>More Enemy Variants <span>(MEV)</span></h3>
+                  <p>Adds the enemy variants commonly referenced by difficulty packs.</p>
+                </div>
+                <a href="https://discord.com/channels/878318716801155233/932482102740537344/1558930849108332687" target="_blank" rel="noopener noreferrer">Discord source</a>
+              </li>
+              <li class="dependency-item">
+                <div>
+                  <h3>Donnie’s Enemy Addon <span>(DEA)</span></h3>
+                  <p>An enemy expansion used by several custom difficulty setups.</p>
+                </div>
+                <a href="https://mod.io/g/drg/m/donnies-enemy-addon-cd2-version" target="_blank" rel="noopener noreferrer">Open mod.io</a>
+              </li>
+              <li class="dependency-item">
+                <div>
+                  <h3>Elytra’s Enemies Expansion <span>(EEE)</span></h3>
+                  <p>A broader enemy roster dependency for modded missions.</p>
+                </div>
+                <a href="https://mod.io/g/drg/m/elytrasenemiesexpansion" target="_blank" rel="noopener noreferrer">Open mod.io</a>
+              </li>
+              <li class="dependency-item">
+                <div>
+                  <h3>Enn’s Biome Schmorp</h3>
+                  <p>Biome content that frequently accompanies custom difficulty lobbies.</p>
+                </div>
+                <a href="https://discord.com/channels/878318716801155233/932482102740537344/1558930849108332687" target="_blank" rel="noopener noreferrer">Discord source</a>
+              </li>
+            </ol>
+          </section>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

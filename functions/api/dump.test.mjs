@@ -50,7 +50,7 @@ test("dump groups surface base names with newest versions first", async () => {
   const { database, DB } = setup();
   const payload = await (await getDump({
     env: { DB },
-    request: new Request("https://example.com/api/dump"),
+    request: new Request("https://example.com/api/dump?sort=name"),
   })).json();
 
   assert.equal(payload.total, 3);
@@ -78,6 +78,22 @@ test("dump search matches filenames inside a group", async () => {
   assert.equal(payload.total, 1);
   assert.equal(payload.groups[0].name, "custom-difficulty2");
   assert.equal(payload.groups[0].fileCount, 2);
+  database.close();
+});
+
+test("dump groups support newest and oldest ordering", async () => {
+  const { database, DB } = setup();
+  const newest = await (await getDump({
+    env: { DB },
+    request: new Request("https://example.com/api/dump?sort=newest"),
+  })).json();
+  const oldest = await (await getDump({
+    env: { DB },
+    request: new Request("https://example.com/api/dump?sort=oldest"),
+  })).json();
+
+  assert.deepEqual(newest.groups.map((group) => group.name), ["custom-difficulty2", "blueepc", "Anti-Asthma"]);
+  assert.deepEqual(oldest.groups.map((group) => group.name), ["Anti-Asthma", "blueepc", "custom-difficulty2"]);
   database.close();
 });
 

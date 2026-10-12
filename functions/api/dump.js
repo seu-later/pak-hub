@@ -42,6 +42,8 @@ export async function onRequestGet({ request, env }) {
 
   const url = new URL(request.url);
   const search = (url.searchParams.get("q") || "").trim().slice(0, 100);
+  const requestedSort = url.searchParams.get("sort");
+  const sort = ["name", "oldest"].includes(requestedSort) ? requestedSort : "newest";
   const page = Math.max(1, Math.min(500, Number.parseInt(url.searchParams.get("page") || "1", 10) || 1));
   const pageSize = 48;
   const where = [];
@@ -59,6 +61,11 @@ export async function onRequestGet({ request, env }) {
   }
 
   const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+  const orderBy = sort === "name"
+    ? "MIN(d.base_name) COLLATE NOCASE ASC"
+    : sort === "oldest"
+      ? "MAX(d.id) ASC, MIN(d.base_name) COLLATE NOCASE ASC"
+      : "MAX(d.id) DESC, MIN(d.base_name) COLLATE NOCASE ASC";
   const offset = (page - 1) * pageSize;
 
   try {
@@ -71,7 +78,7 @@ export async function onRequestGet({ request, env }) {
         FROM dump_files d
         ${clause}
         GROUP BY d.base_key
-        ORDER BY MIN(d.base_name) COLLATE NOCASE ASC
+        ORDER BY ${orderBy}
         LIMIT ? OFFSET ?
       `).bind(...values, pageSize, offset).all(),
     ]);
@@ -112,6 +119,6 @@ export async function onRequestGet({ request, env }) {
     });
   } catch (error) {
     console.error("Pak Hub dump query failed", error);
-    return json({ error: "The pack dump could not be loaded. Try again shortly." }, 503);
+    return json({ error: "The pak dump could not be loaded. Try again shortly." }, 503);
   }
 }

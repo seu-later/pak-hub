@@ -4,6 +4,7 @@
 
 const state = {
   query: "",
+  sort: "newest",
   page: 1,
   total: 0,
   groups: [],
@@ -83,6 +84,35 @@ function renderArchiveState() {
     }
   }
   elements.archiveState.replaceChildren(content);
+}
+
+function renderSortState() {
+  document.querySelectorAll(".sort-button").forEach((button) => {
+    const isActive = button.dataset.sort === state.sort ||
+      (button.dataset.sort === "newest" && state.sort === "oldest");
+    button.setAttribute("aria-pressed", String(isActive));
+    if (button.dataset.sort === "newest") {
+      const label = button.querySelector(".sort-label");
+      const caret = button.querySelector(".sort-caret");
+      const oldest = state.sort === "oldest";
+      if (label) label.textContent = oldest ? "Oldest" : "Newest";
+      if (caret) caret.dataset.direction = oldest ? "oldest" : "newest";
+      button.setAttribute("aria-label", `Sort by ${oldest ? "oldest" : "newest"} file`);
+    }
+  });
+  updateSortIndicator();
+}
+
+function updateSortIndicator() {
+  const bar = document.querySelector(".sort-indicator");
+  const active = document.querySelector('.sort-button[aria-pressed="true"]');
+  const group = document.querySelector(".sort-controls");
+  if (!bar || !active || !group) return;
+  const box = active.getBoundingClientRect();
+  const parent = group.getBoundingClientRect();
+  if (!box.width || !parent.width) return;
+  bar.style.left = `${box.left - parent.left}px`;
+  bar.style.width = `${box.width}px`;
 }
 
 function renderGroupRow(group, index) {
@@ -178,6 +208,7 @@ function renderGroups() {
   elements.resultCount.textContent = count;
   elements.resultCount.setAttribute("aria-label", state.loading && state.groups.length === 0
     ? "Loading results" : `${state.groups.length} of ${state.total || state.groups.length} results`);
+  renderSortState();
   elements.clearSearch.hidden = !state.query;
   elements.search.value = state.query;
   elements.loadMore.hidden = !state.hasMore;
@@ -236,7 +267,7 @@ async function loadGroups({ append = false, auto = false } = {}) {
   if (!append) state.moreError = false;
   renderGroups();
 
-  const params = new URLSearchParams({ page: String(page) });
+  const params = new URLSearchParams({ sort: state.sort, page: String(page) });
   if (state.query) params.set("q", state.query);
 
   try {
@@ -323,6 +354,17 @@ elements.search.addEventListener("keydown", (event) => {
   event.preventDefault();
   closeSearch();
 });
+
+function updateSort(sort) {
+  state.sort = sort === "newest" ? state.sort === "newest" ? "oldest" : "newest" : sort;
+  state.page = 1;
+  loadGroups();
+}
+
+document.querySelectorAll(".sort-button").forEach((button) => {
+  button.addEventListener("click", () => updateSort(button.dataset.sort));
+});
+window.addEventListener("resize", updateSortIndicator, { passive: true });
 
 elements.detailPanel.addEventListener("click", (event) => {
   const target = event.target.closest("button[data-action]");
