@@ -1,4 +1,4 @@
-/* Pack Dump: searchable list of loose pak/zip files grouped by base mod name.
+/* Pak Dump: searchable list of loose pak/zip files grouped by base mod name.
  * Group payloads ship with the list response, so selecting a row only swaps
  * the side box to that group's version files. No descriptions exist. */
 
@@ -157,7 +157,7 @@ function renderPreviewPanel() {
     for (let index = 0; index < 3; index += 1) skeleton.append(node("span", "skeleton-row"));
     dossier.append(skeleton);
   } else if (state.error) {
-    dossier.append(node("p", "preview-empty-detail", "The pack dump could not be loaded."));
+    dossier.append(node("p", "preview-empty-detail", "The pak dump could not be loaded."));
     const retry = node("button", "retry-button", "Retry");
     retry.type = "button";
     retry.dataset.action = "retry-catalog";
@@ -245,7 +245,7 @@ async function loadGroups({ append = false, auto = false } = {}) {
       signal: state.catalogController.signal,
     });
     const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || "The pack dump could not be loaded.");
+    if (!response.ok) throw new Error(payload.error || "The pak dump could not be loaded.");
     if (request !== state.catalogRequest) return;
     const newGroups = payload.groups || [];
     state.groups = append ? [...state.groups, ...newGroups] : newGroups;
@@ -262,7 +262,7 @@ async function loadGroups({ append = false, auto = false } = {}) {
     if (error.name === "AbortError" || request !== state.catalogRequest) return;
     state.loading = false;
     if (append) state.moreError = true;
-    else state.error = error.message || "The pack dump could not be loaded. Try again shortly.";
+    else state.error = error.message || "The pak dump could not be loaded. Try again shortly.";
     renderGroups();
   }
 }

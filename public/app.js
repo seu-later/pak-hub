@@ -533,7 +533,7 @@ function renderModRow(mod, index) {
   const nameWrap = node("span", "mod-name-wrap");
   nameWrap.append(node("span", "mod-name", mod.name));
   const metadata = node("span", "mod-meta");
-  metadata.append(node("span", "meta-poster", mod.postedBy));
+  metadata.append(node("span", "meta-poster", mod.postedBy === "Unknown" ? mod.postedBy : `@${mod.postedBy}`));
   const date = formatTimestamp(mod.postedAt);
   if (date) {
     const time = node("time", "meta-date", date);
@@ -606,8 +606,6 @@ function renderFiles(post) {
 function renderTopicPost(post, modName) {
   const block = node("div", "source-post topic-post");
   const meta = node("p", "source-post-meta topic-meta");
-  meta.append(node("span", "topic-tag", "Topic"));
-  meta.append(document.createTextNode("  ·  "));
   meta.append(node("span", "source-post-author", post.postedBy));
   const date = formatTimestamp(post.postedAt);
   if (date) {
