@@ -134,7 +134,7 @@ function renderVersionFile(file) {
   }
   item.append(label);
 
-  const download = node("a", "pak-download", "Download");
+  const download = node("a", "pak-download");
   download.href = file.downloadUrl;
   download.setAttribute("aria-label", `Download ${file.filename}`);
   download.append(node("span", "", "Download"));
