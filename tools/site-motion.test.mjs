@@ -77,6 +77,9 @@ test("page reveal survives Cloudflare's .html to extensionless redirect", () => 
   assert.equal(revealCalls.length, 2);
   assert.equal(document.body.children[0].className, "route-signal");
   assert.ok(revealCalls.every(([, , end]) => end.duration <= 0.25));
+  const [, start, end] = revealCalls.find(([target]) => target === main);
+  assert.equal(start.filter, undefined);
+  assert.equal(end.filter, undefined);
 });
 
 test("nav starts the next page within one short signal beat", () => {
@@ -91,8 +94,8 @@ test("nav starts the next page within one short signal beat", () => {
   link.getBoundingClientRect = () => ({ left: 100, width: 40 });
   nav.contains = (element) => element === link;
   const timeline = {
-    fromTo(_target, _start, end, at = 0) { tweens.push({ duration: end.duration, at }); return this; },
-    to(_target, end, at = 0) { tweens.push({ duration: end.duration, at }); return this; },
+    fromTo(target, start, end, at = 0) { tweens.push({ target, start, end, duration: end.duration, at }); return this; },
+    to(target, end, at = 0) { tweens.push({ target, end, duration: end.duration, at }); return this; },
   };
   setup(false, false, { ".primary-nav": nav, main }, {
     location: { href: "https://example.com/", origin: "https://example.com", assign() {} },
@@ -101,6 +104,7 @@ test("nav starts the next page within one short signal beat", () => {
   });
   handlers.click({ target: link, button: 0, preventDefault() {} });
   assert.ok(Math.max(...tweens.map(({ duration, at }) => duration + at)) <= 0.22);
+  assert.ok(tweens.filter(({ target }) => target === main).every(({ end }) => end.filter === undefined));
 });
 
 test("outgoing preview stays hidden and cannot receive interaction while the slice opens", () => {

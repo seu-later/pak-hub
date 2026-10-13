@@ -137,6 +137,7 @@ input {
 /* Rain-soaked city atmosphere stays behind stationary, readable content. */
 
 .scene-background {
+  --city-width: max(calc(100vw + 32px), min(165svh, 1500px));
   position: fixed;
   inset: 0;
   z-index: 0;
@@ -149,7 +150,6 @@ input {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 450ms ease;
 }
 
 #scene-canvas canvas {
@@ -165,10 +165,9 @@ input {
 .scene-fallback {
   position: absolute;
   inset: 0;
-  background: url("assets/city-rain.png") center bottom / max(100vw, 1100px) auto no-repeat;
-  opacity: .9;
-  mask-image: linear-gradient(to bottom, transparent calc(100% - max(30.263vw, 333px)), #000 calc(100% - max(30.263vw, 333px) + 120px));
-  transition: opacity 450ms;
+  /* Still exported from the same renderer, palette and layers as the live city. */
+  background: url("assets/city-still.webp") center bottom / calc(var(--city-width) * 2171 / 2203) auto no-repeat;
+  opacity: 1;
 }
 
 .scene-ready .scene-fallback {

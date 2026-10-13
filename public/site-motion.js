@@ -131,7 +131,7 @@
     if (!host) return;
     sceneStarted = true;
     const revision = ++sceneRevision;
-    const load = () => import("./scene.js?v=20261013city2").then((module) => {
+    const load = () => import("./scene.js?v=20261013city3").then((module) => {
       if (revision !== sceneRevision || !motionEnabled() || !desktopViewport.matches) return;
       sceneController = module.initializeScene(host, motionEnabled, () => {
         if (revision === sceneRevision) { sceneController = null; sceneStarted = false; }
@@ -243,7 +243,7 @@
     } catch { /* Storage may be unavailable. */ }
     if (arriving) {
       const effect = makeSignal();
-      window.gsap.fromTo(main, { x: -5, filter: "brightness(.82) contrast(1.12)" }, { x: 0, filter: "none", duration: 0.22, ease: "power3.out", clearProps: "transform,filter" });
+      window.gsap.fromTo(main, { x: -5 }, { x: 0, duration: 0.22, ease: "power3.out", clearProps: "transform" });
       window.gsap.fromTo(effect, { y: -20, opacity: 0.8 }, { y: 24, opacity: 0, duration: 0.22, ease: "power2.out", onComplete: () => { effect.remove(); if (signal === effect) signal = null; } });
     }
     nav.addEventListener("click", (event) => {
@@ -258,15 +258,15 @@
       window.gsap.timeline({ onComplete: () => window.location.assign(destination.href) })
         .fromTo(effect, { y: -18, opacity: 0 }, { y: 0, opacity: 0.8, duration: 0.08, ease: "none" })
         .to(effect, { y: 16, opacity: 0.4, duration: 0.12, ease: "none" }, 0.08)
-        .to(main, { x: -6, filter: "brightness(.8) contrast(1.12)", duration: 0.08, ease: "none" }, 0)
-        .to(main, { x: 3, filter: "brightness(.92) contrast(1.06)", duration: 0.08, ease: "none" }, 0.08);
+        .to(main, { x: -6, duration: 0.08, ease: "none" }, 0)
+        .to(main, { x: 3, duration: 0.08, ease: "none" }, 0.08);
     });
     window.addEventListener("pageshow", (event) => {
       if (!event.persisted) return;
       signal?.remove();
       signal = null;
       navigating = false;
-      window.gsap.set(main, { clearProps: "transform,filter" });
+      window.gsap.set(main, { clearProps: "transform" });
     });
   }
 

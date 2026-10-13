@@ -99,7 +99,7 @@ test("scene disposal removes canvas, listeners, observer resources and late wake
   assert.equal(site.frames.size, 0);
 });
 
-test("context loss restores the supplied-image fallback without another render", async () => {
+test("context loss restores the static city fallback without another render", async () => {
   const site = await setup();
   let prevented = false;
   site.renderer.domElement.emit("webglcontextlost", { preventDefault() { prevented = true; } });
@@ -117,6 +117,26 @@ test("bfcache page suspension resumes one scene without duplicating the canvas",
   site.window.emit("pageshow"); site.step();
   assert.ok(site.renderer.renders > rendered);
   assert.equal(site.host.children.length, 1);
+});
+
+test("navigation preserves the last painted city until the document is replaced", async () => {
+  const site = await setup();
+  site.step();
+  site.window.emit("pagehide", { persisted: false });
+  const rendered = site.renderer.renders;
+  site.step();
+  assert.equal(site.host.children.length, 1);
+  assert.equal(site.classes.has("scene-ready"), true);
+  assert.equal(site.renderer.disposed, undefined);
+  assert.equal(site.renderer.renders, rendered);
+});
+
+test("the static city stays visible until the first WebGL frame is painted", async () => {
+  const site = await setup();
+  assert.equal(site.classes.has("scene-ready"), false);
+  site.step();
+  assert.equal(site.classes.has("scene-ready"), true);
+  assert.ok(site.renderer.renders > 0);
 });
 
 test("losing motion during a pending frame disposes the active scene", async () => {

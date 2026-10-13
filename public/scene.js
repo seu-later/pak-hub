@@ -102,6 +102,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     });
     rainGeometry.attributes.position.needsUpdate = true;
     renderer.render(scene, camera);
+    if (!frames) host.parentElement.classList.add("scene-ready");
     host.dataset.sceneFrames = String(++frames);
     const animate = unsettled || time < activeUntil || elapsed < 680;
     host.dataset.sceneState = animate ? "active" : "idle";
@@ -159,9 +160,10 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     if (document.hidden) pause();
     else wake();
   }
-  function pagehide(event) {
-    if (event.persisted) { suspended = true; pause(); }
-    else stop();
+  function pagehide() {
+    // Keep the last frame painted while the next document takes over.
+    suspended = true;
+    pause();
   }
   function pageshow() { suspended = false; wake(); }
   const toolbar = document.getElementById("archive-toolbar");
@@ -218,7 +220,6 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     foregroundMaterial.map = near;
     foregroundMaterial.needsUpdate = true;
     ready = true;
-    host.parentElement.classList.add("scene-ready");
     const selection = window.PakHubMotion?.selectionKey;
     if (selection) target.light = 0.55 + [...String(selection)].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 17 / 40;
     current.light = target.light;
