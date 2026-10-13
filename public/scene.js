@@ -199,11 +199,12 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     const weather = Math.max(0, Math.min(1, (activeUntil - time) / 350));
     rainUniforms.opacity.value = 0.1 + weather * 0.025;
     drops.forEach((drop, index) => {
-      drop.y -= delta * 0.28 * drop.depth;
-      if (drop.y < -height / 2 - 40) drop.y = height / 2 + 40;
+      const travel = height + 80;
+      const phase = ((index * 0.41421356237) % 1) * travel - atmosphereTime * 280 * drop.depth;
+      drop.y = ((phase % travel) + travel) % travel - height / 2 - 40;
       const offset = index * 6;
       const x = drop.x + current.x * drop.depth * 8;
-      const y = drop.y + current.scroll * drop.depth * 12;
+      const y = drop.y;
       rainPositions.set([x, y, 0, x + drop.depth * 1.2, y + 24 * drop.depth, 0], offset);
     });
     rainGeometry.attributes.position.needsUpdate = true;
@@ -267,12 +268,21 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     else wake();
   }
   function suspend() {
+    if (suspended) return;
     // Keep the last frame painted while the next document takes over.
     suspended = true;
     pause();
     rootStyle.setProperty("--scene-clock", String(atmosphereTime));
     try {
       sessionStorage.setItem("pak-hub-city-position", JSON.stringify({ x: current.x, y: current.y, clock: atmosphereTime }));
+      if (ready && !disposed && frames) {
+        // WebGL clears its drawing buffer after compositing; copy in the same task as this draw.
+        renderer.render(scene, camera);
+        sessionStorage.setItem("pak-hub-city-frame", JSON.stringify({
+          image: renderer.domElement.toDataURL("image/png"),
+          width: window.innerWidth, height: window.innerHeight,
+        }));
+      }
     } catch { /* Pointer motion still works when storage is unavailable. */ }
   }
   function pagehide() { suspend(); }

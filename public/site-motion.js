@@ -131,7 +131,7 @@
     if (!host) return;
     sceneStarted = true;
     const revision = ++sceneRevision;
-    const load = () => import("./scene.js?v=20261014atmosphere1").then((module) => {
+    const load = () => import("./scene.js?v=20261014handoff1").then((module) => {
       if (revision !== sceneRevision || !motionEnabled() || !desktopViewport.matches) return;
       sceneController = module.initializeScene(host, motionEnabled, () => {
         if (revision === sceneRevision) { sceneController = null; sceneStarted = false; }
@@ -140,8 +140,7 @@
       // The supplied city stays visible if optional rendering fails.
       if (revision === sceneRevision) host.parentElement.classList.add("scene-static");
     });
-    if (window.requestIdleCallback) window.requestIdleCallback(load, { timeout: 1500 });
-    else window.setTimeout(load, 100);
+    load();
   }
 
   document.querySelector(".preview-back")?.addEventListener("click", () => {

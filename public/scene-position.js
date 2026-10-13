@@ -12,4 +12,13 @@
   document.documentElement.style.setProperty("--scene-x", `${x * 8}px`);
   document.documentElement.style.setProperty("--scene-y", `${y * 6}px`);
   document.documentElement.style.setProperty("--scene-clock", String(clock));
+  try {
+    const frame = JSON.parse(sessionStorage.getItem("pak-hub-city-frame"));
+    sessionStorage.removeItem("pak-hub-city-frame");
+    if (frame?.width === window.innerWidth && frame?.height === window.innerHeight &&
+        /^data:image\/(webp|png);base64,/.test(frame.image)) {
+      document.documentElement.style.setProperty("--scene-frame", `url("${frame.image}")`);
+      document.documentElement.style.setProperty("--scene-frame-visible", "1");
+    }
+  } catch { /* The layered fallback remains available if a frame cannot be restored. */ }
 })();

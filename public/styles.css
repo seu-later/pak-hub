@@ -179,20 +179,19 @@ input {
   opacity: 0;
 }
 
+.scene-handoff {
+  position: absolute;
+  inset: 0;
+  background: var(--void) var(--scene-frame, none) center / 100% 100% no-repeat;
+  opacity: var(--scene-frame-visible, 0);
+  transition: opacity 160ms var(--ease-out);
+}
+
+.scene-ready .scene-handoff {
+  opacity: 0;
+}
+
 @media (min-width: 701px) {
-  .scene-background::before {
-    content: "";
-    position: absolute;
-    z-index: 2;
-    right: -6px;
-    bottom: -8px;
-    width: 13px;
-    height: 56svh;
-    border-radius: 3px;
-    background: linear-gradient(90deg, #020604, #0c1913 32%, #182c22 46%, #07100c 68%, #020604);
-    box-shadow: -5px 2px 12px rgba(0, 0, 0, .3);
-    transform: translate3d(calc(var(--scene-x, 0px) * -1.5), calc(var(--scene-y, 0px) * -.8), 0);
-  }
   .scene-fallback {
     --city-height: calc(var(--city-width) * 724 / 2171);
     background: none;

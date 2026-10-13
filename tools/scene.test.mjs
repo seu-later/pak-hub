@@ -15,6 +15,7 @@ async function setup(savedPosition = null) {
   const window = new Events();
   window.devicePixelRatio = 2;
   window.scrollY = 0;
+  window.innerWidth = 1440; window.innerHeight = 900;
   window.matchMedia = () => ({ matches: true });
   const document = new Events();
   document.hidden = false;
@@ -33,6 +34,7 @@ async function setup(savedPosition = null) {
     constructor() {
       super(); renderer = this; this.renders = 0; this.domElement = new Events();
       this.domElement.remove = () => { host.children = host.children.filter((x) => x !== this.domElement); };
+      this.domElement.toDataURL = () => "data:image/png;base64,c2NlbmU=";
     }
     setClearColor() {}
     setPixelRatio(value) { this.ratio = value; }
@@ -58,7 +60,7 @@ async function setup(savedPosition = null) {
   let id = 0;
   const frames = new Map();
   const storage = new Map(savedPosition ? [["pak-hub-city-position", JSON.stringify(savedPosition)]] : []);
-  const sessionStorage = { getItem: (key) => storage.get(key) || null, setItem: (key, value) => storage.set(key, value) };
+  const sessionStorage = { getItem: (key) => storage.get(key) || null, setItem: (key, value) => storage.set(key, value), removeItem: (key) => storage.delete(key) };
   const context = vm.createContext({ THREE, window, document, sessionStorage, Float32Array, performance: { now: () => time }, requestAnimationFrame: (fn) => { frames.set(++id, fn); return id; }, cancelAnimationFrame: (key) => frames.delete(key) });
   vm.runInContext(readFileSync(new URL("../public/scene-position.js", import.meta.url), "utf8"), context);
   const source = readFileSync(new URL("../public/scene.js", import.meta.url), "utf8").replace(/^import .*;\r?\n/, "").replace("export function", "function");
@@ -152,8 +154,25 @@ test("explicit transition suspension freezes the city without disposing it", asy
   site.window.emit("pointermove", { clientX: 300, clientY: 700 });
   site.step();
   assert.equal(site.host.children.length, 1);
-  assert.equal(site.renderer.renders, rendered);
+  assert.equal(site.renderer.renders, rendered + 1);
   assert.equal(site.host.dataset.sceneState, "paused");
+});
+
+test("navigation carries a full rendered frame before the incoming scene is ready", async () => {
+  const site = await setup();
+  site.step();
+  site.controller.suspend();
+  const snapshot = JSON.parse(site.storage.get("pak-hub-city-frame"));
+  assert.equal(snapshot.image, "data:image/png;base64,c2NlbmU=");
+  assert.equal(snapshot.width, site.window.innerWidth);
+  assert.equal(snapshot.height, site.window.innerHeight);
+  const source = readFileSync(new URL("../public/scene-position.js", import.meta.url), "utf8");
+  const properties = new Map();
+  const document = { documentElement: { style: { setProperty: (key, value) => properties.set(key, value) } } };
+  vm.runInNewContext(source, { window: site.window, document, sessionStorage: { getItem: (key) => site.storage.get(key) || null, removeItem: (key) => site.storage.delete(key) } });
+  assert.equal(properties.get("--scene-frame-visible"), "1");
+  assert.ok(properties.get("--scene-frame").includes(snapshot.image));
+  assert.equal(site.storage.has("pak-hub-city-frame"), false);
 });
 
 test("city responds smoothly to pointer movement while scroll leaves its offset stable", async () => {
@@ -211,6 +230,10 @@ test("mist and wall lighting share a continuous clock across navigation", async 
   incoming.step();
   const resumedClock = incoming.meshes[3].material.uniforms.clock.value;
   assert.ok(resumedClock >= saved.clock && resumedClock - saved.clock < 0.05);
+  const before = outgoing.meshes[2].geometry.attributes.position.array;
+  const after = incoming.meshes[2].geometry.attributes.position.array;
+  assert.equal(after[0], before[0]);
+  assert.ok(Math.abs(after[1] - before[1]) < 6);
 });
 
 test("the static city stays visible until the first WebGL frame is painted", async () => {
