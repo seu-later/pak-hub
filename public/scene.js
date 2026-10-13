@@ -48,14 +48,43 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
   scene.add(foreground);
 
   // One batched weather draw; the texture itself contains no painted rain.
-  const rainPositions = new Float32Array(72 * 6);
+  const rainPositions = new Float32Array(160 * 6);
   const rainGeometry = new THREE.BufferGeometry();
   rainGeometry.setAttribute("position", new THREE.BufferAttribute(rainPositions, 3));
-  const rainMaterial = new THREE.LineBasicMaterial({ color: 0x7fab8b, transparent: true, opacity: 0.04, depthWrite: false });
+  const rainUniforms = {
+    foregroundMap: { value: null },
+    foregroundSize: { value: new THREE.Vector2() },
+    foregroundOffset: { value: new THREE.Vector2() },
+    opacity: { value: 0.1 },
+  };
+  const rainMaterial = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, uniforms: rainUniforms,
+    vertexShader: `varying vec2 worldPosition;
+      void main() {
+        vec4 world = modelMatrix * vec4(position, 1.0);
+        worldPosition = world.xy;
+        gl_Position = projectionMatrix * viewMatrix * world;
+      }`,
+    fragmentShader: `uniform sampler2D foregroundMap;
+      uniform vec2 foregroundSize;
+      uniform vec2 foregroundOffset;
+      uniform float opacity;
+      varying vec2 worldPosition;
+      void main() {
+        vec2 uv = (worldPosition - foregroundOffset) / foregroundSize + 0.5;
+        float alpha = opacity;
+        if (uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0) {
+          alpha *= 1.0 - smoothstep(0.01, 0.1, texture2D(foregroundMap, uv).a);
+        }
+        if (alpha < 0.001) discard;
+        gl_FragColor = vec4(0.28, 0.43, 0.34, alpha);
+        #include <colorspace_fragment>
+      }`,
+  });
   const rain = new THREE.LineSegments(rainGeometry, rainMaterial);
   rain.position.z = 25;
   scene.add(rain);
-  const drops = Array.from({ length: 72 }, (_, index) => ({ x: 0, y: 0, depth: 0.35 + (index % 11) / 17 }));
+  const drops = Array.from({ length: 160 }, (_, index) => ({ x: 0, y: 0, depth: 0.4 + (index % 11) / 15 }));
   const rootStyle = document.documentElement.style;
   const target = {
     x: (parseFloat(rootStyle.getPropertyValue("--scene-x")) || 0) / 8,
@@ -83,38 +112,37 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     const delta = Math.min(Math.max(time - lastTime, 0), 32);
     lastTime = time;
     const amount = 1 - Math.exp(-delta / 85);
-    let unsettled = false;
     for (const key of Object.keys(current)) {
       current[key] += (target[key] - current[key]) * amount;
-      if (Math.abs(target[key] - current[key]) > 0.0005) unsettled = true;
     }
     // The fallback mirrors each layer's offset during the document handoff.
     rootStyle.setProperty("--scene-x", `${current.x * 8}px`);
     rootStyle.setProperty("--scene-y", `${current.y * 6}px`);
     city.position.set(current.x * 4, -height / 2 + cityHeight / 2 + current.y * 3 - 6, 0);
     foreground.position.set(current.x * 10 - 8, -height / 2 + cityHeight / 2 + current.y * 7 - 12, 50);
+    rainUniforms.foregroundOffset.value.set(foreground.position.x, foreground.position.y);
+    rainUniforms.foregroundSize.value.set(cityWidth + 32, cityHeight + 16);
     const elapsed = time - pulseStart;
     uniforms.pulse.value = elapsed >= 0 && elapsed < 680 ? (1 - Math.exp(-elapsed / 90)) * Math.exp(-elapsed / 190) * 1.8 : 0;
     uniforms.lightX.value = current.light;
     uniforms.search.value = current.search;
     uniforms.clock.value = time / 1000;
     const weather = Math.max(0, Math.min(1, (activeUntil - time) / 350));
-    rainMaterial.opacity = 0.018 + weather * 0.035;
+    rainUniforms.opacity.value = 0.1 + weather * 0.025;
     drops.forEach((drop, index) => {
-      drop.y -= delta * 0.045 * drop.depth * weather;
-      if (drop.y < -height / 2 - 20) drop.y = height / 2 + 20;
+      drop.y -= delta * 0.28 * drop.depth;
+      if (drop.y < -height / 2 - 40) drop.y = height / 2 + 40;
       const offset = index * 6;
       const x = drop.x + current.x * drop.depth * 8;
       const y = drop.y + current.scroll * drop.depth * 12;
-      rainPositions.set([x, y, 0, x + drop.depth * 0.8, y + 9 * drop.depth, 0], offset);
+      rainPositions.set([x, y, 0, x + drop.depth * 1.2, y + 24 * drop.depth, 0], offset);
     });
     rainGeometry.attributes.position.needsUpdate = true;
     renderer.render(scene, camera);
     if (!frames) host.parentElement.classList.add("scene-ready");
     host.dataset.sceneFrames = String(++frames);
-    const animate = unsettled || time < activeUntil || elapsed < 680;
-    host.dataset.sceneState = animate ? "active" : "idle";
-    if (animate) frame = requestAnimationFrame(render);
+    host.dataset.sceneState = "active";
+    frame = requestAnimationFrame(render);
   }
 
   function wake(weather = false) {
@@ -230,6 +258,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     if (!motionEnabled()) { stop(); return; }
     uniforms.map.value = far;
     foregroundMaterial.map = near;
+    rainUniforms.foregroundMap.value = near;
     foregroundMaterial.needsUpdate = true;
     ready = true;
     const selection = window.PakHubMotion?.selectionKey;

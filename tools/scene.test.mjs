@@ -26,7 +26,7 @@ async function setup(savedPosition = null) {
   const host = { clientWidth: 1440, clientHeight: 900, dataset: {}, children: [], append(el) { this.children.push(el); }, parentElement: { classList: { add: (x) => classes.add(x), remove: (x) => classes.delete(x) } } };
   const resources = [];
   class Resource { constructor(values = {}) { Object.assign(this, values); resources.push(this); } dispose() { this.disposed = true; } }
-  const vector = () => ({ set(...values) { this.values = values; } });
+  const vector = () => ({ set(...values) { this.values = values; [this.x, this.y, this.z] = values; } });
   class Mesh { constructor(geometry, material) { this.geometry = geometry; this.material = material; this.position = vector(); this.scale = vector(); meshes.push(this); } }
   let renderer;
   class Renderer extends Resource {
@@ -50,6 +50,7 @@ async function setup(savedPosition = null) {
     BufferGeometry, BufferAttribute: class { constructor(array) { this.array = array; } },
     LineBasicMaterial: Resource, LineSegments: Mesh,
     TextureLoader: class { async loadAsync() { return new Resource(); } },
+    Vector2: class { set(x, y) { this.x = x; this.y = y; } },
   };
   let time = 0;
   let enabled = true;
@@ -67,11 +68,16 @@ async function setup(savedPosition = null) {
   return { host, window, document, resources, renderer, controller, classes, frames, meshes, properties, storage, step, disable: () => { enabled = false; } };
 }
 
-test("city settles to zero pending frames and obeys the drawing-buffer cap", async () => {
+test("rain keeps falling without input and obeys the drawing-buffer cap", async () => {
   const site = await setup();
   for (let i = 0; i < 150; i += 1) site.step();
-  assert.equal(site.host.dataset.sceneState, "idle");
-  assert.equal(site.frames.size, 0);
+  const rain = site.meshes[2];
+  const previous = [...rain.geometry.attributes.position.array];
+  for (let i = 0; i < 10; i += 1) site.step();
+  assert.notDeepEqual([...rain.geometry.attributes.position.array], previous);
+  assert.equal(site.host.dataset.sceneState, "active");
+  assert.equal(site.frames.size, 1);
+  assert.ok(rain.position.z < site.meshes[1].position.z);
   assert.ok(site.renderer.ratio ** 2 * 1440 * 900 <= 2400001);
   assert.ok(site.renderer.renders > 0);
 });
