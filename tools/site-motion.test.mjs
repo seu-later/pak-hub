@@ -31,11 +31,11 @@ class Element {
   }
 }
 
-function setup(reduced = false, desktop = false) {
+function setup(reduced = false, desktop = false, fixtures = {}) {
   const panel = new Element();
   const scrollPanel = new Element(); scrollPanel.append(panel);
   const events = [];
-  const document = { documentElement: new Element(), body: new Element(), images: [], activeElement: null, getElementById: () => null, querySelector: () => null, querySelectorAll: () => [], addEventListener() {}, dispatchEvent(event) { events.push(event); } };
+  const document = { documentElement: new Element(), body: new Element(), images: [], activeElement: null, getElementById: () => null, querySelector: (selector) => fixtures[selector] || null, querySelectorAll: () => [], addEventListener() {}, dispatchEvent(event) { events.push(event); } };
   const lenisOptions = [];
   const window = { location: { search: "", protocol: "https:", hostname: "example.com" }, matchMedia: (query) => ({ matches: query.includes("reduce") ? reduced : desktop, addEventListener() {} }), Lenis: class { constructor(options) { lenisOptions.push(options); } }, addEventListener() {}, requestAnimationFrame: (fn) => fn(), setTimeout, clearTimeout };
   const context = vm.createContext({ window, document, URLSearchParams, Promise, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } }, performance, sessionStorage: { getItem: () => "1" } });
@@ -43,6 +43,27 @@ function setup(reduced = false, desktop = false) {
   const swap = window.PakHubMotion.swapPreview;
   return { panel, scrollPanel, document, events, lenisOptions, motion: window.PakHubMotion, swap: (next, key) => swap(panel, next, key) };
 }
+
+test("sort underline travels on hover and returns to the pressed choice", () => {
+  const handlers = {};
+  const active = new Element();
+  const hovered = new Element();
+  const indicator = new Element();
+  active.getBoundingClientRect = () => ({ left: 10, width: 36 });
+  hovered.getBoundingClientRect = () => ({ left: 76, width: 57 });
+  indicator.classList.add = () => {};
+  const group = new Element();
+  group.getBoundingClientRect = () => ({ left: 0, width: 150 });
+  group.querySelector = (selector) => selector === ".sort-indicator" ? indicator : active;
+  group.addEventListener = (type, handler) => { handlers[type] = handler; };
+  group.contains = (element) => element === active || element === hovered;
+  hovered.closest = () => hovered;
+  setup(false, false, { ".sort-controls": group });
+  handlers.pointerover({ target: hovered });
+  assert.equal(indicator.style.transform, "translateX(76px) scaleX(57)");
+  handlers.pointerleave();
+  assert.equal(indicator.style.transform, "translateX(10px) scaleX(36)");
+});
 
 test("outgoing preview stays hidden and cannot receive interaction while the slice opens", () => {
   const { panel, swap } = setup();
