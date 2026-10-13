@@ -235,7 +235,10 @@
     }
     let arriving = false;
     try {
-      arriving = sessionStorage.getItem(storageKey) === window.location.href;
+      const target = sessionStorage.getItem(storageKey);
+      const routePath = (value) => new URL(value).pathname.replace(/\/index\.html$/, "/").replace(/\.html$/, "");
+      arriving = Boolean(target) && new URL(target).origin === window.location.origin &&
+        routePath(target) === routePath(window.location.href);
       sessionStorage.removeItem(storageKey);
     } catch { /* Storage may be unavailable. */ }
     if (arriving) {

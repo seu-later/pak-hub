@@ -31,14 +31,14 @@ class Element {
   }
 }
 
-function setup(reduced = false, desktop = false, fixtures = {}) {
+function setup(reduced = false, desktop = false, fixtures = {}, options = {}) {
   const panel = new Element();
   const scrollPanel = new Element(); scrollPanel.append(panel);
   const events = [];
-  const document = { documentElement: new Element(), body: new Element(), images: [], activeElement: null, getElementById: () => null, querySelector: (selector) => fixtures[selector] || null, querySelectorAll: () => [], addEventListener() {}, dispatchEvent(event) { events.push(event); } };
+  const document = { documentElement: new Element(), body: new Element(), images: [], activeElement: null, getElementById: () => null, createElement: () => new Element(), querySelector: (selector) => fixtures[selector] || null, querySelectorAll: () => [], addEventListener() {}, dispatchEvent(event) { events.push(event); } };
   const lenisOptions = [];
-  const window = { location: { search: "", protocol: "https:", hostname: "example.com" }, matchMedia: (query) => ({ matches: query.includes("reduce") ? reduced : desktop, addEventListener() {} }), Lenis: class { constructor(options) { lenisOptions.push(options); } }, addEventListener() {}, requestAnimationFrame: (fn) => fn(), setTimeout, clearTimeout };
-  const context = vm.createContext({ window, document, URLSearchParams, Promise, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } }, performance, sessionStorage: { getItem: () => "1" } });
+  const window = { location: options.location || { search: "", protocol: "https:", hostname: "example.com" }, gsap: options.gsap, matchMedia: (query) => ({ matches: query.includes("reduce") ? reduced : desktop, addEventListener() {} }), Lenis: class { constructor(options) { lenisOptions.push(options); } }, addEventListener() {}, requestAnimationFrame: (fn) => fn(), setTimeout, clearTimeout };
+  const context = vm.createContext({ window, document, URL, URLSearchParams, Promise, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } }, performance, sessionStorage: options.storage || { getItem: () => "1" } });
   vm.runInContext(readFileSync(new URL("../public/site-motion.js", import.meta.url), "utf8"), context);
   const swap = window.PakHubMotion.swapPreview;
   return { panel, scrollPanel, document, events, lenisOptions, motion: window.PakHubMotion, swap: (next, key) => swap(panel, next, key) };
@@ -63,6 +63,19 @@ test("sort underline travels on hover and returns to the pressed choice", () => 
   assert.equal(indicator.style.transform, "translateX(76px) scaleX(57)");
   handlers.pointerleave();
   assert.equal(indicator.style.transform, "translateX(10px) scaleX(36)");
+});
+
+test("page reveal survives Cloudflare's .html to extensionless redirect", () => {
+  const revealCalls = [];
+  const nav = new Element(); nav.addEventListener = () => {}; nav.querySelector = () => null;
+  const main = new Element();
+  const { document } = setup(false, false, { ".primary-nav": nav, main }, {
+    location: { href: "https://example.com/about", origin: "https://example.com", search: "" },
+    storage: { getItem: (key) => key === "pak-hub-route-target" ? "https://example.com/about.html" : "1", removeItem() {} },
+    gsap: { fromTo(...args) { revealCalls.push(args); } },
+  });
+  assert.equal(revealCalls.length, 2);
+  assert.equal(document.body.children[0].className, "route-veil");
 });
 
 test("outgoing preview stays hidden and cannot receive interaction while the slice opens", () => {
