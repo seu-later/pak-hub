@@ -225,13 +225,13 @@
     if (!nav || !main || !window.gsap) return;
     const storageKey = "pak-hub-route-target";
     let navigating = false;
-    let veil = null;
-    function makeVeil() {
-      veil = document.createElement("div");
-      veil.className = "route-veil";
-      veil.setAttribute("aria-hidden", "true");
-      document.body.append(veil);
-      return veil;
+    let signal = null;
+    function makeSignal() {
+      signal = document.createElement("div");
+      signal.className = "route-signal";
+      signal.setAttribute("aria-hidden", "true");
+      document.body.append(signal);
+      return signal;
     }
     let arriving = false;
     try {
@@ -242,9 +242,9 @@
       sessionStorage.removeItem(storageKey);
     } catch { /* Storage may be unavailable. */ }
     if (arriving) {
-      makeVeil();
-      window.gsap.fromTo(main, { y: 24, opacity: 0.62 }, { y: 0, opacity: 1, duration: 0.68, ease: "power3.out", clearProps: "transform,opacity" });
-      window.gsap.fromTo(veil, { scaleY: 1 }, { scaleY: 0, duration: 0.7, ease: "power3.inOut", onComplete: () => { veil.remove(); veil = null; } });
+      const effect = makeSignal();
+      window.gsap.fromTo(main, { x: -5, filter: "brightness(.82) contrast(1.12)" }, { x: 0, filter: "none", duration: 0.22, ease: "power3.out", clearProps: "transform,filter" });
+      window.gsap.fromTo(effect, { y: -20, opacity: 0.8 }, { y: 24, opacity: 0, duration: 0.22, ease: "power2.out", onComplete: () => { effect.remove(); if (signal === effect) signal = null; } });
     }
     nav.addEventListener("click", (event) => {
       const link = event.target.closest("a");
@@ -253,21 +253,20 @@
       if (destination.origin !== window.location.origin || navigating) return;
       event.preventDefault();
       navigating = true;
-      const cover = makeVeil();
-      const bounds = link.getBoundingClientRect();
-      cover.style.transformOrigin = `${bounds.left + bounds.width / 2}px 0`;
+      const effect = makeSignal();
       try { sessionStorage.setItem(storageKey, destination.href); } catch { /* Navigation still works. */ }
       window.gsap.timeline({ onComplete: () => window.location.assign(destination.href) })
-        .fromTo(cover, { scaleX: 0.015, scaleY: 0.003 }, { scaleX: 1, duration: 0.34, ease: "power3.out" })
-        .to(cover, { scaleY: 1, duration: 0.48, ease: "power3.inOut" }, 0.16)
-        .to(main, { y: -20, opacity: 0.55, duration: 0.42, ease: "power2.in" }, 0.12);
+        .fromTo(effect, { y: -18, opacity: 0 }, { y: 0, opacity: 0.8, duration: 0.08, ease: "none" })
+        .to(effect, { y: 16, opacity: 0.4, duration: 0.12, ease: "none" }, 0.08)
+        .to(main, { x: -6, filter: "brightness(.8) contrast(1.12)", duration: 0.08, ease: "none" }, 0)
+        .to(main, { x: 3, filter: "brightness(.92) contrast(1.06)", duration: 0.08, ease: "none" }, 0.08);
     });
     window.addEventListener("pageshow", (event) => {
       if (!event.persisted) return;
-      veil?.remove();
-      veil = null;
+      signal?.remove();
+      signal = null;
       navigating = false;
-      window.gsap.set(main, { clearProps: "transform,opacity" });
+      window.gsap.set(main, { clearProps: "transform,filter" });
     });
   }
 

@@ -41,7 +41,7 @@ function setup(reduced = false, desktop = false, fixtures = {}, options = {}) {
   const context = vm.createContext({ window, document, URL, URLSearchParams, Promise, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } }, performance, sessionStorage: options.storage || { getItem: () => "1" } });
   vm.runInContext(readFileSync(new URL("../public/site-motion.js", import.meta.url), "utf8"), context);
   const swap = window.PakHubMotion.swapPreview;
-  return { panel, scrollPanel, document, events, lenisOptions, motion: window.PakHubMotion, swap: (next, key) => swap(panel, next, key) };
+  return { panel, scrollPanel, document, window, events, lenisOptions, motion: window.PakHubMotion, swap: (next, key) => swap(panel, next, key) };
 }
 
 test("sort underline travels on hover and returns to the pressed choice", () => {
@@ -75,7 +75,32 @@ test("page reveal survives Cloudflare's .html to extensionless redirect", () => 
     gsap: { fromTo(...args) { revealCalls.push(args); } },
   });
   assert.equal(revealCalls.length, 2);
-  assert.equal(document.body.children[0].className, "route-veil");
+  assert.equal(document.body.children[0].className, "route-signal");
+  assert.ok(revealCalls.every(([, , end]) => end.duration <= 0.25));
+});
+
+test("nav starts the next page within one short signal beat", () => {
+  const handlers = {};
+  const tweens = [];
+  const nav = new Element(); nav.addEventListener = (type, handler) => { handlers[type] = handler; }; nav.querySelector = () => null;
+  const main = new Element();
+  const link = new Element();
+  link.href = "https://example.com/about.html";
+  link.closest = () => link;
+  link.hasAttribute = () => false;
+  link.getBoundingClientRect = () => ({ left: 100, width: 40 });
+  nav.contains = (element) => element === link;
+  const timeline = {
+    fromTo(_target, _start, end, at = 0) { tweens.push({ duration: end.duration, at }); return this; },
+    to(_target, end, at = 0) { tweens.push({ duration: end.duration, at }); return this; },
+  };
+  setup(false, false, { ".primary-nav": nav, main }, {
+    location: { href: "https://example.com/", origin: "https://example.com", assign() {} },
+    storage: { getItem: () => null, removeItem() {}, setItem() {} },
+    gsap: { timeline: () => timeline },
+  });
+  handlers.click({ target: link, button: 0, preventDefault() {} });
+  assert.ok(Math.max(...tweens.map(({ duration, at }) => duration + at)) <= 0.22);
 });
 
 test("outgoing preview stays hidden and cannot receive interaction while the slice opens", () => {
