@@ -83,8 +83,8 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
       current[key] += (target[key] - current[key]) * amount;
       if (Math.abs(target[key] - current[key]) > 0.0005) unsettled = true;
     }
-    city.position.set(current.x * 4, -height / 2 + cityHeight / 2 + current.y * 3 + current.scroll * 18 - 6, 0);
-    foreground.position.set(current.x * 10 - 8, -height / 2 + cityHeight / 2 + current.y * 7 + current.scroll * 26 - 12, 50);
+    city.position.set(0, -height / 2 + cityHeight / 2 - 6, 0);
+    foreground.position.set(-8, -height / 2 + cityHeight / 2 - 12, 50);
     const elapsed = time - pulseStart;
     uniforms.pulse.value = elapsed >= 0 && elapsed < 680 ? (1 - Math.exp(-elapsed / 90)) * Math.exp(-elapsed / 190) * 1.8 : 0;
     uniforms.lightX.value = current.light;
@@ -160,11 +160,12 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     if (document.hidden) pause();
     else wake();
   }
-  function pagehide() {
+  function suspend() {
     // Keep the last frame painted while the next document takes over.
     suspended = true;
     pause();
   }
+  function pagehide() { suspend(); }
   function pageshow() { suspended = false; wake(); }
   const toolbar = document.getElementById("archive-toolbar");
   const searchObserver = toolbar ? new MutationObserver(() => {
@@ -226,5 +227,5 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     scroll(); resize();
   }).catch(stop);
   resize();
-  return { stop };
+  return { stop, suspend };
 }

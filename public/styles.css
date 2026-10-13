@@ -44,6 +44,7 @@ html {
   min-width: 320px;
   background: var(--void);
   scroll-behavior: auto;
+  scrollbar-gutter: stable;
   scrollbar-color: #35493d var(--void);
 }
 

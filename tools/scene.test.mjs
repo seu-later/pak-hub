@@ -21,11 +21,12 @@ async function setup() {
   document.documentElement = { scrollHeight: 2400 };
   document.getElementById = () => null;
   const classes = new Set();
+  const meshes = [];
   const host = { clientWidth: 1440, clientHeight: 900, dataset: {}, children: [], append(el) { this.children.push(el); }, parentElement: { classList: { add: (x) => classes.add(x), remove: (x) => classes.delete(x) } } };
   const resources = [];
   class Resource { constructor(values = {}) { Object.assign(this, values); resources.push(this); } dispose() { this.disposed = true; } }
   const vector = () => ({ set(...values) { this.values = values; } });
-  class Mesh { constructor(geometry, material) { this.geometry = geometry; this.material = material; this.position = vector(); this.scale = vector(); } }
+  class Mesh { constructor(geometry, material) { this.geometry = geometry; this.material = material; this.position = vector(); this.scale = vector(); meshes.push(this); } }
   let renderer;
   class Renderer extends Resource {
     constructor() {
@@ -59,7 +60,7 @@ async function setup() {
   const controller = context.initializeScene(host, () => enabled);
   for (let i = 0; i < 6; i += 1) await Promise.resolve();
   const step = () => { time += 16; const work = [...frames.values()]; frames.clear(); work.forEach((fn) => fn(time)); };
-  return { host, window, document, resources, renderer, controller, classes, frames, step, disable: () => { enabled = false; } };
+  return { host, window, document, resources, renderer, controller, classes, frames, meshes, step, disable: () => { enabled = false; } };
 }
 
 test("city settles to zero pending frames and obeys the drawing-buffer cap", async () => {
@@ -129,6 +130,30 @@ test("navigation preserves the last painted city until the document is replaced"
   assert.equal(site.classes.has("scene-ready"), true);
   assert.equal(site.renderer.disposed, undefined);
   assert.equal(site.renderer.renders, rendered);
+});
+
+test("explicit transition suspension freezes the city without disposing it", async () => {
+  const site = await setup();
+  site.step();
+  site.window.emit("pointermove", { clientX: 1300, clientY: 240 });
+  const rendered = site.renderer.renders;
+  site.controller.suspend();
+  site.window.emit("pointermove", { clientX: 300, clientY: 700 });
+  site.step();
+  assert.equal(site.host.children.length, 1);
+  assert.equal(site.renderer.renders, rendered);
+  assert.equal(site.host.dataset.sceneState, "paused");
+});
+
+test("city layers keep their position while scroll and pointer animate the rain", async () => {
+  const site = await setup();
+  for (let i = 0; i < 120; i += 1) site.step();
+  const positions = site.meshes.slice(0, 2).map((mesh) => [...mesh.position.values]);
+  site.window.scrollY = 1200;
+  site.window.emit("scroll");
+  site.window.emit("pointermove", { clientX: 1300, clientY: 240 });
+  for (let i = 0; i < 80; i += 1) site.step();
+  assert.deepEqual(site.meshes.slice(0, 2).map((mesh) => [...mesh.position.values]), positions);
 });
 
 test("the static city stays visible until the first WebGL frame is painted", async () => {

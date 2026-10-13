@@ -131,7 +131,7 @@
     if (!host) return;
     sceneStarted = true;
     const revision = ++sceneRevision;
-    const load = () => import("./scene.js?v=20261013city3").then((module) => {
+    const load = () => import("./scene.js?v=20261013city4").then((module) => {
       if (revision !== sceneRevision || !motionEnabled() || !desktopViewport.matches) return;
       sceneController = module.initializeScene(host, motionEnabled, () => {
         if (revision === sceneRevision) { sceneController = null; sceneStarted = false; }
@@ -253,6 +253,7 @@
       if (destination.origin !== window.location.origin || navigating) return;
       event.preventDefault();
       navigating = true;
+      sceneController?.suspend();
       const effect = makeSignal();
       try { sessionStorage.setItem(storageKey, destination.href); } catch { /* Navigation still works. */ }
       window.gsap.timeline({ onComplete: () => window.location.assign(destination.href) })
