@@ -19,7 +19,7 @@
     return true;
   }
 
-  function moveIndicator(group, indicator, target, animate = true) {
+  function moveIndicator(group, indicator, target, animate = true, duration = 0.34) {
     if (!group || !indicator || !target) return;
     const box = target.getBoundingClientRect();
     const parent = group.getBoundingClientRect();
@@ -27,9 +27,9 @@
     const x = box.left - parent.left;
     const width = box.width;
     if (window.gsap) {
-      indicator.style.transition = "opacity 160ms";
+      indicator.style.transition = animate ? "opacity 160ms" : "none";
       window.gsap.killTweensOf(indicator);
-      window.gsap.to(indicator, { x, scaleX: width, duration: animate && motionEnabled() ? 0.34 : 0, ease: "power3.out", overwrite: true });
+      window.gsap.to(indicator, { x, scaleX: width, duration: animate && motionEnabled() ? duration : 0, ease: "power3.out", overwrite: true });
     } else {
       indicator.style.transition = animate && motionEnabled() ? "" : "none";
       indicator.style.transform = `translateX(${x}px) scaleX(${width})`;
@@ -178,23 +178,35 @@
     if (!nav || !indicator || !current) return;
 
     let target = current;
-    function positionIndicator(link, animate = true) {
-      moveIndicator(nav, indicator, link, animate);
+    let navigating = false;
+    function positionIndicator(link, animate = true, duration = 0.34) {
+      moveIndicator(nav, indicator, link, animate, duration);
       target = link;
     }
 
     positionIndicator(current, false);
     nav.addEventListener("pointerover", (event) => {
+      if (navigating) return;
       const link = event.target.closest("a");
       if (link && nav.contains(link)) positionIndicator(link);
     });
-    nav.addEventListener("pointerleave", () => positionIndicator(current));
+    nav.addEventListener("pointerleave", () => { if (!navigating) positionIndicator(current); });
     nav.addEventListener("focusin", (event) => {
+      if (navigating) return;
       const link = event.target.closest("a");
       if (link && nav.contains(link)) positionIndicator(link);
     });
     nav.addEventListener("focusout", (event) => {
-      if (!nav.contains(event.relatedTarget)) positionIndicator(current);
+      if (!navigating && !nav.contains(event.relatedTarget)) positionIndicator(current);
+    });
+    nav.addEventListener("pakhub:navigation", (event) => {
+      navigating = true;
+      positionIndicator(event.detail.link, true, 0.18);
+    });
+    window.addEventListener("pageshow", (event) => {
+      if (!event.persisted) return;
+      navigating = false;
+      positionIndicator(current, false);
     });
     window.addEventListener("resize", () => positionIndicator(target, false), { passive: true });
     document.fonts?.ready.then(() => positionIndicator(target, false));
@@ -253,6 +265,7 @@
       if (destination.origin !== window.location.origin || navigating) return;
       event.preventDefault();
       navigating = true;
+      nav.dispatchEvent(new CustomEvent("pakhub:navigation", { detail: { link } }));
       sceneController?.suspend();
       const effect = makeSignal();
       try { sessionStorage.setItem(storageKey, destination.href); } catch { /* Navigation still works. */ }

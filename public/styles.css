@@ -991,6 +991,7 @@ input {
 /* Supporting pages keep the same compact content alignment. */
 
 .about-author {
+  text-align: center;
   font-family: var(--font-mono);
   margin: 24px 0;
   color: var(--ink-bright);
@@ -999,6 +1000,7 @@ input {
 
 .dependencies-workspace {
   max-width: 840px;
+  margin-inline: auto;
   padding: 18px 0 40px;
 }
 

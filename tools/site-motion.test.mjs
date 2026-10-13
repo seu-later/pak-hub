@@ -21,6 +21,8 @@ class Element {
   setAttribute(name, value) { this.attributes[name] = value; }
   removeAttribute(name) { delete this.attributes[name]; }
   contains(target) { return this === target || this.children.some((e) => e.contains(target)); }
+  addEventListener(type, handler) { (this.handlers ||= {})[type] ||= []; this.handlers[type].push(handler); }
+  dispatchEvent(event) { this.handlers?.[event.type]?.forEach((handler) => handler(event)); }
   querySelectorAll() { return []; }
   getAnimations() { return this.animations; }
   animate(frames, options) {
@@ -105,6 +107,38 @@ test("nav starts the next page within one short signal beat", () => {
   handlers.click({ target: link, button: 0, preventDefault() {} });
   assert.ok(Math.max(...tweens.map(({ duration, at }) => duration + at)) <= 0.22);
   assert.ok(tweens.filter(({ target }) => target === main).every(({ end }) => end.filter === undefined));
+});
+
+test("clicked nav target stays selected through pointer and focus changes during exit", () => {
+  const nav = new Element();
+  const indicator = new Element();
+  const current = new Element();
+  const destination = new Element();
+  nav.append(current); nav.append(destination);
+  nav.getBoundingClientRect = () => ({ left: 0, width: 240 });
+  current.getBoundingClientRect = () => ({ left: 10, width: 60 });
+  destination.getBoundingClientRect = () => ({ left: 150, width: 50 });
+  current.closest = () => current; destination.closest = () => destination;
+  destination.href = "https://example.com/about.html";
+  destination.hasAttribute = () => false;
+  nav.querySelector = (selector) => selector === ".nav-indicator" ? indicator : current;
+  const calls = [];
+  const timeline = { fromTo() { return this; }, to() { return this; } };
+  setup(false, false, { ".primary-nav": nav, main: new Element() }, {
+    location: { href: "https://example.com/", origin: "https://example.com", assign() {} },
+    storage: { getItem: () => null, removeItem() {}, setItem() {} },
+    gsap: { killTweensOf() {}, to(target, vars) { if (target === indicator) calls.push(vars); }, timeline: () => timeline },
+  });
+  nav.dispatchEvent({ type: "pointerover", target: destination });
+  nav.dispatchEvent({ type: "click", target: destination, button: 0, preventDefault() {} });
+  const committedCalls = calls.length;
+  nav.dispatchEvent({ type: "pointerleave" });
+  nav.dispatchEvent({ type: "focusout", relatedTarget: null });
+  nav.dispatchEvent({ type: "pointerover", target: current });
+  nav.dispatchEvent({ type: "focusin", target: current });
+  assert.equal(calls.length, committedCalls);
+  assert.equal(calls.at(-1).x, 150);
+  assert.ok(calls.at(-1).duration <= 0.2);
 });
 
 test("outgoing preview stays hidden and cannot receive interaction while the slice opens", () => {
