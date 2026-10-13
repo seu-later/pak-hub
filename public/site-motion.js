@@ -131,7 +131,7 @@
     if (!host) return;
     sceneStarted = true;
     const revision = ++sceneRevision;
-    const load = () => import("./scene.js?v=20261014handoff1").then((module) => {
+    const load = () => import("./scene.js?v=20261014handoff2").then((module) => {
       if (revision !== sceneRevision || !motionEnabled() || !desktopViewport.matches) return;
       sceneController = module.initializeScene(host, motionEnabled, () => {
         if (revision === sceneRevision) { sceneController = null; sceneStarted = false; }

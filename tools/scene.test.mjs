@@ -169,7 +169,12 @@ test("navigation carries a full rendered frame before the incoming scene is read
   const source = readFileSync(new URL("../public/scene-position.js", import.meta.url), "utf8");
   const properties = new Map();
   const document = { documentElement: { style: { setProperty: (key, value) => properties.set(key, value) } } };
-  vm.runInNewContext(source, { window: site.window, document, sessionStorage: { getItem: (key) => site.storage.get(key) || null, removeItem: (key) => site.storage.delete(key) } });
+  let decode;
+  const Image = class { decode() { return new Promise((resolve) => { decode = resolve; }); } };
+  vm.runInNewContext(source, { Image, window: site.window, document, sessionStorage: { getItem: (key) => site.storage.get(key) || null, removeItem: (key) => site.storage.delete(key) } });
+  assert.notEqual(properties.get("--scene-frame-visible"), "1");
+  decode();
+  await Promise.resolve();
   assert.equal(properties.get("--scene-frame-visible"), "1");
   assert.ok(properties.get("--scene-frame").includes(snapshot.image));
   assert.equal(site.storage.has("pak-hub-city-frame"), false);

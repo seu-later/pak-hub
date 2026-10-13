@@ -18,7 +18,11 @@
     if (frame?.width === window.innerWidth && frame?.height === window.innerHeight &&
         /^data:image\/(webp|png);base64,/.test(frame.image)) {
       document.documentElement.style.setProperty("--scene-frame", `url("${frame.image}")`);
-      document.documentElement.style.setProperty("--scene-frame-visible", "1");
+      const image = new Image();
+      image.src = frame.image;
+      image.decode().then(() => {
+        document.documentElement.style.setProperty("--scene-frame-visible", "1");
+      }).catch(() => { /* Keep the visible layered fallback if decoding fails. */ });
     }
   } catch { /* The layered fallback remains available if a frame cannot be restored. */ }
 })();
