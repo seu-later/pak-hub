@@ -1,10 +1,4 @@
 (() => {
-  const previewMode = new URLSearchParams(window.location.search).get("demo");
-  const localPreview = window.location.protocol === "file:" ||
-    ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
-  const previewMotion = previewMode === "1" || (localPreview && previewMode !== "0");
-  if (previewMotion) document.documentElement.dataset.previewMotion = "";
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const desktopViewport = window.matchMedia("(min-width: 701px)");
   const loader = document.getElementById("site-loader");
   const loaderCount = document.getElementById("site-loader-count");
@@ -21,7 +15,8 @@
   let selectedKey = null;
 
   function motionEnabled() {
-    return previewMotion || !reducedMotion.matches;
+    // Motion is part of Pak Hub's identity on both previews and production.
+    return true;
   }
 
   function moveIndicator(group, indicator, target, animate = true) {
@@ -156,12 +151,13 @@
   });
 
   function syncLenis() {
-    if (desktopViewport.matches && (previewMotion || !reducedMotion.matches) && window.Lenis) {
+    if (desktopViewport.matches && window.Lenis) {
       if (!lenis) {
         lenis = new window.Lenis({
           autoRaf: true,
           duration: 0.85,
           syncTouch: false,
+          respectReducedMotion: false,
           anchors: true,
           prevent: (node) => Boolean(node.closest?.("[data-lenis-prevent]")),
         });
@@ -210,11 +206,6 @@
     syncLenis();
     if (catalogReady) startScene();
   });
-  reducedMotion.addEventListener?.("change", (event) => {
-    syncLenis();
-    if (catalogReady) startScene();
-    if (event.matches && !previewMotion) finishImmediately();
-  });
 
   function finishImmediately() {
     if (!loader || !loader.isConnected) return;
@@ -249,7 +240,7 @@
     seen = false;
   }
 
-  if ((!previewMotion && reducedMotion.matches) || seen) {
+  if (seen) {
     finishImmediately();
     return;
   }

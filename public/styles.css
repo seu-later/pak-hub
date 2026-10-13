@@ -1253,30 +1253,3 @@ input {
     font-size: 11px;
   }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  html:not([data-preview-motion]) #scene-canvas {
-    display: none;
-  }
-  html:not([data-preview-motion]) .scene-fallback {
-    opacity: .9;
-  }
-  html:not([data-preview-motion]), html:not([data-preview-motion]) * {
-    scroll-behavior: auto !important;
-  }
-  html:not([data-preview-motion]) *, html:not([data-preview-motion]) *::before, html:not([data-preview-motion]) *::after {
-    animation-duration: .01ms !important;
-    animation-delay: 0ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-  }
-  html:not([data-preview-motion]) .site-loader {
-    display: none !important;
-  }
-  html:not([data-preview-motion]) .mod-name-face {
-    transform: none !important;
-  }
-  html:not([data-preview-motion]) .mod-name-face:last-child {
-    display: none;
-  }
-}

@@ -31,16 +31,17 @@ class Element {
   }
 }
 
-function setup(reduced = false) {
+function setup(reduced = false, desktop = false) {
   const panel = new Element();
   const scrollPanel = new Element(); scrollPanel.append(panel);
   const events = [];
   const document = { documentElement: new Element(), body: new Element(), images: [], activeElement: null, getElementById: () => null, querySelector: () => null, querySelectorAll: () => [], addEventListener() {}, dispatchEvent(event) { events.push(event); } };
-  const window = { location: { search: "", protocol: "https:", hostname: "example.com" }, matchMedia: (query) => ({ matches: query.includes("reduce") && reduced, addEventListener() {} }), addEventListener() {}, requestAnimationFrame: (fn) => fn(), setTimeout, clearTimeout };
+  const lenisOptions = [];
+  const window = { location: { search: "", protocol: "https:", hostname: "example.com" }, matchMedia: (query) => ({ matches: query.includes("reduce") ? reduced : desktop, addEventListener() {} }), Lenis: class { constructor(options) { lenisOptions.push(options); } }, addEventListener() {}, requestAnimationFrame: (fn) => fn(), setTimeout, clearTimeout };
   const context = vm.createContext({ window, document, URLSearchParams, Promise, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } }, performance, sessionStorage: { getItem: () => "1" } });
   vm.runInContext(readFileSync(new URL("../public/site-motion.js", import.meta.url), "utf8"), context);
   const swap = window.PakHubMotion.swapPreview;
-  return { panel, scrollPanel, document, events, motion: window.PakHubMotion, swap: (next, key) => swap(panel, next, key) };
+  return { panel, scrollPanel, document, events, lenisOptions, motion: window.PakHubMotion, swap: (next, key) => swap(panel, next, key) };
 }
 
 test("outgoing preview stays hidden and cannot receive interaction while the slice opens", () => {
@@ -78,12 +79,19 @@ test("same selection updates content without replaying or resetting the panel sc
   assert.equal(scrollPanel.scrollTop, 140);
 });
 
-test("reduced motion replaces the preview immediately with one actionable layer", () => {
-  const { panel, swap } = setup(true);
+test("browser reduced motion preserves the animated preview reveal", () => {
+  const { panel, swap, motion } = setup(true);
   swap(new Element(), "a"); const next = new Element(); swap(next, "b");
-  assert.equal(panel.children.length, 1);
+  assert.equal(motion.motionEnabled(), true);
+  assert.equal(panel.children.length, 2);
   assert.equal(panel.lastElementChild, next);
-  assert.equal(next.animations.length, 0);
+  assert.equal(next.animations[0].options.duration, 360);
+});
+
+test("desktop smooth scrolling overrides the browser reduced-motion preference", () => {
+  const { lenisOptions } = setup(true, true);
+  assert.equal(lenisOptions.length, 1);
+  assert.equal(lenisOptions[0].respectReducedMotion, false);
 });
 
 test("accepted initial selection notifies the city even without a preview transition", () => {
@@ -102,12 +110,12 @@ test("same-item refresh does not pulse the city again; clearing allows reselecti
   assert.equal(events[1].detail.key, null);
 });
 
-test("accepted selection remains current under reduced motion without animating content", () => {
+test("accepted selection remains current while animating under browser reduced motion", () => {
   const { motion, events, swap, panel } = setup(true);
   motion.select("a"); swap(new Element(), "a");
   motion.select("b"); swap(new Element(), "b");
   assert.equal(events.length, 2);
   assert.equal(motion.selectionKey, "b");
-  assert.equal(panel.children.length, 1);
-  assert.equal(panel.lastElementChild.animations.length, 0);
+  assert.equal(panel.children.length, 2);
+  assert.equal(panel.lastElementChild.animations.length, 1);
 });
