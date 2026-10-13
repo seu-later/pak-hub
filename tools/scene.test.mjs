@@ -152,6 +152,7 @@ test("explicit transition suspension freezes the city without disposing it", asy
 test("city responds smoothly to pointer movement while scroll leaves its offset stable", async () => {
   const site = await setup();
   for (let i = 0; i < 120; i += 1) site.step();
+  const neutral = site.meshes.slice(0, 2).map((mesh) => [...mesh.position.values]);
   site.window.emit("pointermove", { clientX: 1300, clientY: 240 });
   site.step();
   const firstOffset = parseFloat(site.properties.get("--scene-x"));
@@ -159,11 +160,17 @@ test("city responds smoothly to pointer movement while scroll leaves its offset 
   for (let i = 0; i < 80; i += 1) site.step();
   assert.ok(parseFloat(site.properties.get("--scene-x")) > 6);
   assert.ok(parseFloat(site.properties.get("--scene-y")) < -2);
+  const positions = site.meshes.slice(0, 2).map((mesh) => [...mesh.position.values]);
+  const distantMove = positions[0][0] - neutral[0][0];
+  const wallMove = positions[1][0] - neutral[1][0];
+  assert.ok(distantMove > 3);
+  assert.ok(wallMove > distantMove * 2);
   const offset = parseFloat(site.properties.get("--scene-x"));
   site.window.scrollY = 1200;
   site.window.emit("scroll");
   for (let i = 0; i < 80; i += 1) site.step();
   assert.ok(Math.abs(parseFloat(site.properties.get("--scene-x")) - offset) < 0.005);
+  assert.ok(Math.abs(site.meshes[1].position.values[1] - positions[1][1]) < 0.005);
 });
 
 test("navigation restores the painted pointer offset before the new scene renders", async () => {
@@ -176,6 +183,7 @@ test("navigation restores the painted pointer offset before the new scene render
   assert.deepEqual([...incoming.properties], [...outgoing.properties]);
   incoming.step();
   assert.deepEqual([...incoming.properties], [...outgoing.properties]);
+  assert.deepEqual(incoming.meshes.slice(0, 2).map((mesh) => [...mesh.position.values]), outgoing.meshes.slice(0, 2).map((mesh) => [...mesh.position.values]));
   incoming.window.emit("pointermove", { clientX: 100, clientY: 800 });
   for (let i = 0; i < 80; i += 1) incoming.step();
   assert.ok(parseFloat(incoming.properties.get("--scene-x")) < -6);

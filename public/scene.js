@@ -88,11 +88,11 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
       current[key] += (target[key] - current[key]) * amount;
       if (Math.abs(target[key] - current[key]) > 0.0005) unsettled = true;
     }
-    // Both render modes move together, including during the document handoff.
+    // The fallback mirrors each layer's offset during the document handoff.
     rootStyle.setProperty("--scene-x", `${current.x * 8}px`);
     rootStyle.setProperty("--scene-y", `${current.y * 6}px`);
-    city.position.set(0, -height / 2 + cityHeight / 2 - 6, 0);
-    foreground.position.set(-8, -height / 2 + cityHeight / 2 - 12, 50);
+    city.position.set(current.x * 4, -height / 2 + cityHeight / 2 + current.y * 3 - 6, 0);
+    foreground.position.set(current.x * 10 - 8, -height / 2 + cityHeight / 2 + current.y * 7 - 12, 50);
     const elapsed = time - pulseStart;
     uniforms.pulse.value = elapsed >= 0 && elapsed < 680 ? (1 - Math.exp(-elapsed / 90)) * Math.exp(-elapsed / 190) * 1.8 : 0;
     uniforms.lightX.value = current.light;

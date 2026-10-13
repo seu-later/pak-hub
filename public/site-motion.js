@@ -131,7 +131,7 @@
     if (!host) return;
     sceneStarted = true;
     const revision = ++sceneRevision;
-    const load = () => import("./scene.js?v=20261013city5").then((module) => {
+    const load = () => import("./scene.js?v=20261013city6").then((module) => {
       if (revision !== sceneRevision || !motionEnabled() || !desktopViewport.matches) return;
       sceneController = module.initializeScene(host, motionEnabled, () => {
         if (revision === sceneRevision) { sceneController = null; sceneStarted = false; }

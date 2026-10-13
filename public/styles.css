@@ -138,7 +138,8 @@ input {
 /* Rain-soaked city atmosphere stays behind stationary, readable content. */
 
 .scene-background {
-  --city-width: max(calc(100vw + 32px), min(165svh, 1500px));
+  --city-width: max(calc(100cqw + 32px), min(165cqh, 1500px));
+  container-type: size;
   position: fixed;
   inset: 0;
   z-index: 0;
@@ -175,10 +176,34 @@ input {
   opacity: 0;
 }
 
-@media (min-width: 701px) and (pointer: fine) {
-  #scene-canvas, .scene-fallback {
-    /* Small overscan keeps viewport edges covered throughout pointer movement. */
-    transform: translate3d(var(--scene-x, 0px), var(--scene-y, 0px), 0) scale(1.02);
+@media (min-width: 701px) {
+  .scene-fallback {
+    --city-height: calc(var(--city-width) * 724 / 2171);
+    background: none;
+  }
+  .scene-fallback::before, .scene-fallback::after {
+    content: "";
+    position: absolute;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+  }
+  .scene-fallback::before {
+    left: 50%;
+    bottom: -6px;
+    width: var(--city-width);
+    height: var(--city-height);
+    margin-left: calc(var(--city-width) / -2);
+    background-image: url("assets/city-far-still.webp");
+    transform: translate3d(calc(var(--scene-x, 0px) * .5), calc(var(--scene-y, 0px) * -.5), 0);
+  }
+  .scene-fallback::after {
+    left: calc(50% - 8px);
+    bottom: -20px;
+    width: calc(var(--city-width) + 32px);
+    height: calc(var(--city-height) + 16px);
+    margin-left: calc((var(--city-width) + 32px) / -2);
+    background-image: url("assets/city-near-still.webp");
+    transform: translate3d(calc(var(--scene-x, 0px) * 1.25), calc(var(--scene-y, 0px) * -7 / 6), 0);
   }
 }
 
