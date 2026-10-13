@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-13",
+  "status": "Research only; app UI unchanged.",
+  "confirmedTheme": {
+    "game": "Peripeteia by Ninth Exodus",
+    "sourceImage": "C:/Users/seu/Desktop/background.png",
+    "projectImage": "C:/Users/seu/Documents/drgmodding/PakHub/public/assets/city-rain.png",
+    "sha256": "C765E1919562F5769D9EF5F2FBADB9B4B201D9FCD73C5933251D54E2EDB53942",
+    "dimensions": [
+      1520,
+      460
+    ]
+  },
+  "incumbent": {
+    "scene": "public/scene.js",
+    "object": "14 metallic slabs",
+    "uiFont": "Inter",
+    "dataFont": "WhiteRabbit",
+    "previewRevealMs": 500,
+    "hoverIntentMs": 150,
+    "sceneEventLimitation": "pakhub:selection dispatched only in animated swap branch"
+  },
+  "reference": {
+    "url": "https://nahiyan.codes/",
+    "awwwardsURL": "https://www.awwwards.com/sites/nahiyan-khan-personal-site",
+    "status": "Nominee",
+    "capture": "C:/Users/seu/.awwwards-mcp/images/capture-55dc7b561c6e.png",
+    "recording": "C:/Users/seu/.awwwards-mcp/images/motion-55dc7b561c.webm",
+    "recordingDurationSeconds": 21.48,
+    "reviewedTile": "C:/Users/seu/.codex/visualizations/2026/10/13/01a133fe-0bfc-73d1-b76f-7503c4a2af00/matrix-study/nahiyan-background-8-11.jpg",
+    "tilePassageSeconds": [
+      8,
+      11
+    ],
+    "observed": "Background halftone field changes while reading text stays stationary; early title glitch in reviewed passage.",
+    "noiseOpacity": "0.03",
+    "noisePointerEvents": "none",
+    "bodyFont": "\"Commit Mono\", monospace",
+    "motionDNA": [
+      "{\n \"url\": \"https://nahiyan.codes/\",\n \"stack\": {\n  \"libs\": [],\n  \"render\": [\n   \"three\",\n   \"webgl\"\n  ],\n  \"scrollModel\": \"unknown\"\n },\n \"scroll\": {\n  \"triggerCount\": 0,\n  \"scrubCount\": 0,\n  \"pinCount\": 0,\n  \"scrubRatio\": 0,\n  \"sample\": []\n },\n \"easingVocab\": [],\n \"durationVocab\": null,\n \"capturedAt\": 1791890157793\n}"
+    ],
+    "limitations": [
+      "Exact shader/pointer response and background easing not recovered.",
+      "Motion DNA no detected scrub/pin instances is not proof of no custom effects.",
+      "Filmstrip utility padded unused tiles black; reviewed a valid per-passage tile from the 21.48 second source instead.",
+      "Nominee listing is not an award or approval."
+    ]
+  },
+  "primarySources": [
+    "https://90s.graphics/presskit/",
+    "https://threejs.org/manual/pages/rendering-on-demand.html",
+    "https://threejs.org/manual/pages/responsive.html",
+    "https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices"
+  ],
+  "priorMotionEvidence": "docs/redesign-evidence.json",
+  "proposedNotMeasured": {
+    "direction": "Shallow city environment from supplied image, selective architecture depth, sparse rain/light, terminal controls.",
+    "previewMs": [
+      320,
+      380
+    ],
+    "cityPointerPixels": {
+      "far": [
+        2,
+        4
+      ],
+      "near": [
+        6,
+        12
+      ]
+    },
+    "cityScrollPixels": [
+      16,
+      28
+    ],
+    "pixelRatioCap": 1.5,
+    "bufferPixelsCap": 2400000,
+    "additionalCompressedArtBytesTarget": 1500000
+  },
+  "lessons": [
+    "Theme authority must outrank a generic WebGL motif.",
+    "Wide panoramic assets require intentional mobile framing.",
+    "Rain already painted into source must be treated before adding moving rain.",
+    "Keep texture under the reading layer and separate atmosphere from task feedback."
+  ],
+  "notEstablished": [
+    "Award outcome",
+    "Live backend download verification in this research turn",
+    "Physical device FPS",
+    "Pingfusi human approval",
+    "Usable Scroll Analyzer run"
+  ]
+}

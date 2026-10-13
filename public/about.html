@@ -3,39 +3,50 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#060907">
+    <meta name="theme-color" content="#030806">
     <meta name="description" content="About seu, the author and maintainer of Pak Hub.">
     <title>Pak Hub — About</title>
     <link rel="preload" href="assets/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="assets/WhiteRabbit.ttf" as="font" type="font/ttf" crossorigin>
-    <link rel="preload" href="assets/city-rain.png" as="image" fetchpriority="high">
-    <link rel="stylesheet" href="styles.css?v=20261011g">
-    <script src="about.js?v=20261011b" defer></script>
+    <link rel="stylesheet" href="assets/lenis.css?v=1.3.26">
+    <link rel="stylesheet" href="styles.css?v=20261013city2">
+    <script src="assets/lenis.min.js?v=1.3.26" defer></script>
+    <script src="assets/gsap.min.js?v=3.15.0" defer></script>
+    <script src="site-motion.js?v=20261013city2" defer></script>
   </head>
   <body class="view-about">
+    <div class="scene-background" aria-hidden="true">
+      <div class="scene-fallback"></div>
+      <div id="scene-canvas"></div>
+    </div>
     <a class="skip-link" href="#about">Skip to About</a>
-    <div class="world-bg" aria-hidden="true">
-      <img id="world-img" class="world-img" src="assets/city-rain.png" alt="" fetchpriority="high">
-      <div class="world-veil"></div>
+    <div id="site-loader" class="site-loader" role="status" aria-label="Loading Pak Hub" hidden>
+      <div class="site-loader-background"></div>
+      <div class="site-loader-row" aria-hidden="true">
+        <span id="site-loader-count" class="site-loader-count">0%</span>
+        <div class="site-loader-track">
+          <span id="site-loader-line" class="site-loader-line"></span>
+          <span class="site-loader-head"></span>
+        </div>
+      </div>
     </div>
     <div class="app-shell">
       <header class="site-header">
-        <canvas id="signal-rain" class="signal-rain" aria-hidden="true"></canvas>
-        <div class="signal-scan" aria-hidden="true"></div>
         <div class="header-inner">
           <nav class="primary-nav" aria-label="Primary navigation">
             <a href="index.html">Pak List</a>
             <a href="dump.html">Pak Dump</a>
             <a href="dependencies.html">Dependencies</a>
             <a href="about.html" aria-current="page">About</a>
+            <span class="nav-indicator" aria-hidden="true"></span>
           </nav>
         </div>
-        <div class="about-center">
-          <h1 id="page-title" class="about-signature">Built by seu.</h1>
-        </div>
       </header>
-      <main id="about" class="visually-hidden" aria-labelledby="page-title">
-        Pak Hub is built and maintained by seu.
+      <main id="about" class="catalog-stage" aria-labelledby="page-title">
+        <div class="catalog-inner">
+          <h1 id="page-title" class="visually-hidden">About</h1>
+          <p class="about-author">seu</p>
+        </div>
       </main>
     </div>
   </body>

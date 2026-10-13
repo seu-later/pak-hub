@@ -1,0 +1,8 @@
+{
+  "source": "C:/Users/seu/Documents/drgmodding/PakHub/public/assets/city-rain.png",
+  "generated": "C:/Users/seu/.codex/generated_images/01a133fe-0bfc-73d1-b76f-7503c4a2af00/exec-9da75de8-05d0-4f8b-8c52-a6f0a4c90343.png",
+  "prompt": "Create an isolated foreground architecture layer for this exact reference city's shallow parallax background. Actual transparent PNG. Wide panoramic 3:1 canvas. Only a VERY narrow worn concrete pier/edge down the extreme LEFT edge (occupying the leftmost 5-7 percent of the canvas), a dark industrial cable attached to it, and a narrow broken/weathered metal sill along the BOTTOM edge (bottommost 4 percent) fading into open empty space toward the right. Same late-1990s low-poly dystopian game surface texture, scratched black metal and rough cold green concrete, dim emerald edge illumination. Everything else transparent: do not include skyline, sky, buildings, windows, rain, ground, black background or grey backdrop. No internal rectangle or display border around full canvas. This is a restrained near-depth architectural asset, not an illustration or website; no text/logos/characters. Preserve near-black green palette, source gritty material. Keep the entire center and right empty and transparent. Hard actual object contours with weathered irregular chips; avoid ornamental sci-fi frames.",
+  "createdAt": "2026-10-13",
+  "tool": "image_gen built-in",
+  "conversion": "FFmpeg WebP format conversion, no crop/resize/visual edit"
+}

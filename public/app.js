@@ -58,9 +58,13 @@ function demoFile(filename, sizeBytes) {
   return { filename, sizeBytes, downloadUrl: "" };
 }
 
+const catalogDemoMods = window.PakHubPreview?.mods || demoMods;
+
 const previewMode = new URLSearchParams(window.location.search).get("demo");
+const linkedModSlug = new URLSearchParams(window.location.search).get("mod");
 const localPreview = window.location.protocol === "file:" ||
   ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+const previewMotion = previewMode === "1" || (localPreview && previewMode !== "0");
 
 const state = {
   demo: previewMode === "1" || (localPreview && previewMode !== "0"),
@@ -70,6 +74,7 @@ const state = {
   total: 0,
   mods: [],
   selectedSlug: null,
+  linkedModSlug: linkedModSlug ? linkedModSlug.slice(0, 100) : "",
   detail: null,
   detailStatus: "idle",
   loading: false,
@@ -92,13 +97,6 @@ const HOVER_PREVIEW_DELAY = 150;
 const AUTO_PAGE_CAP = 3;
 
 const elements = {
-  stage: document.querySelector(".catalog-stage"),
-  header: document.querySelector(".site-header"),
-  heroTitle: document.querySelector(".hero-title"),
-  rain: document.getElementById("signal-rain"),
-  worldImg: document.getElementById("world-img"),
-  cursor: document.getElementById("cursor"),
-  progressBar: document.getElementById("scroll-progress-bar"),
   archiveToolbar: document.getElementById("archive-toolbar"),
   searchForm: document.getElementById("search-form"),
   searchToggle: document.getElementById("search-toggle"),
@@ -193,240 +191,6 @@ function compareByDate(left, right) {
   return (Number.isFinite(leftDate) ? leftDate : 0) - (Number.isFinite(rightDate) ? rightDate : 0);
 }
 
-function initializeSignalRain() {
-  const canvas = elements.rain;
-  if (!canvas || !("getContext" in canvas)) return;
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    canvas.style.display = "none";
-    return;
-  }
-  const ctx = canvas.getContext("2d", { alpha: true });
-  if (!ctx) return;
-  const glyphs = "アイカサタナ0123456789ABCDEF<>+#*:.".split("");
-  let columns = 0;
-  let drops = [];
-  let width = 0;
-  let height = 0;
-  let running = true;
-  let last = 0;
-
-  function resize() {
-    const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    width = Math.max(1, Math.floor(rect.width * dpr));
-    height = Math.max(1, Math.floor(rect.height * dpr));
-    canvas.width = width;
-    canvas.height = height;
-    const fontSize = 15 * dpr;
-    ctx.font = `${fontSize}px ui-monospace, Menlo, Consolas, monospace`;
-    columns = Math.floor(width / (fontSize * 0.72));
-    drops = Array.from({ length: columns }, () => Math.random() * -40);
-  }
-
-  function frame(now) {
-    if (!running) return;
-    window.requestAnimationFrame(frame);
-    if (now - last < 66) return;
-    last = now;
-    ctx.fillStyle = "rgba(4, 7, 5, 0.12)";
-    ctx.fillRect(0, 0, width, height);
-    const fontSize = 15 * Math.min(window.devicePixelRatio || 1, 1.5);
-    for (let i = 0; i < drops.length; i += 1) {
-      const ch = glyphs[(Math.random() * glyphs.length) | 0];
-      const head = Math.random() < 0.06;
-      ctx.fillStyle = head ? "rgba(232, 255, 238, 0.85)" : "rgba(51, 255, 119, 0.55)";
-      ctx.fillText(ch, i * fontSize * 0.72, drops[i] * fontSize);
-      if (drops[i] * fontSize > height && Math.random() > 0.976) drops[i] = 0;
-      drops[i] += 1;
-    }
-  }
-
-  resize();
-  window.addEventListener("resize", resize, { passive: true });
-  document.addEventListener("visibilitychange", () => {
-    const hidden = document.hidden;
-    if (hidden) { running = false; return; }
-    if (!running) { running = true; window.requestAnimationFrame(frame); }
-  });
-  if ("IntersectionObserver" in window && elements.header) {
-    new IntersectionObserver((entries) => {
-      const visible = entries[0]?.isIntersecting !== false;
-      if (visible && !running) { running = true; window.requestAnimationFrame(frame); }
-      else if (!visible) running = false;
-    }, { threshold: 0 }).observe(elements.header);
-  }
-  window.requestAnimationFrame(frame);
-}
-
-const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-
-function initializeWorldImage() {
-  const img = elements.worldImg;
-  if (!img) return;
-  const fallbacks = ["assets/city-rain.png", "assets/halcyon-hero.jpg"];
-  img.addEventListener("error", function onError() {
-    const next = fallbacks[fallbacks.indexOf(img.getAttribute("src")) + 1];
-    if (next) img.src = next;
-    else { img.style.display = "none"; img.removeEventListener("error", onError); }
-  });
-}
-
-/* Shift-style masked char split for hero + section titles. */
-function initializeSplitText() {
-  const targets = document.querySelectorAll("[data-split]");
-  if (!targets.length) return;
-  targets.forEach((el) => {
-    const text = el.textContent;
-    el.setAttribute("aria-label", text);
-    el.replaceChildren();
-    let i = 0;
-    for (const ch of text) {
-      const mask = document.createElement("span");
-      mask.className = "split-mask";
-      mask.setAttribute("aria-hidden", "true");
-      const c = document.createElement("span");
-      c.className = "split-char";
-      c.style.setProperty("--i", String(i += 1));
-      c.textContent = ch === " " ? " " : ch;
-      mask.append(c);
-      el.append(mask);
-    }
-  });
-  if (reducedMotion || !("IntersectionObserver" in window)) {
-    targets.forEach((el) => el.classList.add("is-inview"));
-    return;
-  }
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("is-inview");
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.3 });
-  targets.forEach((el) => observer.observe(el));
-}
-
-/* Cursor follower ring. Desktop fine pointers only. */
-function initializeCursor() {
-  const cursor = elements.cursor;
-  if (!cursor || !finePointer || reducedMotion) return;
-  cursor.classList.add("is-armed");
-  let x = -100, y = -100, tx = x, ty = y, visible = false, hot = false, raf = 0;
-  function loop() {
-    raf = 0;
-    x += (tx - x) * 0.2;
-    y += (ty - y) * 0.2;
-    cursor.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${hot ? 1.35 : 1})`;
-    if (Math.abs(tx - x) + Math.abs(ty - y) > 0.5 || visible) raf = window.requestAnimationFrame(loop);
-  }
-  function wake() { if (!raf) raf = window.requestAnimationFrame(loop); }
-  document.addEventListener("pointermove", (e) => {
-    tx = e.clientX; ty = e.clientY;
-    if (!visible) { visible = true; cursor.classList.add("is-on"); }
-    const row = e.target.closest?.(".mod-select");
-    const link = e.target.closest?.("a, .pak-download");
-    const btn = e.target.closest?.("button");
-    hot = Boolean(row || link || btn);
-    cursor.classList.toggle("is-hot", hot);
-    wake();
-  }, { passive: true });
-  document.addEventListener("pointerleave", () => {
-    visible = false; cursor.classList.remove("is-on");
-  });
-}
-
-/* Magnetic nudge on nav + download controls. */
-function initializeMagnetic() {
-  if (!finePointer || reducedMotion) return;
-  document.querySelectorAll(".primary-nav a, .pak-download, .retry-button, .load-more").forEach((el) => {
-    el.classList.add("magnetic");
-    el.addEventListener("pointermove", (e) => {
-      const r = el.getBoundingClientRect();
-      const dx = e.clientX - (r.left + r.width / 2);
-      const dy = e.clientY - (r.top + r.height / 2);
-      el.style.setProperty("--mx", `${(dx * 0.12).toFixed(1)}px`);
-      el.style.setProperty("--my", `${(dy * 0.18).toFixed(1)}px`);
-    });
-    el.addEventListener("pointerleave", () => {
-      el.style.setProperty("--mx", "0px");
-      el.style.setProperty("--my", "0px");
-    });
-  });
-}
-
-function initializeScrollFx() {
-  if (reducedMotion) return;
-  let ticking = false;
-  function update() {
-    ticking = false;
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    const y = window.scrollY;
-    document.documentElement.style.setProperty("--scroll", String(y));
-    if (elements.progressBar) {
-      elements.progressBar.style.transform = `scaleX(${max > 0 ? Math.min(y / max, 1).toFixed(3) : 0})`;
-    }
-  }
-  window.addEventListener("scroll", () => {
-    if (ticking) return;
-    ticking = true;
-    window.requestAnimationFrame(update);
-  }, { passive: true });
-  update();
-}
-
-function updateStageHeight() {
-  if (!elements.stage || window.matchMedia("(max-width: 900px)").matches) return;
-  const width = elements.stage.clientWidth;
-  const extraRows = Math.max(0, state.mods.length - 8);
-  elements.stage.style.setProperty("--catalog-extra", `${extraRows * width * 0.029}px`);
-}
-
-function initializeScrollReveals() {
-  const shell = document.querySelector(".archive-shell");
-const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (!shell || reducedMotion || !("IntersectionObserver" in window)) {
-    shell?.classList.add("motion-visible");
-    return;
-  }
-  shell.classList.add("motion-ready");
-  const shellObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      entry.target.classList.toggle("motion-visible", entry.isIntersecting);
-    });
-  }, { threshold: 0.05, rootMargin: "0px 0px -4% 0px" });
-  shellObserver.observe(shell);
-
-  rowObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      entry.target.classList.toggle("in-view", entry.isIntersecting);
-    });
-  }, { threshold: 0.1, rootMargin: "0px 0px -4% 0px" });
-
-  let ticking = false;
-  window.addEventListener("scroll", () => {
-    if (ticking) return;
-    ticking = true;
-    window.requestAnimationFrame(() => {
-      ticking = false;
-      const shift = Math.min(window.scrollY * 0.12, 120);
-      elements.heroTitle?.style.setProperty("--hero-shift", `${shift}px`);
-      elements.header?.style.setProperty("--hero-fade", String(Math.max(0, 1 - window.scrollY / 700)));
-    });
-  }, { passive: true });
-}
-
-let rowObserver = null;
-
-function observeRows() {
-  const rows = elements.rows.querySelectorAll(".ledger-row");
-  if (!rowObserver) {
-    rows.forEach((row) => row.classList.add("in-view"));
-    return;
-  }
-  rows.forEach((row) => rowObserver.observe(row));
-}
 
 function cancelDetailRequest() {
   if (state.detailController) state.detailController.abort();
@@ -500,16 +264,7 @@ function updateSortIndicator(animate = true) {
   const active = document.querySelector('.sort-button[aria-pressed="true"]');
   const group = document.querySelector(".sort-controls");
   if (!bar || !active || !group) return;
-  const box = active.getBoundingClientRect();
-  const parent = group.getBoundingClientRect();
-  if (!box.width || !parent.width) return;
-  if (!animate || reducedMotion) bar.style.transition = "none";
-  bar.style.left = `${box.left - parent.left}px`;
-  bar.style.width = `${box.width}px`;
-  if (!animate || reducedMotion) {
-    void bar.offsetWidth;
-    bar.style.transition = "";
-  }
+  window.PakHubMotion.moveIndicator(group, bar, active, animate);
 }
 
 function rowButton(mod, className, label) {
@@ -535,8 +290,14 @@ function renderModRow(mod, index) {
   });
   button.addEventListener("pointerleave", () => window.clearTimeout(hoverTimer));
   button.addEventListener("focus", () => previewMod(mod.slug));
+  button.append(node("span", "row-index", String(index + 1).padStart(2, "0")));
   const nameWrap = node("span", "mod-name-wrap");
-  nameWrap.append(node("span", "mod-name", mod.name));
+  const name = node("span", "mod-name");
+  name.append(node("span", "mod-name-face", mod.name));
+  const duplicate = node("span", "mod-name-face", mod.name);
+  duplicate.setAttribute("aria-hidden", "true");
+  name.append(duplicate);
+  nameWrap.append(name);
   const metadata = node("span", "mod-meta");
   metadata.append(node("span", "meta-poster", discordTag(mod.postedBy)));
   const date = formatTimestamp(mod.postedAt);
@@ -751,7 +512,10 @@ function renderSelectionState() {
 
 function renderPreviewPanel() {
   const mod = state.mods.find((item) => item.slug === state.selectedSlug);
+  window.PakHubMotion.select(mod?.slug || null);
   elements.detailPanel.setAttribute("aria-busy", String(Boolean(mod && state.detailStatus === "loading")));
+  elements.detailPanelContent.inert = Boolean(mod && state.detailStatus === "loading");
+  if (mod && state.detailStatus === "loading" && elements.detailPanelContent.lastElementChild) return;
   const dossier = mod
     ? renderDossierContent(mod, "mod-dossier preview-dossier-content")
     : node("article", "mod-dossier preview-dossier-content");
@@ -782,7 +546,7 @@ function renderPreviewPanel() {
     dossier.append(node("p", "preview-empty-detail", "No pak posts match this search."));
   }
 
-  elements.detailPanelContent.replaceChildren(dossier);
+  window.PakHubMotion.swapPreview(elements.detailPanelContent, dossier, state.selectedSlug || "empty");
 }
 
 function renderCatalog() {
@@ -810,9 +574,7 @@ function renderCatalog() {
   });
   elements.rows.replaceChildren(fragment);
   renderPreviewPanel();
-  observeRows();
   renderArchiveState();
-  updateStageHeight();
   if (focusedSlug) {
     const buttons = elements.rows.querySelectorAll(".mod-select");
     Array.from(buttons).find((button) => button.dataset.slug === focusedSlug)?.focus({ preventScroll: true });
@@ -831,7 +593,7 @@ async function loadDetails(slug) {
   renderPreviewPanel();
 
   if (state.demo) {
-    const demo = demoMods.find((item) => item.slug === slug);
+    const demo = catalogDemoMods.find((item) => item.slug === slug);
     state.detail = demo ? {
       initialPost: demo.initialPost,
       threadPosts: demo.threadPosts,
@@ -870,7 +632,7 @@ function previewMod(slug, { scroll = false } = {}) {
   const mod = state.mods.find((item) => item.slug === slug);
   if (!mod) return;
   if (state.selectedSlug === slug && state.detailStatus !== "error") {
-    if (scroll) elements.detailPanel.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "nearest" });
+    if (scroll) elements.detailPanel.scrollIntoView({ behavior: window.PakHubMotion.motionEnabled() ? "smooth" : "auto", block: "nearest" });
     return;
   }
   const modName = state.mods.find((mod) => mod.slug === slug)?.name || "Pak post";
@@ -880,7 +642,7 @@ function previewMod(slug, { scroll = false } = {}) {
   markSeen(slug);
   renderSelectionState();
   loadDetails(slug);
-  if (scroll) elements.detailPanel.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "nearest" });
+  if (scroll) elements.detailPanel.scrollIntoView({ behavior: window.PakHubMotion.motionEnabled() ? "smooth" : "auto", block: "nearest" });
   announce(`${modName} preview selected.`);
 }
 
@@ -902,7 +664,7 @@ async function loadCatalog({ append = false, auto = false } = {}) {
   if (!append) state.autoPages = 0;
   if (state.demo) {
     const query = state.query.toLocaleLowerCase();
-    let mods = demoMods.filter((mod) => !query ||
+    let mods = catalogDemoMods.filter((mod) => !query ||
       [mod.name, mod.postedBy, mod.initialPost.content, ...mod.initialPost.files.map((file) => file.filename),
         ...mod.threadPosts.flatMap((post) => [post.content, ...post.files.map((file) => file.filename)])]
         .some((value) => value.toLocaleLowerCase().includes(query))).map(normalizeMod);
@@ -920,6 +682,7 @@ async function loadCatalog({ append = false, auto = false } = {}) {
     const selectionChanged = ensureSelection();
     renderCatalog();
     if (selectionChanged && state.selectedSlug) loadDetails(state.selectedSlug);
+    window.PakHubMotion?.catalogReady();
     return;
   }
 
@@ -934,6 +697,7 @@ async function loadCatalog({ append = false, auto = false } = {}) {
 
   const params = new URLSearchParams({ sort: state.sort, page: String(page) });
   if (state.query) params.set("q", state.query);
+  if (!append && !state.query && state.linkedModSlug) params.set("slug", state.linkedModSlug);
 
   try {
     const response = await fetch(`/api/mods?${params}`, {
@@ -951,8 +715,10 @@ async function loadCatalog({ append = false, auto = false } = {}) {
     state.loading = false;
     state.error = "";
     state.moreError = false;
+    state.linkedModSlug = "";
     const selectionChanged = ensureSelection();
     renderCatalog();
+    if (!append) window.PakHubMotion?.catalogReady();
     if (append && auto) announce(`${newMods.length} more pak posts loaded.`);
     if (selectionChanged && state.selectedSlug) loadDetails(state.selectedSlug);
   } catch (error) {
@@ -961,6 +727,7 @@ async function loadCatalog({ append = false, auto = false } = {}) {
     if (append) state.moreError = true;
     else state.error = error.message || "The catalog could not be loaded. Try again shortly.";
     renderCatalog();
+    if (!append) window.PakHubMotion?.catalogReady();
   }
 }
 
@@ -1041,21 +808,15 @@ elements.detailPanel.addEventListener("click", (event) => {
 elements.rows.addEventListener("click", (event) => {
   const target = event.target.closest("button[data-action]");
   if (!target) return;
-  if (target.dataset.action === "select-mod") previewMod(target.dataset.slug, { scroll: true });
+  if (target.dataset.action === "select-mod") {
+    previewMod(target.dataset.slug, { scroll: window.matchMedia("(max-width: 700px)").matches });
+  }
   else if (target.dataset.action === "retry-detail") loadDetails(target.dataset.slug);
 });
 
 elements.loadMore.addEventListener("click", () => loadCatalog({ append: true }));
 window.addEventListener("resize", () => {
-  updateStageHeight();
   updateSortIndicator(false);
 });
-initializeWorldImage();
-initializeSplitText();
-initializeCursor();
-initializeMagnetic();
-initializeScrollFx();
-initializeScrollReveals();
-initializeSignalRain();
 observeLoadSentinel();
 loadCatalog();

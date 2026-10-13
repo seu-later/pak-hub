@@ -1,6 +1,6 @@
 /* Pak Dump: searchable list of loose pak/zip files grouped by base mod name.
  * Group payloads ship with the list response, so selecting a row only swaps
- * the side box to that group's version files. No descriptions exist. */
+ * the side box to that group's description and version files. */
 
 const state = {
   query: "",
@@ -19,6 +19,9 @@ const state = {
   catalogRequest: 0,
 };
 
+const previewMode = new URLSearchParams(window.location.search).get("demo");
+const localPreview = window.location.protocol === "file:" || ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+const demo = previewMode === "1" || (localPreview && previewMode !== "0");
 const HOVER_PREVIEW_DELAY = 150;
 const AUTO_PAGE_CAP = 3;
 
@@ -103,16 +106,14 @@ function renderSortState() {
   updateSortIndicator();
 }
 
-function updateSortIndicator() {
+let sortIndicatorPlaced = false;
+function updateSortIndicator(animate = sortIndicatorPlaced) {
   const bar = document.querySelector(".sort-indicator");
   const active = document.querySelector('.sort-button[aria-pressed="true"]');
   const group = document.querySelector(".sort-controls");
   if (!bar || !active || !group) return;
-  const box = active.getBoundingClientRect();
-  const parent = group.getBoundingClientRect();
-  if (!box.width || !parent.width) return;
-  bar.style.left = `${box.left - parent.left}px`;
-  bar.style.width = `${box.width}px`;
+  window.PakHubMotion.moveIndicator(group, bar, active, animate);
+  sortIndicatorPlaced = true;
 }
 
 function renderGroupRow(group, index) {
@@ -132,8 +133,14 @@ function renderGroupRow(group, index) {
   });
   button.addEventListener("pointerleave", () => window.clearTimeout(hoverTimer));
   button.addEventListener("focus", () => previewGroup(groupKey(group)));
+  button.append(node("span", "row-index", String(index + 1).padStart(2, "0")));
   const nameWrap = node("span", "mod-name-wrap");
-  nameWrap.append(node("span", "mod-name", group.name));
+  const name = node("span", "mod-name");
+  name.append(node("span", "mod-name-face", group.name));
+  const duplicate = node("span", "mod-name-face", group.name);
+  duplicate.setAttribute("aria-hidden", "true");
+  name.append(duplicate);
+  nameWrap.append(name);
   button.append(nameWrap);
   button.append(node("span", "file-count", `${group.fileCount} ${group.fileCount === 1 ? "file" : "files"}`));
   const cell = node("td", "column-name");
@@ -149,7 +156,7 @@ function renderVersionFile(file) {
   /* Version rides in the mono measurement slot; prereleases show raw. */
   if (file.version) label.append(node("span", "pak-file-size", file.prerelease ? file.version : `v${file.version}`));
   if (file.postedBy && file.postedBy !== "Unknown") {
-    const credit = node("span", "pak-credit", "by @");
+    const credit = node("span", "pak-credit", "@");
     if (file.sourceUrl) {
       const link = node("a", "pak-credit-link", file.postedBy);
       link.href = file.sourceUrl;
@@ -164,6 +171,12 @@ function renderVersionFile(file) {
   }
   item.append(label);
 
+  if (demo) {
+    const unavailable = node("span", "pak-download-unavailable", "Preview");
+    unavailable.setAttribute("aria-label", "Downloads disabled in preview");
+    item.append(unavailable);
+    return item;
+  }
   const download = node("a", "pak-download");
   download.href = file.downloadUrl;
   download.setAttribute("aria-label", `Download ${file.filename}`);
@@ -174,10 +187,19 @@ function renderVersionFile(file) {
 
 function renderPreviewPanel() {
   const group = state.groups.find((item) => groupKey(item) === state.selectedKey);
+  window.PakHubMotion.select(group ? groupKey(group) : null);
   const dossier = node("article", "mod-dossier preview-dossier-content");
 
   if (group) {
     dossier.prepend(node("h3", "preview-dossier-title", group.name));
+    if (group.pakListUrl) {
+      const pakListLink = node("a", "pak-download preview-dossier-pak-link", "View in Pak List");
+      pakListLink.href = group.pakListUrl;
+      pakListLink.setAttribute("aria-label", `View ${group.name} in Pak List`);
+      dossier.append(pakListLink);
+    } else if (group.description) {
+      dossier.append(node("p", "preview-dossier-description", group.description));
+    }
     const list = node("ul", "pak-list");
     for (const file of group.files) list.append(renderVersionFile(file));
     dossier.append(list);
@@ -196,7 +218,7 @@ function renderPreviewPanel() {
     dossier.append(node("p", "preview-empty-detail", "No dump files match this search."));
   }
 
-  elements.detailPanelContent.replaceChildren(dossier);
+  window.PakHubMotion.swapPreview(elements.detailPanelContent, dossier, state.selectedKey || "empty");
 }
 
 function renderGroups() {
@@ -257,6 +279,22 @@ function observeLoadSentinel() {
 }
 
 async function loadGroups({ append = false, auto = false } = {}) {
+  if (demo) {
+    let groups = window.PakHubPreview.groups.filter((group) => !state.query ||
+      [group.name, group.description, ...group.files.map((file) => file.filename)].some((value) => value.toLowerCase().includes(state.query.toLowerCase())));
+    groups = [...groups].sort(state.sort === "name" ? (a, b) => a.name.localeCompare(b.name) :
+      state.sort === "oldest" ? (a, b) => a.postedAt.localeCompare(b.postedAt) : (a, b) => b.postedAt.localeCompare(a.postedAt));
+    state.groups = groups;
+    state.total = groups.length;
+    state.hasMore = false;
+    state.loading = false;
+    state.error = "";
+    state.moreError = false;
+    ensureSelection();
+    renderGroups();
+    window.PakHubMotion.catalogReady();
+    return;
+  }
   if (!append) state.autoPages = 0;
   if (state.catalogController) state.catalogController.abort();
   state.catalogController = new AbortController();
@@ -288,6 +326,7 @@ async function loadGroups({ append = false, auto = false } = {}) {
     state.moreError = false;
     ensureSelection();
     renderGroups();
+    if (!append) window.PakHubMotion?.catalogReady();
     if (append && auto) announce(`${newGroups.length} more pack groups loaded.`);
   } catch (error) {
     if (error.name === "AbortError" || request !== state.catalogRequest) return;
@@ -295,6 +334,7 @@ async function loadGroups({ append = false, auto = false } = {}) {
     if (append) state.moreError = true;
     else state.error = error.message || "The pak dump could not be loaded. Try again shortly.";
     renderGroups();
+    if (!append) window.PakHubMotion?.catalogReady();
   }
 }
 
@@ -364,7 +404,7 @@ function updateSort(sort) {
 document.querySelectorAll(".sort-button").forEach((button) => {
   button.addEventListener("click", () => updateSort(button.dataset.sort));
 });
-window.addEventListener("resize", updateSortIndicator, { passive: true });
+window.addEventListener("resize", () => updateSortIndicator(false), { passive: true });
 
 elements.detailPanel.addEventListener("click", (event) => {
   const target = event.target.closest("button[data-action]");
@@ -373,7 +413,10 @@ elements.detailPanel.addEventListener("click", (event) => {
 
 elements.rows.addEventListener("click", (event) => {
   const target = event.target.closest("button[data-action]");
-  if (target?.dataset.action === "select-group") previewGroup(target.dataset.key);
+  if (target?.dataset.action === "select-group") {
+    previewGroup(target.dataset.key);
+    if (window.matchMedia("(max-width: 700px)").matches) elements.detailPanel.scrollIntoView({ behavior: window.PakHubMotion.motionEnabled() ? "smooth" : "auto", block: "start" });
+  }
 });
 
 elements.loadMore.addEventListener("click", () => loadGroups({ append: true }));

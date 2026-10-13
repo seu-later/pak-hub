@@ -1,0 +1,532 @@
+{
+  "date": "2026-10-13",
+  "status": "Planning research only; production UI unchanged in this planning turn.",
+  "offform": {
+    "url": "https://offform.net/#talents",
+    "inspection": {
+      "metadata": {
+        "requestedUrl": "https://offform.net/#talents",
+        "finalUrl": "https://offform.net/#talents",
+        "title": "OFFFORM - Talent Agency",
+        "analyzedAt": "2026-10-13T09:00:08.609Z"
+      },
+      "selector": "role=button[name=\"02 VALENTINA KOVACS MILAN\"]",
+      "elements": [
+        {
+          "selector": "div.talents-sticky-shell > div.talents-stage > div.talents-roster > div.talents-roster-list.is-active > button.talents-roster-row",
+          "text": "02 VALENTINA KOVACS MILAN",
+          "bounds": {
+            "x": 20,
+            "y": 411,
+            "width": 1400,
+            "height": 51
+          },
+          "computedStyles": {
+            "display": "grid",
+            "position": "relative",
+            "z-index": "auto",
+            "box-sizing": "border-box",
+            "overflow": "hidden",
+            "opacity": "1",
+            "width": "1400px",
+            "height": "51px",
+            "min-width": "auto",
+            "min-height": "0px",
+            "margin": "0px",
+            "padding": "0px",
+            "align-items": "center",
+            "flex-direction": "row",
+            "grid-template-columns": "60px 1150px 190px",
+            "color": "rgb(255, 255, 255)",
+            "background-color": "rgba(0, 0, 0, 0)",
+            "border": "0px none rgb(255, 255, 255)",
+            "border-radius": "3px",
+            "outline": "rgb(255, 255, 255) none 3px",
+            "font-family": "\"Courier New\", Courier, monospace",
+            "font-size": "10px",
+            "font-weight": "500",
+            "line-height": "14px",
+            "letter-spacing": "0.45px",
+            "text-align": "start",
+            "text-transform": "uppercase",
+            "transition": "opacity 0.18s",
+            "fill": "rgb(0, 0, 0)"
+          },
+          "childStructure": [
+            "span.talents-roster-roll-face.talents-roster-roll-face--front",
+            "span.talents-roster-roll-face.talents-roster-roll-face--back"
+          ]
+        }
+      ]
+    },
+    "motion": {
+      "metadata": {
+        "requestedUrl": "https://offform.net/#talents",
+        "finalUrl": "https://offform.net/#talents",
+        "title": "OFFFORM - Talent Agency",
+        "analyzedAt": "2026-10-13T09:01:17.858Z"
+      },
+      "trigger": {
+        "type": "hover",
+        "selector": ".talents-roster-list.is-active .talents-roster-row:nth-child(2)"
+      },
+      "animations": [
+        {
+          "selector": "div.elementor.elementor-451 > div.elementor-element.elementor-element-3fa336c > div.elementor-element.elementor-element-779cc8e > div.is-leaving > div.offform-loader-background",
+          "type": "css-transition",
+          "name": "opacity",
+          "playState": "running",
+          "timeline": "document",
+          "keyframes": [
+            {
+              "offset": 0,
+              "easing": "linear",
+              "composite": "auto",
+              "opacity": "1",
+              "computedOffset": 0
+            },
+            {
+              "offset": 1,
+              "easing": "linear",
+              "composite": "auto",
+              "opacity": "0",
+              "computedOffset": 1
+            }
+          ],
+          "timing": {
+            "delay": 0,
+            "endDelay": 0,
+            "duration": 220,
+            "easing": "ease",
+            "iterations": 1,
+            "direction": "normal",
+            "fill": "backwards"
+          },
+          "startTime": 3573.04,
+          "currentTime": 49.96
+        },
+        {
+          "selector": "div.talents-stage > div.talents-roster > div.talents-roster-list.is-active > button.talents-roster-row > span.talents-roster-roll-face.talents-roster-roll-face--front",
+          "type": "css-transition",
+          "name": "color",
+          "playState": "running",
+          "timeline": "document",
+          "keyframes": [
+            {
+              "offset": 0,
+              "easing": "linear",
+              "composite": "auto",
+              "color": "rgb(255, 255, 255)",
+              "computedOffset": 0
+            },
+            {
+              "offset": 1,
+              "easing": "linear",
+              "composite": "auto",
+              "color": "rgb(255, 79, 216)",
+              "computedOffset": 1
+            }
+          ],
+          "timing": {
+            "delay": 0,
+            "endDelay": 0,
+            "duration": 280,
+            "easing": "ease",
+            "iterations": 1,
+            "direction": "normal",
+            "fill": "backwards"
+          },
+          "startTime": null,
+          "currentTime": 0
+        },
+        {
+          "selector": "div.talents-stage > div.talents-roster > div.talents-roster-list.is-active > button.talents-roster-row > span.talents-roster-roll-face.talents-roster-roll-face--front",
+          "type": "css-transition",
+          "name": "text-shadow",
+          "playState": "running",
+          "timeline": "document",
+          "keyframes": [
+            {
+              "offset": 0,
+              "easing": "linear",
+              "composite": "auto",
+              "textShadow": "none",
+              "computedOffset": 0
+            },
+            {
+              "offset": 1,
+              "easing": "linear",
+              "composite": "auto",
+              "textShadow": "oklab(0.715831 0.233302 -0.0935413 / 0.42) 0px 0px 5px, oklab(0.715831 0.233302 -0.0935413 / 0.2) 0px 0px 11px",
+              "computedOffset": 1
+            }
+          ],
+          "timing": {
+            "delay": 0,
+            "endDelay": 0,
+            "duration": 280,
+            "easing": "ease",
+            "iterations": 1,
+            "direction": "normal",
+            "fill": "backwards"
+          },
+          "startTime": null,
+          "currentTime": 0
+        },
+        {
+          "selector": "body.home.wp-singular > div.offform-cursor.is-visible",
+          "type": "css-transition",
+          "name": "opacity",
+          "playState": "running",
+          "timeline": "document",
+          "keyframes": [
+            {
+              "offset": 0,
+              "easing": "linear",
+              "composite": "auto",
+              "opacity": "0",
+              "computedOffset": 0
+            },
+            {
+              "offset": 1,
+              "easing": "linear",
+              "composite": "auto",
+              "opacity": "1",
+              "computedOffset": 1
+            }
+          ],
+          "timing": {
+            "delay": 0,
+            "endDelay": 0,
+            "duration": 150,
+            "easing": "ease",
+            "iterations": 1,
+            "direction": "normal",
+            "fill": "backwards"
+          },
+          "startTime": null,
+          "currentTime": 0
+        },
+        {
+          "selector": "div.elementor.elementor-451 > div.elementor-element.elementor-element-f032033 > div.elementor-element.elementor-element-49f9204 > section.offform-hero.is-revealing > div.offform-hero-image",
+          "type": "css-animation",
+          "name": "offform-hero-reveal",
+          "playState": "running",
+          "timeline": "document",
+          "keyframes": [
+            {
+              "offset": 0,
+              "easing": "cubic-bezier(0.76, 0, 0.24, 1)",
+              "composite": "auto",
+              "clipPath": "inset(0px 0px 100%)",
+              "computedOffset": 0
+            },
+            {
+              "offset": 1,
+              "easing": "cubic-bezier(0.76, 0, 0.24, 1)",
+              "composite": "auto",
+              "clipPath": "inset(0px)",
+              "computedOffset": 1
+            }
+          ],
+          "timing": {
+            "delay": 80,
+            "endDelay": 0,
+            "duration": 650,
+            "easing": "linear",
+            "iterations": 1,
+            "direction": "normal",
+            "fill": "forwards"
+          },
+          "startTime": 3789.7,
+          "currentTime": 583.3
+        }
+      ],
+      "frames": [
+        {
+          "index": 0,
+          "atMs": 0,
+          "capturedAtMs": 32,
+          "scrollY": 3600,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\offform-row\\motion-frame-1.jpg",
+          "hasInlineScreenshot": true
+        },
+        {
+          "index": 1,
+          "atMs": 100,
+          "capturedAtMs": 143,
+          "scrollY": 3600,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\offform-row\\motion-frame-2.jpg",
+          "hasInlineScreenshot": true
+        },
+        {
+          "index": 2,
+          "atMs": 200,
+          "capturedAtMs": 246,
+          "scrollY": 3600,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\offform-row\\motion-frame-3.jpg",
+          "hasInlineScreenshot": true
+        },
+        {
+          "index": 3,
+          "atMs": 300,
+          "capturedAtMs": 389,
+          "scrollY": 3600,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\offform-row\\motion-frame-4.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 4,
+          "atMs": 400,
+          "capturedAtMs": 464,
+          "scrollY": 3600,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\offform-row\\motion-frame-5.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 5,
+          "atMs": 500,
+          "capturedAtMs": 565,
+          "scrollY": 3600,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\offform-row\\motion-frame-6.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 6,
+          "atMs": 600,
+          "capturedAtMs": 663,
+          "scrollY": 3600,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\offform-row\\motion-frame-7.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 7,
+          "atMs": 700,
+          "capturedAtMs": 766,
+          "scrollY": 3600,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\offform-row\\motion-frame-8.jpg",
+          "hasInlineScreenshot": false
+        }
+      ]
+    }
+  },
+  "joshgrafik": {
+    "url": "https://www.joshgrafik.com/#index",
+    "inspection": {
+      "metadata": {
+        "requestedUrl": "https://www.joshgrafik.com/#index",
+        "finalUrl": "https://www.joshgrafik.com/#index",
+        "title": "Studio Joshgrafik — Web Design, Development & Branding",
+        "analyzedAt": "2026-10-13T09:01:18.664Z"
+      },
+      "selector": ".index-row:nth-child(6)",
+      "elements": [
+        {
+          "selector": "body > main.site-main > section.index > div.index-list > a.index-row",
+          "text": "06 Iron Culture (HEALTH & FITNESS) ironculture.space ↗",
+          "bounds": {
+            "x": 377.5,
+            "y": 441.03,
+            "width": 1037.5,
+            "height": 56
+          },
+          "computedStyles": {
+            "display": "grid",
+            "position": "static",
+            "z-index": "auto",
+            "box-sizing": "border-box",
+            "overflow": "visible",
+            "opacity": "1",
+            "width": "1037.5px",
+            "height": "56px",
+            "min-width": "auto",
+            "min-height": "auto",
+            "margin": "0px",
+            "padding": "0px",
+            "gap": "normal 20px",
+            "align-items": "center",
+            "flex-direction": "row",
+            "grid-template-columns": "97.5px 97.5px 97.5px 97.5px 97.5px 97.5px 97.5px 97.5px 97.5px",
+            "grid-template-rows": "55px",
+            "color": "rgb(13, 13, 15)",
+            "background-color": "rgba(0, 0, 0, 0)",
+            "border-radius": "0px",
+            "outline": "rgb(13, 13, 15) none 3px",
+            "font-family": "\"Suisse Intl\", \"Suisse Intl Trial\", \"Inter Tight\", system-ui, sans-serif",
+            "font-size": "17px",
+            "font-weight": "500",
+            "line-height": "22px",
+            "text-align": "start",
+            "transition": "background-color 0.25s, color 0.25s, padding 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
+            "cursor": "url(\"https://www.joshgrafik.com/cursors/pointer.svg\") 12 0, pointer",
+            "fill": "rgb(0, 0, 0)"
+          }
+        }
+      ]
+    },
+    "motion": {
+      "metadata": {
+        "requestedUrl": "https://www.joshgrafik.com/#index",
+        "finalUrl": "https://www.joshgrafik.com/#index",
+        "title": "Studio Joshgrafik — Web Design, Development & Branding",
+        "analyzedAt": "2026-10-13T09:02:39.742Z"
+      },
+      "trigger": {
+        "type": "hover",
+        "selector": ".index-row:nth-child(6)"
+      },
+      "frames": [
+        {
+          "index": 0,
+          "atMs": 0,
+          "capturedAtMs": 63,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-1.jpg",
+          "hasInlineScreenshot": true
+        },
+        {
+          "index": 1,
+          "atMs": 200,
+          "capturedAtMs": 241,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-2.jpg",
+          "hasInlineScreenshot": true
+        },
+        {
+          "index": 2,
+          "atMs": 400,
+          "capturedAtMs": 443,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-3.jpg",
+          "hasInlineScreenshot": true
+        },
+        {
+          "index": 3,
+          "atMs": 600,
+          "capturedAtMs": 643,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-4.jpg",
+          "hasInlineScreenshot": true
+        },
+        {
+          "index": 4,
+          "atMs": 800,
+          "capturedAtMs": 843,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-5.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 5,
+          "atMs": 1000,
+          "capturedAtMs": 1060,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-6.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 6,
+          "atMs": 1200,
+          "capturedAtMs": 1244,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-7.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 7,
+          "atMs": 1400,
+          "capturedAtMs": 1443,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-8.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 8,
+          "atMs": 1600,
+          "capturedAtMs": 1643,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-9.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 9,
+          "atMs": 1800,
+          "capturedAtMs": 1843,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-10.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 10,
+          "atMs": 2000,
+          "capturedAtMs": 2031,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-11.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 11,
+          "atMs": 2200,
+          "capturedAtMs": 2227,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-12.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 12,
+          "atMs": 2400,
+          "capturedAtMs": 2433,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-13.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 13,
+          "atMs": 2600,
+          "capturedAtMs": 2633,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-14.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 14,
+          "atMs": 2800,
+          "capturedAtMs": 2833,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-15.jpg",
+          "hasInlineScreenshot": false
+        },
+        {
+          "index": 15,
+          "atMs": 3000,
+          "capturedAtMs": 3032,
+          "scrollY": 4909,
+          "screenshotPath": "C:\\Users\\seu\\.codex\\visualizations\\2026\\10\\13\\01a133fe-0bfc-73d1-b76f-7503c4a2af00\\redesign-research\\josh-index-long\\motion-frame-16.jpg",
+          "hasInlineScreenshot": false
+        }
+      ]
+    },
+    "limitation": "Only hover entry captured; exact slice shader/easing and row-to-row replacement require further study."
+  },
+  "aengel": {
+    "url": "https://aengel.io/",
+    "observation": "Browser entry completed; spatial arch/vegetation scene and scroll state with floating arch fragments visually inspected.",
+    "limitation": "No exact camera curve or full motion sequence measured. Scroll Analyzer open did not complete."
+  },
+  "recording": {
+    "path": "C:/Users/seu/Videos/2026-10-13 12-52-32.mp4",
+    "durationSeconds": 55.366667,
+    "blackdetect": {
+      "start": 0,
+      "end": 55.35,
+      "duration": 55.35
+    },
+    "finding": "Sampled frames black; no visual animation evidence."
+  },
+  "additionalCandidate": {
+    "url": "https://gilhuybrecht.com/",
+    "awardSource": "Awwwards MCP search: Site of the Day and Developer Award",
+    "capture": "C:/Users/seu/.awwwards-mcp/images/capture-ff0e0ee655f6.png",
+    "limitation": "Composition reviewed, lazy regions unresolved; motion not studied."
+  }
+}

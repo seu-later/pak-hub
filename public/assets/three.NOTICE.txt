@@ -1,0 +1,5 @@
+Three.js 0.186.1, MIT license (see three.LICENSE.txt).
+Source: https://www.npmjs.com/package/three/v/0.186.1
+Distribution: jsDelivr minified builds, three.module.min.js and three.core.min.js.
+Local adjustment: module imports point to three.core.min.js instead of three.core.js.
+Upstream copyright/license headers are retained.

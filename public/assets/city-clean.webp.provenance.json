@@ -1,0 +1,8 @@
+{
+  "source": "C:/Users/seu/Documents/drgmodding/PakHub/public/assets/city-rain.png",
+  "generated": "C:/Users/seu/.codex/generated_images/01a133fe-0bfc-73d1-b76f-7503c4a2af00/exec-da28ebf8-0264-41a4-a288-2b53c228a076.png",
+  "prompt": "Edit the supplied panoramic city image as a production environment texture for Pak Hub's WebGL background. Preserve the exact dystopian low-poly / late-1990s game aesthetic, recognisable skyline composition, rough concrete wall at the left, densely spaced square green windows lower left, very dark center, and tall shadowed building at the right. Maintain black-green, cold deep teal and muted emerald palette; same restrained darkness. Remove ONLY the long vertical rain streaks painted over the sky and buildings, reconstructing the underlying windows/walls without smearing. Clean sky with subtle atmospheric distance, not new objects. Preserve hard rectilinear architecture and gritty surface texture. Panoramic output at roughly 3:1 aspect, no borders, no text, no logos, no UI. This is a clean scene plate, NOT a website mockup. Do not brighten into neon science fiction. No rain, no fog wash obscuring buildings, no bloom or RGB effects. Source composition is authoritative.",
+  "createdAt": "2026-10-13",
+  "tool": "image_gen built-in",
+  "conversion": "FFmpeg WebP format conversion, no crop/resize/visual edit"
+}

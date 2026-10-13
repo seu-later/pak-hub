@@ -3,79 +3,83 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#060907">
+    <meta name="theme-color" content="#030806">
     <meta name="description" content="The core dependencies commonly needed for modded difficulty play in Deep Rock Galactic.">
     <title>Pak Hub — Dependencies</title>
     <link rel="preload" href="assets/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="assets/WhiteRabbit.ttf" as="font" type="font/ttf" crossorigin>
-    <link rel="preload" href="assets/city-rain.png" as="image" fetchpriority="high">
-    <link rel="stylesheet" href="styles.css?v=20261012a">
-    <script src="about.js?v=20261011b" defer></script>
+    <link rel="stylesheet" href="assets/lenis.css?v=1.3.26">
+    <link rel="stylesheet" href="styles.css?v=20261013city2">
+    <script src="assets/lenis.min.js?v=1.3.26" defer></script>
+    <script src="assets/gsap.min.js?v=3.15.0" defer></script>
+    <script src="site-motion.js?v=20261013city2" defer></script>
   </head>
   <body class="view-list view-dependencies">
+    <div class="scene-background" aria-hidden="true">
+      <div class="scene-fallback"></div>
+      <div id="scene-canvas"></div>
+    </div>
     <a class="skip-link" href="#dependencies">Skip to dependencies</a>
-    <div class="world-bg" aria-hidden="true">
-      <img id="world-img" class="world-img" src="assets/city-rain.png" alt="" fetchpriority="high">
-      <div class="world-veil"></div>
+    <div id="site-loader" class="site-loader" role="status" aria-label="Loading Pak Hub" hidden>
+      <div class="site-loader-background"></div>
+      <div class="site-loader-row" aria-hidden="true">
+        <span id="site-loader-count" class="site-loader-count">0%</span>
+        <div class="site-loader-track">
+          <span id="site-loader-line" class="site-loader-line"></span>
+          <span class="site-loader-head"></span>
+        </div>
+      </div>
     </div>
     <div class="app-shell">
       <header class="site-header">
-        <canvas id="signal-rain" class="signal-rain" aria-hidden="true"></canvas>
-        <div class="signal-scan" aria-hidden="true"></div>
         <div class="header-inner">
           <nav class="primary-nav" aria-label="Primary navigation">
             <a href="index.html">Pak List</a>
             <a href="dump.html">Pak Dump</a>
             <a href="dependencies.html" aria-current="page">Dependencies</a>
             <a href="about.html">About</a>
+            <span class="nav-indicator" aria-hidden="true"></span>
           </nav>
-        </div>
-        <div class="hero-title">
-          <h1 id="page-title" class="visually-hidden">Pak Hub dependencies</h1>
         </div>
       </header>
 
       <main id="dependencies" class="catalog-stage" aria-labelledby="page-title">
         <div class="catalog-inner">
-          <section class="archive-shell dependencies-shell" aria-label="Common modded difficulty dependencies">
-            <div class="archive-toolbar dependencies-heading">
-              <div class="archive-heading-group">
-                <h2 data-split>Dependencies</h2>
-              </div>
-            </div>
+          <h1 id="page-title" class="visually-hidden">Dependencies</h1>
+          <section class="dependencies-workspace" aria-label="Common modded difficulty dependencies">
             <ol class="dependencies-list">
               <li class="dependency-item">
                 <div>
                   <h3>Custom Difficulty 2 <span>(CD2)</span></h3>
-                  <span class="dependency-credit">by @gabrieL</span>
+                  <span class="dependency-credit">@thebrain</span>
                 </div>
-                <a href="/api/dump-file/23034a97d34b83f117aa0f884a1aa5ea610bacb1cc1b47a2977b980b48b69f13.zip" download>Download</a>
+                <a href="/api/dump-file/23034a97d34b83f117aa0f884a1aa5ea610bacb1cc1b47a2977b980b48b69f13.zip" download>Download <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a>
               </li>
               <li class="dependency-item">
                 <div>
                   <h3>More Enemy Variants <span>(MEV)</span></h3>
-                  <span class="dependency-credit">by @donnie_danko</span>
+                  <span class="dependency-credit">@donnie_danko</span>
                 </div>
-                <a href="/api/dump-file/3e66764171ba0f9a200478c44368394543840b4e826692c7b8ee8c84ea9a2456.pak" download>Download</a>
+                <a href="/api/dump-file/3e66764171ba0f9a200478c44368394543840b4e826692c7b8ee8c84ea9a2456.pak" download>Download <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a>
               </li>
               <li class="dependency-item">
                 <div>
                   <h3>Donnie’s Enemy Addon <span>(DEA)</span></h3>
                 </div>
-                <a href="https://mod.io/g/drg/m/donnies-enemy-addon-cd2-version" target="_blank" rel="noopener noreferrer">Download</a>
+                <a href="https://mod.io/g/drg/m/donnies-enemy-addon-cd2-version" target="_blank" rel="noopener noreferrer">Download <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a>
               </li>
               <li class="dependency-item">
                 <div>
                   <h3>Elytra’s Enemies Expansion <span>(EEE)</span></h3>
                 </div>
-                <a href="https://mod.io/g/drg/m/elytrasenemiesexpansion" target="_blank" rel="noopener noreferrer">Download</a>
+                <a href="https://mod.io/g/drg/m/elytrasenemiesexpansion" target="_blank" rel="noopener noreferrer">Download <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a>
               </li>
               <li class="dependency-item">
                 <div>
                   <h3>Enn’s Biome Schmorp</h3>
-                  <span class="dependency-credit">by @shengshui</span>
+                  <span class="dependency-credit">@shengshui</span>
                 </div>
-                <a href="/api/dump-file/18ddd91de38b75c7f227049b592256829a4423854d4e0ca71833c648be4f5c07.pak" download>Download</a>
+                <a href="/api/dump-file/18ddd91de38b75c7f227049b592256829a4423854d4e0ca71833c648be4f5c07.pak" download>Download <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a>
               </li>
             </ol>
           </section>
