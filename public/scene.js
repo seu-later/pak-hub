@@ -33,6 +33,11 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
         city += vec3(0.002, 0.009, 0.003) * search * (1.0 - vUv.x) * windowLight;
         float grain = fract(sin(dot(floor(vUv * vec2(2171.0, 724.0)), vec2(12.9898, 78.233))) * 43758.5453);
         city += (grain - 0.5) * 0.002;
+        vec2 windowCell = floor(vUv * vec2(160.0, 90.0));
+        float seed = fract(sin(dot(windowCell, vec2(42.17, 19.31))) * 15371.13);
+        float occupied = step(0.996, seed) * (1.0 - smoothstep(0.6, 0.8, vUv.y));
+        float lamp = smoothstep(0.35, 0.95, sin(clock * (0.08 + seed * 0.035) + seed * 40.0));
+        city += vec3(0.006, 0.023, 0.012) * occupied * lamp * windowLight;
         float haze = (sin(vUv.x * 9.0 + clock * 0.15) + sin(vUv.x * 17.0 + clock * 0.07)) * 0.25 + 0.5;
         city += vec3(0.001, 0.0035, 0.0015) * haze * smoothstep(0.05, 0.35, vUv.y) * (1.0 - smoothstep(0.55, 0.9, vUv.y));
         float skyFade = 1.0 - smoothstep(0.78, 1.0, vUv.y);
@@ -42,7 +47,34 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
   });
   const city = new THREE.Mesh(geometry, cityMaterial);
   scene.add(city);
-  const foregroundMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.7, depthWrite: false, color: 0x91c59f });
+  const foregroundUniforms = {
+    map: { value: null }, tint: { value: new THREE.Color(0x91c59f) },
+    clock: uniforms.clock, viewX: { value: 0 },
+  };
+  const foregroundMaterial = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, uniforms: foregroundUniforms,
+    vertexShader: cityMaterial.vertexShader,
+    fragmentShader: `uniform sampler2D map;
+      uniform vec3 tint;
+      uniform float clock;
+      uniform float viewX;
+      varying vec2 vUv;
+      void main() {
+        vec4 surface = texture2D(map, vUv);
+        vec3 metal = surface.rgb * tint;
+        float edge = max(0.0, surface.a - texture2D(map, vUv + vec2(0.0014, 0.003)).a);
+        float glint = 0.35 + 0.65 * exp(-pow((vUv.x - 0.1 - viewX * 0.035) * 8.0, 2.0));
+        metal += vec3(0.016, 0.037, 0.029) * edge * glint;
+        for (int i = 0; i < 3; i++) {
+          float lane = 0.022 + float(i) * 0.021;
+          float drip = 1.0 - fract(clock * (0.045 + float(i) * 0.008) + float(i) * 0.31);
+          float streak = exp(-pow((vUv.x - lane) * 1100.0, 2.0)) * exp(-abs(vUv.y - drip) * 90.0);
+          metal += vec3(0.022, 0.043, 0.033) * streak;
+        }
+        gl_FragColor = vec4(metal, surface.a * 0.7);
+        #include <colorspace_fragment>
+      }`,
+  });
   const foreground = new THREE.Mesh(geometry, foregroundMaterial);
   foreground.position.z = 50;
   scene.add(foreground);
@@ -84,6 +116,40 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
   const rain = new THREE.LineSegments(rainGeometry, rainMaterial);
   rain.position.z = 25;
   scene.add(rain);
+  const mistMaterial = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false,
+    uniforms: { ...rainUniforms, clock: uniforms.clock },
+    vertexShader: `varying vec2 vUv;
+      varying vec2 worldPosition;
+      void main() {
+        vUv = uv;
+        vec4 world = modelMatrix * vec4(position, 1.0);
+        worldPosition = world.xy;
+        gl_Position = projectionMatrix * viewMatrix * world;
+      }`,
+    fragmentShader: `uniform sampler2D foregroundMap;
+      uniform vec2 foregroundSize;
+      uniform vec2 foregroundOffset;
+      uniform float clock;
+      varying vec2 vUv;
+      varying vec2 worldPosition;
+      void main() {
+        float drift = sin(vUv.x * 7.0 + clock * 0.035) * 0.022;
+        float lower = exp(-pow((vUv.y - 0.23 - drift) * 14.0, 2.0));
+        float upper = exp(-pow((vUv.y - 0.39 + drift * 0.6) * 20.0, 2.0));
+        float pockets = 0.55 + 0.45 * sin(vUv.x * 11.0 - clock * 0.026);
+        float alpha = (lower * 0.025 + upper * 0.012) * pockets;
+        vec2 wallUv = (worldPosition - foregroundOffset) / foregroundSize + 0.5;
+        if (wallUv.x >= 0.0 && wallUv.x <= 1.0 && wallUv.y >= 0.0 && wallUv.y <= 1.0) {
+          alpha *= 1.0 - smoothstep(0.01, 0.1, texture2D(foregroundMap, wallUv).a);
+        }
+        gl_FragColor = vec4(0.07, 0.14, 0.15, alpha);
+        #include <colorspace_fragment>
+      }`,
+  });
+  const mist = new THREE.Mesh(geometry, mistMaterial);
+  mist.position.z = 12;
+  scene.add(mist);
   const drops = Array.from({ length: 160 }, (_, index) => ({ x: 0, y: 0, depth: 0.4 + (index % 11) / 15 }));
   const rootStyle = document.documentElement.style;
   const target = {
@@ -92,6 +158,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     scroll: 0, light: 0.8, search: 0,
   };
   const current = { ...target };
+  let atmosphereTime = parseFloat(rootStyle.getPropertyValue("--scene-clock")) || 0;
   let width = 1;
   let height = 1;
   let cityWidth = 1;
@@ -126,7 +193,9 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     uniforms.pulse.value = elapsed >= 0 && elapsed < 680 ? (1 - Math.exp(-elapsed / 90)) * Math.exp(-elapsed / 190) * 1.8 : 0;
     uniforms.lightX.value = current.light;
     uniforms.search.value = current.search;
-    uniforms.clock.value = time / 1000;
+    atmosphereTime += delta / 1000;
+    uniforms.clock.value = atmosphereTime;
+    foregroundUniforms.viewX.value = current.x;
     const weather = Math.max(0, Math.min(1, (activeUntil - time) / 350));
     rainUniforms.opacity.value = 0.1 + weather * 0.025;
     drops.forEach((drop, index) => {
@@ -165,6 +234,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     cityHeight = cityWidth / (2171 / 724);
     city.scale.set(cityWidth, cityHeight, 1);
     foreground.scale.set(cityWidth + 32, cityHeight + 16, 1);
+    mist.scale.set(width, height, 1);
     drops.forEach((drop, index) => {
       drop.x = ((index * 0.61803398875) % 1 - 0.5) * width;
       drop.y = ((index * 0.41421356237) % 1 - 0.5) * height;
@@ -200,8 +270,9 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     // Keep the last frame painted while the next document takes over.
     suspended = true;
     pause();
+    rootStyle.setProperty("--scene-clock", String(atmosphereTime));
     try {
-      sessionStorage.setItem("pak-hub-city-position", JSON.stringify({ x: current.x, y: current.y }));
+      sessionStorage.setItem("pak-hub-city-position", JSON.stringify({ x: current.x, y: current.y, clock: atmosphereTime }));
     } catch { /* Pointer motion still works when storage is unavailable. */ }
   }
   function pagehide() { suspend(); }
@@ -228,6 +299,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     renderer.domElement.removeEventListener("webglcontextlost", contextLost);
     geometry.dispose(); rainGeometry.dispose();
     cityMaterial.dispose(); foregroundMaterial.dispose(); rainMaterial.dispose();
+    mistMaterial.dispose();
     textures.forEach((texture) => texture.dispose());
     renderer.dispose();
     renderer.domElement.remove();
@@ -257,7 +329,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     if (disposed) return;
     if (!motionEnabled()) { stop(); return; }
     uniforms.map.value = far;
-    foregroundMaterial.map = near;
+    foregroundUniforms.map.value = near;
     rainUniforms.foregroundMap.value = near;
     foregroundMaterial.needsUpdate = true;
     ready = true;

@@ -34,6 +34,8 @@
   --ease-out: cubic-bezier(.22, 1, .36, 1);
   --header-height: 72px;
   --gutter: clamp(20px, 3vw, 48px);
+  --control-response: 160ms;
+  --control-settle: 280ms;
 }
 
 * {
@@ -146,6 +148,7 @@ input {
   overflow: hidden;
   pointer-events: none;
   background: var(--void);
+  filter: saturate(.86) hue-rotate(7deg) contrast(1.06);
 }
 
 #scene-canvas {
@@ -177,6 +180,19 @@ input {
 }
 
 @media (min-width: 701px) {
+  .scene-background::before {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    right: -6px;
+    bottom: -8px;
+    width: 13px;
+    height: 56svh;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #020604, #0c1913 32%, #182c22 46%, #07100c 68%, #020604);
+    box-shadow: -5px 2px 12px rgba(0, 0, 0, .3);
+    transform: translate3d(calc(var(--scene-x, 0px) * -1.5), calc(var(--scene-y, 0px) * -.8), 0);
+  }
   .scene-fallback {
     --city-height: calc(var(--city-width) * 724 / 2171);
     background: none;
@@ -211,7 +227,9 @@ input {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(3, 8, 6, .8), rgba(3, 8, 6, .28) 55%, rgba(3, 8, 6, .2));
+  background:
+    radial-gradient(ellipse at 56% 62%, transparent 28%, rgba(2, 6, 5, .3) 100%),
+    linear-gradient(180deg, rgba(3, 8, 6, .8), rgba(3, 8, 6, .28) 55%, rgba(3, 8, 6, .2));
 }
 
 .app-shell {
@@ -366,10 +384,12 @@ input {
   border: 0;
   background: transparent;
   color: var(--muted);
+  transition: color var(--control-response), background var(--control-response);
 }
 
 .search-toggle:hover, .search-toggle[aria-expanded="true"] {
   color: var(--phosphor);
+  background: rgba(51, 255, 119, .035);
 }
 
 .search-toggle svg, .clear-search svg {
@@ -385,7 +405,7 @@ input {
   position: absolute;
   top: 13px;
   left: 13px;
-  transition: opacity 160ms, transform 280ms var(--ease-out);
+  transition: opacity var(--control-response), transform var(--control-settle) var(--ease-out);
 }
 
 .close-icon {
@@ -414,7 +434,11 @@ input {
   clip-path: inset(0 100% 0 0);
   opacity: 0;
   pointer-events: none;
-  transition: clip-path 280ms var(--ease-out), opacity 160ms;
+  transition: clip-path var(--control-settle) var(--ease-out), opacity var(--control-response), box-shadow var(--control-settle);
+}
+
+.search-bar:focus-within {
+  box-shadow: 0 8px 14px -10px rgba(51, 255, 119, .22);
 }
 
 .search-open .search-bar {
@@ -593,6 +617,25 @@ input {
 }
 
 .is-selected .mod-select::before {
+  opacity: 1;
+}
+
+.mod-select::after {
+  content: "";
+  position: absolute;
+  left: 40px;
+  right: 10px;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(51, 255, 119, .35), transparent 75%);
+  transform: scaleX(.15);
+  transform-origin: left;
+  opacity: 0;
+  transition: transform var(--control-settle) var(--ease-out), opacity var(--control-response);
+}
+
+.is-selected .mod-select::after {
+  transform: scaleX(1);
   opacity: 1;
 }
 
@@ -868,12 +911,12 @@ input {
   transition: transform 200ms var(--ease-out);
 }
 
-.pak-download:hover::after, .dependency-item a:hover::after, .post-source-link:hover::after {
+.pak-download:is(:hover, :focus-visible)::after, .dependency-item a:is(:hover, :focus-visible)::after, .post-source-link:is(:hover, :focus-visible)::after {
   transform: scaleX(1);
   transform-origin: left;
 }
 
-.pak-download:hover, .dependency-item a:hover {
+.pak-download:is(:hover, :focus-visible), .dependency-item a:is(:hover, :focus-visible) {
   color: var(--phosphor);
 }
 
@@ -881,10 +924,16 @@ input {
   width: 14px;
   height: 14px;
   fill: currentColor;
+  transition: transform var(--control-response) var(--ease-out);
 }
 
-.pak-download:hover svg, .dependency-item a:hover svg {
+.pak-download:is(:hover, :focus-visible) svg, .dependency-item a:is(:hover, :focus-visible) svg {
   animation: arrow-return 220ms var(--ease-out);
+}
+
+.pak-download:active svg, .dependency-item a:active svg {
+  animation: none;
+  transform: translateY(2px);
 }
 
 .pak-download-unavailable {

@@ -51,6 +51,7 @@ async function setup(savedPosition = null) {
     LineBasicMaterial: Resource, LineSegments: Mesh,
     TextureLoader: class { async loadAsync() { return new Resource(); } },
     Vector2: class { set(x, y) { this.x = x; this.y = y; } },
+    Color: class {},
   };
   let time = 0;
   let enabled = true;
@@ -194,6 +195,22 @@ test("navigation restores the painted pointer offset before the new scene render
   for (let i = 0; i < 80; i += 1) incoming.step();
   assert.ok(parseFloat(incoming.properties.get("--scene-x")) < -6);
   assert.ok(parseFloat(incoming.properties.get("--scene-y")) > 4);
+});
+
+test("mist and wall lighting share a continuous clock across navigation", async () => {
+  const outgoing = await setup();
+  for (let i = 0; i < 100; i += 1) outgoing.step();
+  const mist = outgoing.meshes[3];
+  const wall = outgoing.meshes[1];
+  assert.ok(mist.position.z < wall.position.z);
+  assert.equal(mist.material.uniforms.clock.value, wall.material.uniforms.clock.value);
+  outgoing.controller.suspend();
+  const saved = JSON.parse(outgoing.storage.get("pak-hub-city-position"));
+  assert.ok(saved.clock > 1);
+  const incoming = await setup(saved);
+  incoming.step();
+  const resumedClock = incoming.meshes[3].material.uniforms.clock.value;
+  assert.ok(resumedClock >= saved.clock && resumedClock - saved.clock < 0.05);
 });
 
 test("the static city stays visible until the first WebGL frame is painted", async () => {
