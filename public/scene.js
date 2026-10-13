@@ -56,7 +56,12 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
   rain.position.z = 25;
   scene.add(rain);
   const drops = Array.from({ length: 72 }, (_, index) => ({ x: 0, y: 0, depth: 0.35 + (index % 11) / 17 }));
-  const target = { x: 0, y: 0, scroll: 0, light: 0.8, search: 0 };
+  const rootStyle = document.documentElement.style;
+  const target = {
+    x: (parseFloat(rootStyle.getPropertyValue("--scene-x")) || 0) / 8,
+    y: (parseFloat(rootStyle.getPropertyValue("--scene-y")) || 0) / 6,
+    scroll: 0, light: 0.8, search: 0,
+  };
   const current = { ...target };
   let width = 1;
   let height = 1;
@@ -83,6 +88,9 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
       current[key] += (target[key] - current[key]) * amount;
       if (Math.abs(target[key] - current[key]) > 0.0005) unsettled = true;
     }
+    // Both render modes move together, including during the document handoff.
+    rootStyle.setProperty("--scene-x", `${current.x * 8}px`);
+    rootStyle.setProperty("--scene-y", `${current.y * 6}px`);
     city.position.set(0, -height / 2 + cityHeight / 2 - 6, 0);
     foreground.position.set(-8, -height / 2 + cityHeight / 2 - 12, 50);
     const elapsed = time - pulseStart;
@@ -136,7 +144,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     wake();
   }
   function pointer(event) {
-    if (!motionEnabled() || !window.matchMedia("(pointer: fine)").matches) return;
+    if (suspended || !motionEnabled() || !window.matchMedia("(pointer: fine)").matches) return;
     target.x = event.clientX / width * 2 - 1;
     target.y = event.clientY / height * 2 - 1;
     wake(true);
@@ -164,6 +172,9 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     // Keep the last frame painted while the next document takes over.
     suspended = true;
     pause();
+    try {
+      sessionStorage.setItem("pak-hub-city-position", JSON.stringify({ x: current.x, y: current.y }));
+    } catch { /* Pointer motion still works when storage is unavailable. */ }
   }
   function pagehide() { suspend(); }
   function pageshow() { suspended = false; wake(); }

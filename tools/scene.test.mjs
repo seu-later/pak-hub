@@ -11,14 +11,15 @@ class Events {
   count() { return [...this.listeners.values()].reduce((sum, set) => sum + set.size, 0); }
 }
 
-async function setup() {
+async function setup(savedPosition = null) {
   const window = new Events();
   window.devicePixelRatio = 2;
   window.scrollY = 0;
   window.matchMedia = () => ({ matches: true });
   const document = new Events();
   document.hidden = false;
-  document.documentElement = { scrollHeight: 2400 };
+  const properties = new Map();
+  document.documentElement = { scrollHeight: 2400, style: { setProperty: (key, value) => properties.set(key, value), getPropertyValue: (key) => properties.get(key) || "" } };
   document.getElementById = () => null;
   const classes = new Set();
   const meshes = [];
@@ -54,13 +55,16 @@ async function setup() {
   let enabled = true;
   let id = 0;
   const frames = new Map();
-  const context = vm.createContext({ THREE, window, document, Float32Array, performance: { now: () => time }, requestAnimationFrame: (fn) => { frames.set(++id, fn); return id; }, cancelAnimationFrame: (key) => frames.delete(key) });
+  const storage = new Map(savedPosition ? [["pak-hub-city-position", JSON.stringify(savedPosition)]] : []);
+  const sessionStorage = { getItem: (key) => storage.get(key) || null, setItem: (key, value) => storage.set(key, value) };
+  const context = vm.createContext({ THREE, window, document, sessionStorage, Float32Array, performance: { now: () => time }, requestAnimationFrame: (fn) => { frames.set(++id, fn); return id; }, cancelAnimationFrame: (key) => frames.delete(key) });
+  vm.runInContext(readFileSync(new URL("../public/scene-position.js", import.meta.url), "utf8"), context);
   const source = readFileSync(new URL("../public/scene.js", import.meta.url), "utf8").replace(/^import .*;\r?\n/, "").replace("export function", "function");
   vm.runInContext(source, context);
   const controller = context.initializeScene(host, () => enabled);
   for (let i = 0; i < 6; i += 1) await Promise.resolve();
   const step = () => { time += 16; const work = [...frames.values()]; frames.clear(); work.forEach((fn) => fn(time)); };
-  return { host, window, document, resources, renderer, controller, classes, frames, meshes, step, disable: () => { enabled = false; } };
+  return { host, window, document, resources, renderer, controller, classes, frames, meshes, properties, storage, step, disable: () => { enabled = false; } };
 }
 
 test("city settles to zero pending frames and obeys the drawing-buffer cap", async () => {
@@ -145,15 +149,37 @@ test("explicit transition suspension freezes the city without disposing it", asy
   assert.equal(site.host.dataset.sceneState, "paused");
 });
 
-test("city layers keep their position while scroll and pointer animate the rain", async () => {
+test("city responds smoothly to pointer movement while scroll leaves its offset stable", async () => {
   const site = await setup();
   for (let i = 0; i < 120; i += 1) site.step();
-  const positions = site.meshes.slice(0, 2).map((mesh) => [...mesh.position.values]);
+  site.window.emit("pointermove", { clientX: 1300, clientY: 240 });
+  site.step();
+  const firstOffset = parseFloat(site.properties.get("--scene-x"));
+  assert.ok(firstOffset > 0 && firstOffset < 6);
+  for (let i = 0; i < 80; i += 1) site.step();
+  assert.ok(parseFloat(site.properties.get("--scene-x")) > 6);
+  assert.ok(parseFloat(site.properties.get("--scene-y")) < -2);
+  const offset = parseFloat(site.properties.get("--scene-x"));
   site.window.scrollY = 1200;
   site.window.emit("scroll");
-  site.window.emit("pointermove", { clientX: 1300, clientY: 240 });
   for (let i = 0; i < 80; i += 1) site.step();
-  assert.deepEqual(site.meshes.slice(0, 2).map((mesh) => [...mesh.position.values]), positions);
+  assert.ok(Math.abs(parseFloat(site.properties.get("--scene-x")) - offset) < 0.005);
+});
+
+test("navigation restores the painted pointer offset before the new scene renders", async () => {
+  const outgoing = await setup();
+  outgoing.window.emit("pointermove", { clientX: 1300, clientY: 240 });
+  for (let i = 0; i < 80; i += 1) outgoing.step();
+  outgoing.controller.suspend();
+  const saved = JSON.parse(outgoing.storage.get("pak-hub-city-position"));
+  const incoming = await setup(saved);
+  assert.deepEqual([...incoming.properties], [...outgoing.properties]);
+  incoming.step();
+  assert.deepEqual([...incoming.properties], [...outgoing.properties]);
+  incoming.window.emit("pointermove", { clientX: 100, clientY: 800 });
+  for (let i = 0; i < 80; i += 1) incoming.step();
+  assert.ok(parseFloat(incoming.properties.get("--scene-x")) < -6);
+  assert.ok(parseFloat(incoming.properties.get("--scene-y")) > 4);
 });
 
 test("the static city stays visible until the first WebGL frame is painted", async () => {

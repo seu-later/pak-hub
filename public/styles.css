@@ -175,6 +175,13 @@ input {
   opacity: 0;
 }
 
+@media (min-width: 701px) and (pointer: fine) {
+  #scene-canvas, .scene-fallback {
+    /* Small overscan keeps viewport edges covered throughout pointer movement. */
+    transform: translate3d(var(--scene-x, 0px), var(--scene-y, 0px), 0) scale(1.02);
+  }
+}
+
 .scene-background::after {
   content: "";
   position: absolute;
