@@ -44,6 +44,8 @@
 
 html {
   min-width: 320px;
+  /* Page-transition offsets must not create a scrollbar that resizes the city. */
+  overflow-x: clip;
   background: var(--void);
   scroll-behavior: auto;
   scrollbar-gutter: stable;
