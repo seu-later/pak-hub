@@ -945,12 +945,11 @@ input {
 
 .pak-item:last-child { border-bottom: 0; }
 .pak-item .pak-download {
-  padding: 0 10px;
+  padding: 0 4px;
   color: #b8edc9;
-  background: #142d1d;
+  background: transparent;
 }
 .pak-item .pak-download:is(:hover, :focus-visible) {
-  background: #1c3b27;
   color: var(--phosphor);
 }
 
@@ -1026,7 +1025,11 @@ input {
   transition: transform var(--control-response) var(--ease-out);
 }
 
-.pak-download:is(:hover, :focus-visible) svg, .dependency-item a:is(:hover, :focus-visible) svg {
+.pak-download:is(:hover, :focus-visible) svg {
+  animation: arrow-return 260ms var(--ease-out);
+}
+
+.dependency-item a:is(:hover, :focus-visible) svg {
   animation: arrow-return 320ms var(--ease-out);
 }
 
