@@ -287,12 +287,20 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
   }
   function pagehide() { suspend(); }
   function pageshow() { suspended = false; wake(); }
-  const toolbar = document.getElementById("archive-toolbar");
-  const searchObserver = toolbar ? new MutationObserver(() => {
-    const value = toolbar.classList.contains("search-open") ? 1 : 0;
+  let toolbar = document.getElementById("archive-toolbar");
+  function syncSearch() {
+    const value = toolbar?.classList.contains("search-open") ? 1 : 0;
     if (target.search !== value) { target.search = value; wake(); }
-  }) : null;
-  searchObserver?.observe(toolbar, { attributes: true, attributeFilter: ["class"] });
+  }
+  const searchObserver = typeof MutationObserver !== "undefined" ? new MutationObserver(syncSearch) : null;
+  function routeChanged() {
+    searchObserver?.disconnect();
+    toolbar = document.getElementById("archive-toolbar");
+    if (toolbar) searchObserver?.observe(toolbar, { attributes: true, attributeFilter: ["class"] });
+    syncSearch();
+  }
+  routeChanged();
+  document.addEventListener("pakhub:route-ready", routeChanged);
 
   function stop() {
     if (disposed) return;
@@ -305,6 +313,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     window.removeEventListener("pagehide", pagehide);
     window.removeEventListener("pageshow", pageshow);
     document.removeEventListener("pakhub:selection", select);
+    document.removeEventListener("pakhub:route-ready", routeChanged);
     document.removeEventListener("visibilitychange", visibility);
     renderer.domElement.removeEventListener("webglcontextlost", contextLost);
     geometry.dispose(); rainGeometry.dispose();

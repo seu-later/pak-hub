@@ -131,7 +131,7 @@
     if (!host) return;
     sceneStarted = true;
     const revision = ++sceneRevision;
-    const load = () => import("./scene.js?v=20261014handoff2").then((module) => {
+    const load = () => import("./scene.js?v=20261014persistent2").then((module) => {
       if (revision !== sceneRevision || !motionEnabled() || !desktopViewport.matches) return;
       sceneController = module.initializeScene(host, motionEnabled, () => {
         if (revision === sceneRevision) { sceneController = null; sceneStarted = false; }
@@ -143,11 +143,13 @@
     load();
   }
 
-  document.querySelector(".preview-back")?.addEventListener("click", () => {
-    const selected = document.querySelector(".ledger-row.is-selected .mod-select");
-    selected?.scrollIntoView({ behavior: motionEnabled() ? "smooth" : "auto", block: "center" });
-    selected?.focus({ preventScroll: true });
-  });
+  function initializePreviewBack() {
+    document.querySelector(".preview-back")?.addEventListener("click", () => {
+      const selected = document.querySelector(".ledger-row.is-selected .mod-select");
+      selected?.scrollIntoView({ behavior: motionEnabled() ? "smooth" : "auto", block: "center" });
+      selected?.focus({ preventScroll: true });
+    });
+  }
 
   function syncLenis() {
     if (desktopViewport.matches && window.Lenis) {
@@ -173,7 +175,7 @@
   function initializeNavIndicator() {
     const nav = document.querySelector(".primary-nav");
     const indicator = nav?.querySelector(".nav-indicator");
-    const current = nav?.querySelector('a[aria-current="page"]') || nav?.querySelector("a");
+    let current = nav?.querySelector('a[aria-current="page"]') || nav?.querySelector("a");
     if (!nav || !indicator || !current) return;
 
     let target = current;
@@ -201,6 +203,11 @@
     nav.addEventListener("pakhub:navigation", (event) => {
       navigating = true;
       positionIndicator(event.detail.link, true, 0.18);
+    });
+    nav.addEventListener("pakhub:route-ready", () => {
+      current = nav.querySelector('a[aria-current="page"]');
+      navigating = false;
+      positionIndicator(current, false);
     });
     window.addEventListener("pageshow", (event) => {
       if (!event.persisted) return;
@@ -232,11 +239,67 @@
 
   function initializePageTransition() {
     const nav = document.querySelector(".primary-nav");
-    const main = document.querySelector("main");
+    let main = document.querySelector("main");
     if (!nav || !main || !window.gsap) return;
     const storageKey = "pak-hub-route-target";
     let navigating = false;
     let signal = null;
+    const routePath = (value) => new URL(value).pathname.replace(/\/index\.html$/, "/").replace(/\.html$/, "");
+    let currentPath = routePath(window.location.href);
+    const views = new Map([[currentPath, { main, title: document.title, bodyClass: document.body.className, scroll: 0 }]]);
+    async function loadView(destination) {
+      const path = routePath(destination.href);
+      if (views.has(path)) return views.get(path);
+      const response = await window.fetch(destination.href, { headers: { Accept: "text/html" } });
+      if (!response.ok) throw new Error("Page could not be loaded");
+      const page = new window.DOMParser().parseFromString(await response.text(), "text/html");
+      const content = page.querySelector("main");
+      if (!content || !page.querySelector(".primary-nav")) throw new Error("Invalid page response");
+      return { main: content, title: page.title, bodyClass: page.body.className, scroll: 0, scripts: Array.from(page.querySelectorAll("script[src]"))
+        .map((script) => new URL(script.getAttribute("src"), destination.href))
+        .filter((url) => /\/(preview-data|app|dump)\.js$/.test(url.pathname)) };
+    }
+    async function showView(destination, pending, push = true) {
+      try {
+        const result = await pending;
+        if (result.error) throw result.error;
+        const view = result.view;
+        const path = routePath(destination.href);
+        views.get(currentPath).scroll = window.scrollY || 0;
+        if (push) window.history.pushState(null, "", destination.href);
+        main.replaceWith(view.main);
+        main = view.main;
+        document.title = view.title;
+        document.body.className = view.bodyClass;
+        document.body.classList.add("site-ready");
+        nav.querySelectorAll("a").forEach((link) => {
+          if (routePath(link.href) === path) link.setAttribute("aria-current", "page");
+          else link.removeAttribute("aria-current");
+        });
+        const skip = document.querySelector(".skip-link");
+        if (skip) {
+          skip.setAttribute("href", `#${main.id}`);
+          skip.textContent = `Skip to ${main.getAttribute("aria-label") || "content"}`;
+        }
+        if (!views.has(path)) {
+          initializeSortIndicator();
+          initializePreviewBack();
+          for (const url of view.scripts) await import(url.href);
+          views.set(path, view);
+        }
+        currentPath = path;
+        lenis?.scrollTo?.(view.scroll, { immediate: true });
+        window.scrollTo?.(0, view.scroll);
+        nav.dispatchEvent(new CustomEvent("pakhub:route-ready"));
+        document.dispatchEvent(new CustomEvent("pakhub:route-ready"));
+        window.gsap.fromTo(main, { x: -5 }, { x: 0, duration: 0.22, ease: "power3.out", clearProps: "transform" });
+        signal?.remove(); signal = null;
+        navigating = false;
+      } catch (error) {
+        console.warn("Pak Hub page navigation failed", error);
+        window.location.assign(destination.href);
+      }
+    }
     function makeSignal() {
       signal = document.createElement("div");
       signal.className = "route-signal";
@@ -247,7 +310,6 @@
     let arriving = false;
     try {
       const target = sessionStorage.getItem(storageKey);
-      const routePath = (value) => new URL(value).pathname.replace(/\/index\.html$/, "/").replace(/\.html$/, "");
       arriving = Boolean(target) && new URL(target).origin === window.location.origin &&
         routePath(target) === routePath(window.location.href);
       sessionStorage.removeItem(storageKey);
@@ -265,14 +327,18 @@
       event.preventDefault();
       navigating = true;
       nav.dispatchEvent(new CustomEvent("pakhub:navigation", { detail: { link } }));
-      sceneController?.suspend();
       const effect = makeSignal();
-      try { sessionStorage.setItem(storageKey, destination.href); } catch { /* Navigation still works. */ }
-      window.gsap.timeline({ onComplete: () => window.location.assign(destination.href) })
+      const pending = loadView(destination).then((view) => ({ view }), (error) => ({ error }));
+      window.gsap.timeline({ onComplete: () => showView(destination, pending) })
         .fromTo(effect, { y: -18, opacity: 0 }, { y: 0, opacity: 0.8, duration: 0.08, ease: "none" })
         .to(effect, { y: 16, opacity: 0.4, duration: 0.12, ease: "none" }, 0.08)
         .to(main, { x: -6, duration: 0.08, ease: "none" }, 0)
         .to(main, { x: 3, duration: 0.08, ease: "none" }, 0.08);
+    });
+    window.addEventListener("popstate", () => {
+      const destination = new URL(window.location.href);
+      const pending = loadView(destination).then((view) => ({ view }), (error) => ({ error }));
+      showView(destination, pending, false);
     });
     window.addEventListener("pageshow", (event) => {
       if (!event.persisted) return;
@@ -284,6 +350,7 @@
   }
 
   syncLenis();
+  initializePreviewBack();
   initializeNavIndicator();
   initializeSortIndicator();
   initializePageTransition();

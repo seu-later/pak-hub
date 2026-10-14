@@ -235,7 +235,7 @@ function renderArchiveState() {
 }
 
 function renderSortState() {
-  document.querySelectorAll(".sort-button").forEach((button) => {
+  elements.archiveToolbar.querySelectorAll(".sort-button").forEach((button) => {
     const isActive = button.dataset.sort === state.sort ||
       (button.dataset.sort === "newest" && state.sort === "oldest");
     button.setAttribute("aria-pressed", String(isActive));
@@ -260,9 +260,9 @@ function renderSortState() {
  * (300ms ease-in-out, same motion contract as the reference). */
 let sortIndicatorPlaced = false;
 function updateSortIndicator(animate = true) {
-  const bar = document.querySelector(".sort-indicator");
-  const active = document.querySelector('.sort-button[aria-pressed="true"]');
-  const group = document.querySelector(".sort-controls");
+  const bar = elements.archiveToolbar.querySelector(".sort-indicator");
+  const active = elements.archiveToolbar.querySelector('.sort-button[aria-pressed="true"]');
+  const group = elements.archiveToolbar.querySelector(".sort-controls");
   if (!bar || !active || !group) return;
   window.PakHubMotion.moveIndicator(group, bar, active, animate);
 }
@@ -512,7 +512,7 @@ function renderSelectionState() {
 
 function renderPreviewPanel() {
   const mod = state.mods.find((item) => item.slug === state.selectedSlug);
-  window.PakHubMotion.select(mod?.slug || null);
+  if (elements.rows.isConnected !== false) window.PakHubMotion.select(mod?.slug || null);
   elements.detailPanel.setAttribute("aria-busy", String(Boolean(mod && state.detailStatus === "loading")));
   elements.detailPanelContent.inert = Boolean(mod && state.detailStatus === "loading");
   if (mod && state.detailStatus === "loading" && elements.detailPanelContent.lastElementChild) return;
@@ -816,7 +816,7 @@ elements.rows.addEventListener("click", (event) => {
 
 elements.loadMore.addEventListener("click", () => loadCatalog({ append: true }));
 window.addEventListener("resize", () => {
-  updateSortIndicator(false);
+  if (elements.rows.isConnected !== false) updateSortIndicator(false);
 });
 observeLoadSentinel();
 loadCatalog();

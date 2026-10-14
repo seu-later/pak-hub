@@ -18,6 +18,7 @@ class Element {
   append(child) { child.parent = this; this.children.push(child); }
   replaceChildren(...children) { this.children.forEach((e) => { e.parent = null; }); this.children = []; children.forEach((e) => this.append(e)); }
   remove() { if (this.parent) this.parent.children = this.parent.children.filter((e) => e !== this); this.parent = null; }
+  replaceWith(next) { const index = this.parent.children.indexOf(this); this.parent.children[index] = next; next.parent = this.parent; this.parent = null; }
   setAttribute(name, value) { this.attributes[name] = value; }
   removeAttribute(name) { delete this.attributes[name]; }
   contains(target) { return this === target || this.children.some((e) => e.contains(target)); }
@@ -40,7 +41,8 @@ function setup(reduced = false, desktop = false, fixtures = {}, options = {}) {
   const document = { documentElement: new Element(), body: new Element(), images: [], activeElement: null, getElementById: () => null, createElement: () => new Element(), querySelector: (selector) => fixtures[selector] || null, querySelectorAll: () => [], addEventListener() {}, dispatchEvent(event) { events.push(event); } };
   const lenisOptions = [];
   const window = { location: options.location || { search: "", protocol: "https:", hostname: "example.com" }, gsap: options.gsap, matchMedia: (query) => ({ matches: query.includes("reduce") ? reduced : desktop, addEventListener() {} }), Lenis: class { constructor(options) { lenisOptions.push(options); } }, addEventListener() {}, requestAnimationFrame: (fn) => fn(), setTimeout, clearTimeout };
-  const context = vm.createContext({ window, document, URL, URLSearchParams, Promise, CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } }, performance, sessionStorage: options.storage || { getItem: () => "1" } });
+  Object.assign(window, { fetch: options.fetch, DOMParser: options.DOMParser, history: options.history });
+  const context = vm.createContext({ window, document, URL, URLSearchParams, Promise, CustomEvent: class { constructor(type, options = {}) { this.type = type; this.detail = options.detail; } }, performance, sessionStorage: options.storage || { getItem: () => "1" } });
   vm.runInContext(readFileSync(new URL("../public/site-motion.js", import.meta.url), "utf8"), context);
   const swap = window.PakHubMotion.swapPreview;
   return { panel, scrollPanel, document, window, events, lenisOptions, motion: window.PakHubMotion, swap: (next, key) => swap(panel, next, key) };
@@ -139,6 +141,43 @@ test("clicked nav target stays selected through pointer and focus changes during
   assert.equal(calls.length, committedCalls);
   assert.equal(calls.at(-1).x, 150);
   assert.ok(calls.at(-1).duration <= 0.2);
+});
+
+test("navigation swaps only page content and reuses cached pages without a document load", async () => {
+  const shell = new Element();
+  const scene = new Element();
+  const main = new Element(); main.id = "catalog";
+  const next = new Element(); next.id = "about";
+  const nav = new Element(); nav.querySelector = () => null;
+  const link = new Element(); link.href = "https://example.com/about.html"; link.closest = () => link; link.hasAttribute = () => false;
+  nav.append(link); shell.append(scene); shell.append(nav); shell.append(main);
+  let complete;
+  let requests = 0;
+  let documentLoads = 0;
+  const routes = [];
+  const timeline = { fromTo() { return this; }, to() { return this; } };
+  setup(false, false, { ".primary-nav": nav, main }, {
+    location: { href: "https://example.com/", origin: "https://example.com", assign() { documentLoads += 1; } },
+    fetch: async () => { requests += 1; return { ok: true, text: async () => "about" }; },
+    DOMParser: class { parseFromString() { return { title: "About", body: { className: "view-about" }, querySelector: (selector) => selector === "main" ? next : nav, querySelectorAll: () => [] }; } },
+    history: { pushState(state, title, url) { routes.push(url); } },
+    storage: { getItem: () => null, removeItem() {} },
+    gsap: { timeline(options) { complete = options.onComplete; return timeline; }, fromTo() {} },
+  });
+  nav.dispatchEvent({ type: "click", target: link, button: 0, preventDefault() {} });
+  await complete();
+  assert.equal(documentLoads, 0);
+  assert.equal(requests, 1);
+  assert.equal(shell.children[0], scene);
+  assert.equal(shell.children[1], nav);
+  assert.equal(shell.lastElementChild, next);
+  assert.equal(routes.at(-1), link.href);
+  link.href = "https://example.com/index.html";
+  nav.dispatchEvent({ type: "click", target: link, button: 0, preventDefault() {} });
+  await complete();
+  assert.equal(requests, 1);
+  assert.equal(shell.lastElementChild, main);
+  assert.equal(shell.children[0], scene);
 });
 
 test("outgoing preview stays hidden and cannot receive interaction while the slice opens", () => {

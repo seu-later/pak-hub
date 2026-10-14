@@ -90,7 +90,7 @@ function renderArchiveState() {
 }
 
 function renderSortState() {
-  document.querySelectorAll(".sort-button").forEach((button) => {
+  elements.archiveToolbar.querySelectorAll(".sort-button").forEach((button) => {
     const isActive = button.dataset.sort === state.sort ||
       (button.dataset.sort === "newest" && state.sort === "oldest");
     button.setAttribute("aria-pressed", String(isActive));
@@ -108,9 +108,9 @@ function renderSortState() {
 
 let sortIndicatorPlaced = false;
 function updateSortIndicator(animate = sortIndicatorPlaced) {
-  const bar = document.querySelector(".sort-indicator");
-  const active = document.querySelector('.sort-button[aria-pressed="true"]');
-  const group = document.querySelector(".sort-controls");
+  const bar = elements.archiveToolbar.querySelector(".sort-indicator");
+  const active = elements.archiveToolbar.querySelector('.sort-button[aria-pressed="true"]');
+  const group = elements.archiveToolbar.querySelector(".sort-controls");
   if (!bar || !active || !group) return;
   window.PakHubMotion.moveIndicator(group, bar, active, animate);
   sortIndicatorPlaced = true;
@@ -187,7 +187,7 @@ function renderVersionFile(file) {
 
 function renderPreviewPanel() {
   const group = state.groups.find((item) => groupKey(item) === state.selectedKey);
-  window.PakHubMotion.select(group ? groupKey(group) : null);
+  if (elements.rows.isConnected !== false) window.PakHubMotion.select(group ? groupKey(group) : null);
   const dossier = node("article", "mod-dossier preview-dossier-content");
 
   if (group) {
@@ -404,7 +404,7 @@ function updateSort(sort) {
 document.querySelectorAll(".sort-button").forEach((button) => {
   button.addEventListener("click", () => updateSort(button.dataset.sort));
 });
-window.addEventListener("resize", () => updateSortIndicator(false), { passive: true });
+window.addEventListener("resize", () => { if (elements.rows.isConnected !== false) updateSortIndicator(false); }, { passive: true });
 
 elements.detailPanel.addEventListener("click", (event) => {
   const target = event.target.closest("button[data-action]");
