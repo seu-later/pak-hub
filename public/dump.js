@@ -231,8 +231,10 @@ function renderGroups() {
   elements.resultCount.setAttribute("aria-label", state.loading && state.groups.length === 0
     ? "Loading results" : `${state.groups.length} of ${state.total || state.groups.length} results`);
   renderSortState();
-  elements.clearSearch.hidden = !state.query;
-  elements.search.value = state.query;
+  elements.clearSearch.hidden = !state.query.trim();
+  if (document.activeElement !== elements.search) {
+    elements.search.value = state.query;
+  }
   elements.loadMore.hidden = !state.hasMore;
   elements.loadMore.textContent = state.moreError ? "Retry" : "More";
   if (elements.sentinel) {
@@ -280,8 +282,9 @@ function observeLoadSentinel() {
 
 async function loadGroups({ append = false, auto = false } = {}) {
   if (demo) {
-    let groups = window.PakHubPreview.groups.filter((group) => !state.query ||
-      [group.name, group.description, ...group.files.map((file) => file.filename)].some((value) => value.toLowerCase().includes(state.query.toLowerCase())));
+    const trimmedQuery = state.query.trim().toLowerCase();
+    let groups = window.PakHubPreview.groups.filter((group) => !trimmedQuery ||
+      [group.name, group.description, ...group.files.map((file) => file.filename)].some((value) => value.toLowerCase().includes(trimmedQuery)));
     groups = [...groups].sort(state.sort === "name" ? (a, b) => a.name.localeCompare(b.name) :
       state.sort === "oldest" ? (a, b) => a.postedAt.localeCompare(b.postedAt) : (a, b) => b.postedAt.localeCompare(a.postedAt));
     state.groups = groups;
@@ -306,7 +309,8 @@ async function loadGroups({ append = false, auto = false } = {}) {
   renderGroups();
 
   const params = new URLSearchParams({ sort: state.sort, page: String(page) });
-  if (state.query) params.set("q", state.query);
+  const trimmedQuery = state.query.trim();
+  if (trimmedQuery) params.set("q", trimmedQuery);
 
   try {
     const response = await fetch(`/api/dump?${params}`, {
@@ -353,7 +357,7 @@ function setSearchOpen(open) {
 function closeSearch() {
   setSearchOpen(false);
   window.clearTimeout(searchTimer);
-  if (state.query) {
+  if (state.query.trim()) {
     state.query = "";
     elements.search.value = "";
     elements.clearSearch.hidden = true;
@@ -370,13 +374,13 @@ elements.searchToggle.addEventListener("click", () => {
 
 elements.searchForm.addEventListener("submit", (event) => event.preventDefault());
 elements.search.addEventListener("input", () => {
-  state.query = elements.search.value.trim();
+  state.query = elements.search.value.slice(0, 100);
   window.clearTimeout(searchTimer);
   searchTimer = window.setTimeout(() => {
     state.page = 1;
     loadGroups();
   }, 180);
-  elements.clearSearch.hidden = !state.query;
+  elements.clearSearch.hidden = !state.query.trim();
 });
 
 elements.clearSearch.addEventListener("click", () => {

@@ -559,8 +559,10 @@ function renderCatalog() {
   elements.resultCount.textContent = count;
   elements.resultCount.setAttribute("aria-label", state.loading && state.mods.length === 0
     ? "Loading results" : `${state.mods.length} of ${state.total || state.mods.length} results`);
-  elements.clearSearch.hidden = !state.query;
-  elements.search.value = state.query;
+  elements.clearSearch.hidden = !state.query.trim();
+  if (document.activeElement !== elements.search) {
+    elements.search.value = state.query;
+  }
   elements.loadMore.hidden = !state.hasMore;
   elements.loadMore.textContent = state.moreError ? "Retry" : "More";
   if (elements.sentinel) {
@@ -663,7 +665,7 @@ function observeLoadSentinel() {
 async function loadCatalog({ append = false, auto = false } = {}) {
   if (!append) state.autoPages = 0;
   if (state.demo) {
-    const query = state.query.toLocaleLowerCase();
+    const query = state.query.trim().toLocaleLowerCase();
     let mods = catalogDemoMods.filter((mod) => !query ||
       [mod.name, mod.postedBy, mod.initialPost.content, ...mod.initialPost.files.map((file) => file.filename),
         ...mod.threadPosts.flatMap((post) => [post.content, ...post.files.map((file) => file.filename)])]
@@ -696,8 +698,9 @@ async function loadCatalog({ append = false, auto = false } = {}) {
   renderCatalog();
 
   const params = new URLSearchParams({ sort: state.sort, page: String(page) });
-  if (state.query) params.set("q", state.query);
-  if (!append && !state.query && state.linkedModSlug) params.set("slug", state.linkedModSlug);
+  const trimmedQuery = state.query.trim();
+  if (trimmedQuery) params.set("q", trimmedQuery);
+  if (!append && !trimmedQuery && state.linkedModSlug) params.set("slug", state.linkedModSlug);
 
   try {
     const response = await fetch(`/api/mods?${params}`, {
@@ -752,7 +755,7 @@ function setSearchOpen(open) {
 function closeSearch() {
   setSearchOpen(false);
   window.clearTimeout(searchTimer);
-  if (state.query) {
+  if (state.query.trim()) {
     state.query = "";
     elements.search.value = "";
     elements.clearSearch.hidden = true;
@@ -769,13 +772,13 @@ elements.searchToggle.addEventListener("click", () => {
 
 elements.searchForm.addEventListener("submit", (event) => event.preventDefault());
 elements.search.addEventListener("input", () => {
-  state.query = elements.search.value.trim();
+  state.query = elements.search.value.slice(0, 100);
   window.clearTimeout(searchTimer);
   searchTimer = window.setTimeout(() => {
     state.page = 1;
     loadCatalog();
   }, 180);
-  elements.clearSearch.hidden = !state.query;
+  elements.clearSearch.hidden = !state.query.trim();
 });
 
 elements.clearSearch.addEventListener("click", () => {
