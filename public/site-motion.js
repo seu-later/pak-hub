@@ -359,13 +359,6 @@
     if (catalogReady) startScene();
   });
 
-  function finishImmediately() {
-    if (!loader || !loader.isConnected) return;
-    loader.remove();
-    document.body.classList.remove("site-loading");
-    document.body.classList.add("site-ready");
-  }
-
   window.PakHubMotion = {
     swapPreview,
     moveIndicator,
@@ -384,21 +377,10 @@
     return;
   }
 
-  let seen = false;
-  try {
-    seen = sessionStorage.getItem("pak-hub-loader-seen") === "1";
-    sessionStorage.setItem("pak-hub-loader-seen", "1");
-  } catch {
-    seen = false;
-  }
-
-  if (seen) {
-    finishImmediately();
-    return;
-  }
-
   loader.hidden = false;
   document.body.classList.add("site-loading");
+  const shell = document.querySelector(".app-shell");
+  if (shell) shell.inert = true;
 
   const startedAt = performance.now();
   const assetCount = images.length + (document.fonts ? 1 : 0);
@@ -406,6 +388,8 @@
   let displayedProgress = 0;
   let forcedComplete = false;
   let exiting = false;
+  let lastFrame = startedAt;
+  let completedAt = null;
 
   if (document.fonts) {
     document.fonts.ready.then(() => {
@@ -426,25 +410,42 @@
   function exitLoader() {
     if (exiting) return;
     exiting = true;
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+    function finish() {
+      loader.remove();
+      if (shell) shell.inert = false;
       document.body.classList.remove("site-loading");
       document.body.classList.add("site-ready");
-      loader.classList.add("is-leaving");
-      window.setTimeout(() => loader.remove(), 230);
-    }));
+    }
+    loader.classList.add("is-leaving");
+    if (window.gsap) {
+      loader.classList.add("is-animated");
+      window.gsap.timeline({ onComplete: finish })
+        .to(loader.querySelector(".site-loader-row"), { opacity: 0, duration: 0.3, ease: "power2.in" }, 0)
+        .to(loader.querySelector(".site-loader-background"), { opacity: 0, duration: 0.78, ease: "power2.inOut" }, 0.12);
+    } else {
+      window.setTimeout(finish, 900);
+    }
   }
 
   function tick(now) {
     if (!loader.isConnected || exiting) return;
     if (now - startedAt >= 6000) forcedComplete = true;
     const target = targetProgress();
-    displayedProgress += (target.progress - displayedProgress) * 0.12;
-    const roundedProgress = Math.min(100, Math.round(displayedProgress));
+    // A readable 0% hold and time-based build stay consistent on high-refresh displays.
+    const pace = Math.min(100, Math.max(0, (now - startedAt - 220) / 2700) * 100);
+    const desired = Math.min(target.progress, pace);
+    displayedProgress += Math.max(0, desired - displayedProgress) * (1 - Math.exp(-(now - lastFrame) / 90));
+    lastFrame = now;
+    if ((target.allReady || forcedComplete) && pace === 100 && displayedProgress >= 99.3 && completedAt === null) {
+      completedAt = now;
+      displayedProgress = 100;
+    }
+    const roundedProgress = completedAt === null ? Math.min(99, Math.floor(displayedProgress)) : 100;
     loaderCount.textContent = String(roundedProgress) + "%";
     loaderTrack.style.setProperty("--loader-progress", String(displayedProgress) + "%");
     loaderLine.style.width = String(displayedProgress) + "%";
 
-    if ((target.allReady || forcedComplete) && displayedProgress >= 99.98 && now - startedAt >= 1500) {
+    if (completedAt !== null && now - completedAt >= 240) {
       exitLoader();
       return;
     }
