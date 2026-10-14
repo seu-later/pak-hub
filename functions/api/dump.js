@@ -74,7 +74,16 @@ export async function onRequestGet({ request, env }) {
         `SELECT COUNT(DISTINCT d.base_key) AS total FROM dump_files d ${clause}`,
       ).bind(...values).first(),
       env.DB.prepare(`
-        SELECT d.base_key AS base_key, MIN(d.base_name) AS base_name, COUNT(*) AS file_count
+        SELECT d.base_key AS base_key, MIN(d.base_name) AS base_name, COUNT(*) AS file_count,
+          (SELECT description FROM dump_descriptions WHERE dump_descriptions.base_key = d.base_key) AS description,
+          (SELECT m.slug
+           FROM dump_files linked_dump
+           JOIN pak_files linked_file ON linked_file.sha256 = linked_dump.sha256
+           JOIN releases linked_release ON linked_release.id = linked_file.release_id
+           JOIN mods m ON m.id = linked_release.mod_id
+           WHERE linked_dump.base_key = d.base_key
+           ORDER BY linked_release.published_at DESC, linked_release.id DESC
+           LIMIT 1) AS pak_list_slug
         FROM dump_files d
         ${clause}
         GROUP BY d.base_key
@@ -111,6 +120,8 @@ export async function onRequestGet({ request, env }) {
       groups: groups.map((group) => ({
         name: group.base_name,
         fileCount: Number(group.file_count || 0),
+        description: group.description || "Description unavailable.",
+        pakListUrl: group.pak_list_slug ? `/index.html?mod=${encodeURIComponent(group.pak_list_slug)}` : "",
         files: (filesByBase.get(group.base_key) || []).sort(compareDumpFiles),
       })),
       total: countResult?.total || 0,

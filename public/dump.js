@@ -197,7 +197,8 @@ function renderPreviewPanel() {
       pakListLink.href = group.pakListUrl;
       pakListLink.setAttribute("aria-label", `View ${group.name} in Pak List`);
       dossier.append(pakListLink);
-    } else if (group.description) {
+    }
+    if (group.description) {
       dossier.append(node("p", "preview-dossier-description", group.description));
     }
     const list = node("ul", "pak-list");
