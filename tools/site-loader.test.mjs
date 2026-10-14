@@ -41,15 +41,21 @@ test("full page loads show zero, a readable build, and a gradual exit even after
   site.advance(180, 4);
   assert.equal(site.count.textContent, "0%");
   site.advance(1200, 4);
-  assert.ok(parseInt(site.count.textContent) > 15 && parseInt(site.count.textContent) < 45);
+  assert.ok(parseInt(site.count.textContent) > 30 && parseInt(site.count.textContent) < 65);
   assert.equal(site.loader.isConnected, true);
-  site.advance(3400, 4);
+  site.advance(2600, 4);
   assert.equal(site.count.textContent, "100%");
   assert.equal(site.loader.classList.contains("is-leaving"), true);
   assert.equal(site.loader.isConnected, true);
-  site.advance(4400, 4);
+  site.advance(3100, 4);
   assert.equal(site.loader.isConnected, false);
   assert.equal(site.shell.inert, false);
+});
+
+test("ready pages begin their terminal reveal before three seconds", () => {
+  const site = setup();
+  site.advance(2800, 4);
+  assert.equal(site.loader.classList.contains("is-leaving"), true);
 });
 
 test("loading progress is consistent across 30 and 240 fps", () => {
@@ -63,7 +69,7 @@ test("the loader waits for the catalog and still has a bounded timeout", () => {
   waiting.advance(4000);
   assert.ok(parseInt(waiting.count.textContent) < 100);
   assert.equal(waiting.loader.classList.contains("is-leaving"), false);
-  waiting.motion.catalogReady(); waiting.advance(5600);
+  waiting.motion.catalogReady(); waiting.advance(6200);
   assert.equal(waiting.loader.isConnected, false);
   const failed = setup(true);
   failed.advance(8000);

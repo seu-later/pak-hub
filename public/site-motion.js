@@ -420,19 +420,19 @@
     if (window.gsap) {
       loader.classList.add("is-animated");
       window.gsap.timeline({ onComplete: finish })
-        .to(loader.querySelector(".site-loader-row"), { opacity: 0, duration: 0.3, ease: "power2.in" }, 0)
-        .to(loader.querySelector(".site-loader-background"), { opacity: 0, duration: 0.78, ease: "power2.inOut" }, 0.12);
+        .to(loader.querySelector(".site-loader-row"), { opacity: 0, duration: 0.18, ease: "power2.in" }, 0)
+        .to(loader.querySelector(".site-loader-background"), { opacity: 0, duration: 0.54, ease: "power2.inOut" }, 0.08);
     } else {
-      window.setTimeout(finish, 900);
+      window.setTimeout(finish, 620);
     }
   }
 
   function tick(now) {
     if (!loader.isConnected || exiting) return;
-    if (now - startedAt >= 6000) forcedComplete = true;
+    if (now - startedAt >= 4500) forcedComplete = true;
     const target = targetProgress();
     // A readable 0% hold and time-based build stay consistent on high-refresh displays.
-    const pace = Math.min(100, Math.max(0, (now - startedAt - 220) / 2700) * 100);
+    const pace = Math.min(100, Math.max(0, (now - startedAt - 220) / 1850) * 100);
     const desired = Math.min(target.progress, pace);
     displayedProgress += Math.max(0, desired - displayedProgress) * (1 - Math.exp(-(now - lastFrame) / 90));
     lastFrame = now;
@@ -445,7 +445,7 @@
     loaderTrack.style.setProperty("--loader-progress", String(displayedProgress) + "%");
     loaderLine.style.width = String(displayedProgress) + "%";
 
-    if (completedAt !== null && now - completedAt >= 240) {
+    if (completedAt !== null && now - completedAt >= 120) {
       exitLoader();
       return;
     }
