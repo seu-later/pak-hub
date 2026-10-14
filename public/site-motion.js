@@ -200,6 +200,23 @@
     nav.addEventListener("focusout", (event) => {
       if (!navigating && !nav.contains(event.relatedTarget)) positionIndicator(current);
     });
+    /* Same-tab press: swallow the reload (which would replay the full
+     * loader) and answer with a tap pulse on the link + indicator. */
+    nav.addEventListener("click", (event) => {
+      const link = event.target.closest("a");
+      if (!link || !nav.contains(link) || !link.hasAttribute("aria-current")) return;
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      if (navigating || !link.animate) return;
+      link.animate(
+        [{ transform: "translateY(0)" }, { transform: "translateY(2px)" }, { transform: "translateY(0)" }],
+        { duration: 260, easing: "ease-out" },
+      );
+      indicator.animate(
+        [{ opacity: "1" }, { opacity: "0.25" }, { opacity: "1" }],
+        { duration: 300, easing: "ease-out" },
+      );
+    });
     nav.addEventListener("pakhub:navigation", (event) => {
       navigating = true;
       positionIndicator(event.detail.link, true, 0.18);
