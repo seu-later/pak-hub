@@ -371,34 +371,16 @@ function renderFiles(post) {
 
 function renderTopicPost(post, modName) {
   const block = node("div", "source-post topic-post");
-  const meta = node("p", "source-post-meta topic-meta");
-  meta.append(node("span", "source-post-author", discordTag(post.postedBy)));
-  const date = formatTimestamp(post.postedAt);
-  if (date) {
-    meta.append(document.createTextNode(" · "));
-    const time = node("time", "source-post-time", date);
-    time.dateTime = isoDateTime(post.postedAt);
-    meta.append(time);
-  }
-  block.append(meta);
+  block.append(renderPostHeader(post, "Original post"));
   const sameAsName = post.content.trim().toLowerCase() === String(modName || "").trim().toLowerCase();
-  if (post.content && !sameAsName) block.append(node("p", "topic-content", post.content));
+  if (post.content && !sameAsName) block.append(window.PakHubPostFormat.render(post.content, "topic-content"));
   if (post.files.length) block.append(renderFiles(post));
-
-  if (post.sourceUrl && isAllowedHost(post.sourceUrl, "discord.com")) {
-    const source = node("a", "post-source-link topic-source", "Open Discord post");
-    source.href = post.sourceUrl;
-    source.target = "_blank";
-    source.rel = "noopener noreferrer";
-    block.append(source);
-  }
   return block;
 }
 
-function renderPost(post, heading, className) {
-  const article = node("article", `source-post ${className}`);
-  const header = node("header", "source-post-header");
-  header.append(node("h4", "source-post-title", heading));
+function renderPostHeader(post, kind = "") {
+  const header = node("header", "post-heading");
+  if (kind) header.append(node("span", "post-kind", kind));
   const meta = node("p", "source-post-meta");
   meta.append(node("span", "source-post-author", discordTag(post.postedBy)));
   const date = formatTimestamp(post.postedAt);
@@ -409,17 +391,28 @@ function renderPost(post, heading, className) {
     meta.append(time);
   }
   header.append(meta);
-  article.append(header);
-  if (post.content) article.append(node("p", "source-post-content", post.content));
-  if (post.files.length) article.append(renderFiles(post));
-
   if (post.sourceUrl && isAllowedHost(post.sourceUrl, "discord.com")) {
-    const source = node("a", "post-source-link", "Open Discord post");
+    const source = node("a", "post-source-link", "View on Discord");
     source.href = post.sourceUrl;
     source.target = "_blank";
     source.rel = "noopener noreferrer";
-    article.append(source);
+    const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    icon.setAttribute("viewBox", "0 0 24 24");
+    icon.setAttribute("aria-hidden", "true");
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", "M7 17 17 7M7 7h10v10");
+    icon.append(path);
+    source.append(icon);
+    header.append(source);
   }
+  return header;
+}
+
+function renderPost(post, heading, className) {
+  const article = node("article", `source-post ${className}`);
+  article.append(renderPostHeader(post, heading));
+  if (post.content) article.append(window.PakHubPostFormat.render(post.content, "source-post-content"));
+  if (post.files.length) article.append(renderFiles(post));
   return article;
 }
 
@@ -430,30 +423,9 @@ function renderThreadList(posts) {
   posts.forEach((raw) => {
     const post = normalizePost(raw);
     const item = node("li", "thread-item");
-    const meta = node("p", "thread-item-meta");
-    meta.append(node("span", "thread-item-author", discordTag(post.postedBy)));
-    const date = formatTimestamp(post.postedAt);
-    if (date) {
-      meta.append(document.createTextNode(" · "));
-      const time = node("time", "thread-item-time", date);
-      time.dateTime = isoDateTime(post.postedAt);
-      meta.append(time);
-    }
-    if (post.files.length) {
-      meta.append(document.createTextNode(" · "));
-      meta.append(node("span", "thread-item-count",
-        `${post.files.length} ${post.files.length === 1 ? "file" : "files"}`));
-    }
-    item.append(meta);
-    if (post.content) item.append(node("p", "thread-item-content", post.content));
+    item.append(renderPostHeader(post));
+    if (post.content) item.append(window.PakHubPostFormat.render(post.content, "thread-item-content"));
     if (post.files.length) item.append(renderFiles(post));
-    if (post.sourceUrl && isAllowedHost(post.sourceUrl, "discord.com")) {
-      const source = node("a", "post-source-link thread-item-source", "Open Discord post");
-      source.href = post.sourceUrl;
-      source.target = "_blank";
-      source.rel = "noopener noreferrer";
-      item.append(source);
-    }
     list.append(item);
   });
   section.append(list);
@@ -521,7 +493,9 @@ function renderPreviewPanel() {
     : node("article", "mod-dossier preview-dossier-content");
 
   if (mod) {
-    dossier.prepend(node("h3", "preview-dossier-title", mod.name));
+    const header = node("header", "preview-dossier-header");
+    header.append(node("h3", "preview-dossier-title", mod.name));
+    dossier.prepend(header);
     if (state.error) {
       const notice = node("div", "preview-error");
       notice.append(node("p", "", "Catalog refresh failed. Showing the current results."));

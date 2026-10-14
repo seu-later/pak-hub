@@ -191,7 +191,9 @@ function renderPreviewPanel() {
   const dossier = node("article", "mod-dossier preview-dossier-content");
 
   if (group) {
-    dossier.prepend(node("h3", "preview-dossier-title", group.name));
+    const header = node("header", "preview-dossier-header");
+    header.append(node("h3", "preview-dossier-title", group.name));
+    dossier.prepend(header);
     if (group.pakListUrl) {
       const pakListLink = node("a", "pak-download preview-dossier-pak-link", "View in Pak List");
       pakListLink.href = group.pakListUrl;
@@ -199,7 +201,7 @@ function renderPreviewPanel() {
       dossier.append(pakListLink);
     }
     if (group.description) {
-      dossier.append(node("p", "preview-dossier-description", group.description));
+      dossier.append(window.PakHubPostFormat.render(group.description, "preview-dossier-description"));
     }
     const list = node("ul", "pak-list");
     for (const file of group.files) list.append(renderVersionFile(file));

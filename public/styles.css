@@ -758,8 +758,8 @@ input {
   height: calc(100svh - var(--header-height) - 114px);
   min-height: 350px;
   overflow: auto;
-  background: rgba(3, 8, 6, .9);
-  border: 1px solid var(--line);
+  background: rgba(3, 8, 6, .985);
+  border: 1px solid var(--line-strong);
   scrollbar-width: thin;
   scrollbar-color: #35493d transparent;
 }
@@ -793,11 +793,21 @@ input {
   padding: 22px 22px 24px;
 }
 
+.preview-dossier-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: -22px -22px 22px;
+  padding: 16px 22px;
+  background: #050d09;
+  border-bottom: 1px solid var(--line-strong);
+}
+
 .preview-dossier-title {
-  margin: 0 0 22px;
+  margin: 0;
   color: var(--ink-bright);
   font-family: var(--font-display);
-  font-size: clamp(20px, 1.7vw, 26px);
+  font-size: 18px;
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1.35;
@@ -823,7 +833,7 @@ input {
   max-width: 75ch;
 }
 
-.source-post-meta, .thread-item-meta {
+.source-post-meta {
   font-family: var(--font-mono);
   display: flex;
   flex-wrap: wrap;
@@ -834,24 +844,79 @@ input {
   font-variant-numeric: tabular-nums;
 }
 
+.post-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+.post-kind {
+  width: 100%;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font: 12px/1.5 var(--font-mono);
+}
+
+.post-heading .source-post-meta {
+  flex: 1 1 200px;
+  align-items: baseline;
+  line-height: 1.7;
+}
+
+.source-post-author {
+  color: var(--ink-bright);
+  font-weight: 600;
+}
+
 .topic-content, .source-post-content, .thread-item-content {
   margin: 16px 0 22px;
   color: var(--ink);
   font-size: 14px;
   line-height: 1.65;
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
-.source-post-header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 8px;
-  margin: 20px 0 8px;
+.post-content {
+  white-space: normal;
 }
 
-.source-post-title, .thread-posts-heading {
+.post-content > :first-child { margin-top: 0; }
+.post-content > :last-child { margin-bottom: 0; }
+.post-content p { margin: 0 0 12px; }
+.post-content ul, .post-content ol { margin: 12px 0; padding-left: 22px; }
+.post-content li + li { margin-top: 5px; }
+.post-content strong { color: var(--ink-bright); font-weight: 650; }
+.post-content a {
+  color: #a9d9b8;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+.post-content a:hover { color: var(--phosphor); }
+.post-content blockquote {
+  margin: 14px 0;
+  padding: 8px 14px;
+  border-left: 1px solid var(--line-strong);
+  color: var(--muted);
+}
+.post-content code {
+  padding: 2px 4px;
+  background: #142019;
+  color: var(--ink-bright);
+  font: 12px/1.7 var(--font-mono);
+}
+.post-content pre {
+  margin: 14px 0;
+  padding: 12px;
+  background: #0b1510;
+  overflow-x: auto;
+  white-space: pre;
+}
+.post-content pre code { padding: 0; background: transparent; }
+
+.thread-posts-heading {
   font-family: var(--font-mono);
   margin: 0;
   color: var(--muted);
@@ -862,8 +927,9 @@ input {
 .pak-list {
   display: grid;
   margin: 22px 0 0;
-  padding: 0;
-  border-top: 1px solid var(--line-strong);
+  padding: 0 12px;
+  border: 1px solid rgba(137, 185, 151, .3);
+  background: #0c1c12;
   list-style: none;
 }
 
@@ -877,9 +943,16 @@ input {
   border-bottom: 1px solid var(--line);
 }
 
+.pak-item:last-child { border-bottom: 0; }
+.pak-item .pak-download {
+  padding: 0 10px;
+  color: #b8edc9;
+  background: #142d1d;
+}
+.pak-item .pak-download:hover { background: #1c3b27; color: var(--ink-bright); }
+
 .pak-file-copy {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   align-items: baseline;
   gap: 4px 8px;
   min-width: 0;
@@ -887,7 +960,7 @@ input {
 
 .pak-file-name {
   color: var(--ink-bright);
-  font: 12px/1.5 var(--font-mono);
+  font: 13px/1.5 var(--font-mono);
   overflow-wrap: anywhere;
 }
 
@@ -920,7 +993,7 @@ input {
   position: relative;
 }
 
-.pak-download::after, .dependency-item a::after, .post-source-link::after {
+.pak-download::after, .dependency-item a::after {
   content: "";
   position: absolute;
   height: 1px;
@@ -933,7 +1006,7 @@ input {
   transition: transform 200ms var(--ease-out);
 }
 
-.pak-download:is(:hover, :focus-visible)::after, .dependency-item a:is(:hover, :focus-visible)::after, .post-source-link:is(:hover, :focus-visible)::after {
+.pak-download:is(:hover, :focus-visible)::after, .dependency-item a:is(:hover, :focus-visible)::after {
   transform: scaleX(1);
   transform-origin: left;
 }
@@ -967,16 +1040,16 @@ input {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  color: var(--ink);
-  font-size: 12px;
-  text-decoration: none;
+  gap: 5px;
+  min-height: 36px;
+  color: #a9d9b8;
+  font-size: 11px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
-.post-source-link {
-  margin-top: 10px;
-}
+.post-source-link:hover { color: var(--phosphor); }
+.post-source-link svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; }
 
 .preview-dossier-pak-link {
   margin: 0 0 12px;
@@ -984,32 +1057,33 @@ input {
 
 .thread-posts {
   margin-top: 32px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line-strong);
+  padding-top: 20px;
+  border-top: 1px solid rgba(137, 185, 151, .45);
 }
 
+.thread-posts-heading { color: var(--ink-bright); font-size: 13px; }
+
 .thread-list {
+  display: grid;
+  gap: 18px;
   margin: 14px 0 0;
   padding: 0;
   list-style: none;
 }
 
 .thread-item {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 16px;
+  border: 1px solid var(--line-strong);
+  background: #0a140e;
 }
 
 .thread-item-content {
-  font-size: 13px;
-  margin: 10px 0;
+  font-size: 14px;
+  margin: 14px 0;
 }
 
 .thread-item .pak-list {
   margin-top: 12px;
-}
-
-.thread-item:last-child {
-  border-bottom: 0;
 }
 
 .preview-empty-detail, .dossier-error p, .preview-error p {
@@ -1382,6 +1456,8 @@ input {
     font-size: 12px;
   }
   .archive-toolbar {
+    position: relative;
+    top: auto;
     grid-template-columns: minmax(0, 1fr) 44px auto;
     grid-template-areas: "title search-toggle controls";
     column-gap: 10px;
@@ -1458,8 +1534,15 @@ input {
     padding: 24px 18px;
   }
   .preview-dossier-title {
-    font-size: 22px;
+    font-size: 18px;
   }
+  .preview-dossier-header {
+    top: var(--header-height);
+    margin: -24px -18px 22px;
+    padding: 14px 18px;
+  }
+  .thread-item { padding: 14px; }
+  .pak-item { gap: 10px; }
   .catalog-list-panel {
     padding-top: 8px;
     background: rgba(3, 8, 6, .78);
