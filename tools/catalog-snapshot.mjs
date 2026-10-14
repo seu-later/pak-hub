@@ -39,6 +39,6 @@ const groups = await pages(getDump, "/api/dump", "groups");
 const snapshot = { generatedAt: new Date().toISOString(), mods, details, groups };
 const directory = new URL("../functions/_data/", import.meta.url);
 mkdirSync(directory, { recursive: true });
-writeFileSync(new URL("catalog-snapshot.json", directory), JSON.stringify(snapshot));
+writeFileSync(new URL("catalog-snapshot.js", directory), `export default ${JSON.stringify(snapshot)};`);
 database.close();
 console.log(`Saved ${mods.length} mods, ${Object.keys(details).length} details, and ${groups.length} dump groups.`);

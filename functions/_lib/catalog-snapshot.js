@@ -1,4 +1,4 @@
-import snapshot from "../_data/catalog-snapshot.json" with { type: "json" };
+import snapshot from "../_data/catalog-snapshot.js";
 import { json } from "./http.js";
 
 const dumpFiles = new Map(snapshot.groups.flatMap((group) => group.files.map((file) => [
