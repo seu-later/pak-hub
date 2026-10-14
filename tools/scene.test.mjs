@@ -53,6 +53,7 @@ async function setup(savedPosition = null) {
     LineBasicMaterial: Resource, LineSegments: Mesh,
     TextureLoader: class { async loadAsync() { return new Resource(); } },
     Vector2: class { set(x, y) { this.x = x; this.y = y; } },
+    Vector4: class { constructor(x, y, z, w) { this.set(x, y, z, w); } set(x, y, z, w) { Object.assign(this, { x, y, z, w }); } },
     Color: class {},
   };
   let time = 0;
@@ -239,6 +240,42 @@ test("mist and wall lighting share a continuous clock across navigation", async 
   const after = incoming.meshes[2].geometry.attributes.position.array;
   assert.equal(after[0], before[0]);
   assert.ok(Math.abs(after[1] - before[1]) < 6);
+});
+
+test("cursor wakes disturb mist locally and settle after the pointer stops", async () => {
+  const site = await setup();
+  site.step();
+  site.window.emit("pointermove", { clientX: 400, clientY: 650 });
+  for (let i = 0; i < 4; i += 1) site.step();
+  site.window.emit("pointermove", { clientX: 650, clientY: 600 });
+  site.step();
+  const wakes = site.meshes[3].material.uniforms.wakes.value;
+  const strength = () => wakes.reduce((sum, wake) => sum + Math.hypot(wake.z, wake.w), 0);
+  const moving = strength();
+  assert.ok(moving > 0);
+  assert.ok(wakes.some((wake) => Math.abs(wake.x - 650 / 1440) < 0.001));
+  for (let i = 0; i < 25; i += 1) site.step();
+  assert.ok(strength() > moving * 0.1 && strength() < moving);
+  for (let i = 0; i < 100; i += 1) site.step();
+  assert.ok(strength() < moving * 0.025);
+});
+
+test("page content changes preserve mist wakes, viewport and foreground masking", async () => {
+  const site = await setup();
+  site.window.emit("pointermove", { clientX: 700, clientY: 650 });
+  for (let i = 0; i < 4; i += 1) site.step();
+  site.window.emit("pointermove", { clientX: 900, clientY: 650 }); site.step();
+  const mist = site.meshes[3];
+  const wakes = mist.material.uniforms.wakes.value;
+  const before = wakes.map((wake) => ({ ...wake }));
+  assert.ok(wakes.some((wake) => Math.hypot(wake.z, wake.w) > 0));
+  const size = [...site.renderer.size];
+  site.document.emit("pakhub:route-ready"); site.step();
+  assert.equal(mist.material.uniforms.wakes.value, wakes);
+  assert.deepEqual([...site.renderer.size], size);
+  assert.ok(wakes.every((wake, index) => wake.x === before[index].x && wake.y === before[index].y));
+  assert.equal(mist.material.uniforms.foregroundMap, site.meshes[2].material.uniforms.foregroundMap);
+  assert.ok(mist.position.z < site.meshes[1].position.z);
 });
 
 test("the static city stays visible until the first WebGL frame is painted", async () => {

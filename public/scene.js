@@ -116,9 +116,12 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
   const rain = new THREE.LineSegments(rainGeometry, rainMaterial);
   rain.position.z = 25;
   scene.add(rain);
+  // Six fading disturbances bend the fog without moving the architecture.
+  const mistWakes = Array.from({ length: 6 }, () => new THREE.Vector4(-2, -2, 0, 0));
   const mistMaterial = new THREE.ShaderMaterial({
     transparent: true, depthWrite: false,
-    uniforms: { ...rainUniforms, clock: uniforms.clock },
+    uniforms: { ...rainUniforms, clock: uniforms.clock,
+      wakes: { value: mistWakes }, aspect: { value: 1 }, viewOffset: { value: new THREE.Vector2() } },
     vertexShader: `varying vec2 vUv;
       varying vec2 worldPosition;
       void main() {
@@ -131,19 +134,45 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
       uniform vec2 foregroundSize;
       uniform vec2 foregroundOffset;
       uniform float clock;
+      uniform vec4 wakes[6];
+      uniform float aspect;
+      uniform vec2 viewOffset;
       varying vec2 vUv;
       varying vec2 worldPosition;
+      float hash(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+      }
+      float noise(vec2 p) {
+        vec2 cell = floor(p);
+        vec2 f = fract(p);
+        vec2 blend = f * f * (3.0 - 2.0 * f);
+        return mix(mix(hash(cell), hash(cell + vec2(1.0, 0.0)), blend.x),
+          mix(hash(cell + vec2(0.0, 1.0)), hash(cell + vec2(1.0)), blend.x), blend.y);
+      }
+      float wisps(vec2 p) {
+        return noise(p) * 0.57 + noise(p * 2.03 + 13.7) * 0.29 + noise(p * 4.11 + 31.2) * 0.14;
+      }
       void main() {
-        float drift = sin(vUv.x * 7.0 + clock * 0.035) * 0.022;
-        float lower = exp(-pow((vUv.y - 0.23 - drift) * 14.0, 2.0));
-        float upper = exp(-pow((vUv.y - 0.39 + drift * 0.6) * 20.0, 2.0));
-        float pockets = 0.55 + 0.45 * sin(vUv.x * 11.0 - clock * 0.026);
-        float alpha = (lower * 0.025 + upper * 0.012) * pockets;
+        vec2 flow = vec2(0.0);
+        for (int i = 0; i < 6; i++) {
+          vec2 distance = (vUv - wakes[i].xy) * vec2(aspect, 1.0);
+          float reach = exp(-dot(distance, distance) * 26.0);
+          vec2 curl = vec2(-distance.y, distance.x) * length(wakes[i].zw) * 2.0;
+          flow += (wakes[i].zw + curl) * reach;
+        }
+        vec2 farUv = vUv + viewOffset * 0.25 - flow * 0.45;
+        vec2 nearUv = vUv + viewOffset * 0.65 - flow;
+        float farNoise = wisps(farUv * vec2(5.0 * aspect, 11.0) + vec2(clock * 0.012, -clock * 0.006));
+        float nearNoise = wisps(nearUv * vec2(3.5 * aspect, 18.0) + vec2(-clock * 0.018, clock * 0.008));
+        float lower = exp(-pow((nearUv.y - 0.23 - (nearNoise - 0.5) * 0.12) * 12.0, 2.0));
+        float upper = exp(-pow((farUv.y - 0.39 - (farNoise - 0.5) * 0.09) * 17.0, 2.0));
+        float alpha = lower * smoothstep(0.25, 0.8, nearNoise) * 0.075
+          + upper * smoothstep(0.25, 0.78, farNoise) * 0.045;
         vec2 wallUv = (worldPosition - foregroundOffset) / foregroundSize + 0.5;
         if (wallUv.x >= 0.0 && wallUv.x <= 1.0 && wallUv.y >= 0.0 && wallUv.y <= 1.0) {
           alpha *= 1.0 - smoothstep(0.01, 0.1, texture2D(foregroundMap, wallUv).a);
         }
-        gl_FragColor = vec4(0.07, 0.14, 0.15, alpha);
+        gl_FragColor = vec4(mix(vec3(0.10, 0.16, 0.14), vec3(0.23, 0.27, 0.25), nearNoise), alpha);
         #include <colorspace_fragment>
       }`,
   });
@@ -171,6 +200,9 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
   let disposed = false;
   let ready = false;
   let suspended = false;
+  let lastPointer = null;
+  let lastWakeAt = -Infinity;
+  let wakeIndex = 0;
 
   function render(time) {
     frame = 0;
@@ -196,6 +228,9 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     atmosphereTime += delta / 1000;
     uniforms.clock.value = atmosphereTime;
     foregroundUniforms.viewX.value = current.x;
+    mistMaterial.uniforms.viewOffset.value.set(current.x * 0.012, -current.y * 0.008);
+    const settle = Math.exp(-delta / 500);
+    mistWakes.forEach((wake) => { wake.z *= settle; wake.w *= settle; });
     const weather = Math.max(0, Math.min(1, (activeUntil - time) / 350));
     rainUniforms.opacity.value = 0.1 + weather * 0.025;
     drops.forEach((drop, index) => {
@@ -236,6 +271,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     city.scale.set(cityWidth, cityHeight, 1);
     foreground.scale.set(cityWidth + 32, cityHeight + 16, 1);
     mist.scale.set(width, height, 1);
+    mistMaterial.uniforms.aspect.value = width / height;
     drops.forEach((drop, index) => {
       drop.x = ((index * 0.61803398875) % 1 - 0.5) * width;
       drop.y = ((index * 0.41421356237) % 1 - 0.5) * height;
@@ -246,6 +282,22 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     if (suspended || !motionEnabled() || !window.matchMedia("(pointer: fine)").matches) return;
     target.x = event.clientX / width * 2 - 1;
     target.y = event.clientY / height * 2 - 1;
+    const x = event.clientX / width;
+    const y = 1 - event.clientY / height;
+    const now = performance.now();
+    if (lastPointer && now - lastWakeAt >= 40) {
+      const dx = x - lastPointer.x;
+      const dy = y - lastPointer.y;
+      const distance = Math.hypot(dx, dy);
+      if (distance > 0.001) {
+        const strength = Math.min(0.055, distance * 0.8);
+        mistWakes[wakeIndex].set(x, y, dx / distance * strength, dy / distance * strength);
+        wakeIndex = (wakeIndex + 1) % mistWakes.length;
+        lastWakeAt = now;
+        lastPointer = { x, y };
+      }
+    }
+    if (!lastPointer) lastPointer = { x, y };
     wake(true);
   }
   function scroll() {
