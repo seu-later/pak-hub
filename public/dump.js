@@ -180,6 +180,13 @@ function renderVersionFile(file) {
   const download = node("a", "pak-download");
   download.href = file.downloadUrl;
   download.setAttribute("aria-label", `Download ${file.filename}`);
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("aria-hidden", "true");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "M5 20h14v-2H5v2zm7-18a1 1 0 0 0-1 1v8.17L8.41 8.6 7 10.01l5 5 5-5-1.41-1.41L13 11.17V3a1 1 0 0 0-1-1z");
+  icon.append(path);
+  download.append(icon);
   download.append(node("span", "", "Download"));
   item.append(download);
   return item;

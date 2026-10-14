@@ -949,7 +949,10 @@ input {
   color: #b8edc9;
   background: #142d1d;
 }
-.pak-item .pak-download:hover { background: #1c3b27; color: var(--ink-bright); }
+.pak-item .pak-download:is(:hover, :focus-visible) {
+  background: #1c3b27;
+  color: var(--phosphor);
+}
 
 .pak-file-copy {
   display: grid;
@@ -991,9 +994,10 @@ input {
   font-weight: 500;
   text-decoration: none;
   position: relative;
+  transition: color var(--control-response), background-color var(--control-response);
 }
 
-.pak-download::after, .dependency-item a::after {
+.pak-download::after, .dependency-item a::after, .post-source-link::after {
   content: "";
   position: absolute;
   height: 1px;
@@ -1006,7 +1010,7 @@ input {
   transition: transform 200ms var(--ease-out);
 }
 
-.pak-download:is(:hover, :focus-visible)::after, .dependency-item a:is(:hover, :focus-visible)::after {
+.pak-download:is(:hover, :focus-visible)::after, .dependency-item a:is(:hover, :focus-visible)::after, .post-source-link:is(:hover, :focus-visible)::after {
   transform: scaleX(1);
   transform-origin: left;
 }
@@ -1023,7 +1027,7 @@ input {
 }
 
 .pak-download:is(:hover, :focus-visible) svg, .dependency-item a:is(:hover, :focus-visible) svg {
-  animation: arrow-return 220ms var(--ease-out);
+  animation: arrow-return 320ms var(--ease-out);
 }
 
 .pak-download:active svg, .dependency-item a:active svg {
@@ -1044,12 +1048,36 @@ input {
   min-height: 36px;
   color: #a9d9b8;
   font-size: 11px;
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  text-decoration: none;
+  transition: color var(--control-response);
 }
 
-.post-source-link:hover { color: var(--phosphor); }
+.post-source-link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 19px;
+  bottom: 10px;
+  height: 1px;
+  background: rgba(169, 217, 184, .6);
+}
+
+.post-source-link::after {
+  right: 19px;
+  bottom: 10px;
+}
+
+.post-source-link:is(:hover, :focus-visible) { color: var(--phosphor); }
 .post-source-link svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+
+.post-source-link:is(:hover, :focus-visible) svg {
+  animation: external-arrow-return 320ms var(--ease-out);
+}
+
+.post-source-link:active svg {
+  animation: none;
+  transform: translate(1px, -1px);
+}
 
 .preview-dossier-pak-link {
   margin: 0 0 12px;
@@ -1406,6 +1434,21 @@ input {
   }
   46% {
     transform: translateY(-6px);
+    opacity: 0;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes external-arrow-return {
+  45% {
+    transform: translate(5px, -5px);
+    opacity: 0;
+  }
+  46% {
+    transform: translate(-5px, 5px);
     opacity: 0;
   }
   100% {
