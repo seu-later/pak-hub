@@ -253,6 +253,7 @@ test("cursor wakes disturb mist locally and settle after the pointer stops", asy
   const strength = () => wakes.reduce((sum, wake) => sum + Math.hypot(wake.z, wake.w), 0);
   const moving = strength();
   assert.ok(moving > 0);
+  assert.ok(moving < 0.03);
   assert.ok(wakes.some((wake) => Math.abs(wake.x - 650 / 1440) < 0.001));
   for (let i = 0; i < 25; i += 1) site.step();
   assert.ok(strength() > moving * 0.1 && strength() < moving);

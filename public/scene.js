@@ -156,12 +156,12 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
         vec2 flow = vec2(0.0);
         for (int i = 0; i < 6; i++) {
           vec2 distance = (vUv - wakes[i].xy) * vec2(aspect, 1.0);
-          float reach = exp(-dot(distance, distance) * 26.0);
-          vec2 curl = vec2(-distance.y, distance.x) * length(wakes[i].zw) * 2.0;
+          float reach = exp(-dot(distance, distance) * 30.0);
+          vec2 curl = vec2(-distance.y, distance.x) * length(wakes[i].zw) * 0.65;
           flow += (wakes[i].zw + curl) * reach;
         }
-        vec2 farUv = vUv + viewOffset * 0.25 - flow * 0.45;
-        vec2 nearUv = vUv + viewOffset * 0.65 - flow;
+        vec2 farUv = vUv + viewOffset * 0.25 - flow * 0.22;
+        vec2 nearUv = vUv + viewOffset * 0.65 - flow * 0.42;
         float farNoise = wisps(farUv * vec2(5.0 * aspect, 11.0) + vec2(clock * 0.012, -clock * 0.006));
         float nearNoise = wisps(nearUv * vec2(3.5 * aspect, 18.0) + vec2(-clock * 0.018, clock * 0.008));
         float lower = exp(-pow((nearUv.y - 0.23 - (nearNoise - 0.5) * 0.12) * 12.0, 2.0));
@@ -290,7 +290,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
       const dy = y - lastPointer.y;
       const distance = Math.hypot(dx, dy);
       if (distance > 0.001) {
-        const strength = Math.min(0.055, distance * 0.8);
+        const strength = Math.min(0.022, distance * 0.3);
         mistWakes[wakeIndex].set(x, y, dx / distance * strength, dy / distance * strength);
         wakeIndex = (wakeIndex + 1) % mistWakes.length;
         lastWakeAt = now;
