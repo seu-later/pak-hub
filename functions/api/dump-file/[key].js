@@ -1,4 +1,5 @@
 import { json } from "../../_lib/http.js";
+import { snapshotDumpFile } from "../../_lib/catalog-snapshot.js";
 
 const KEY_PATTERN = /^[a-f0-9]{64}\.(pak|zip)$/;
 
@@ -8,9 +9,15 @@ export async function onRequestGet({ env, params }) {
   if (!env.DB || !env.DUMP) return json({ error: "The pack dump is not connected yet." }, 503);
 
   try {
-    const row = await env.DB.prepare(
-      "SELECT filename, size_bytes FROM dump_files WHERE r2_key = ?",
-    ).bind(key).first();
+    let row;
+    try {
+      row = await env.DB.prepare(
+        "SELECT filename, size_bytes FROM dump_files WHERE r2_key = ?",
+      ).bind(key).first();
+    } catch (error) {
+      row = snapshotDumpFile(key);
+      if (!row) throw error;
+    }
     if (!row) return json({ error: "That dump file was not found." }, 404);
 
     const object = await env.DUMP.get(key);

@@ -75,15 +75,7 @@ export async function onRequestGet({ request, env }) {
       ).bind(...values).first(),
       env.DB.prepare(`
         SELECT d.base_key AS base_key, MIN(d.base_name) AS base_name, COUNT(*) AS file_count,
-          (SELECT description FROM dump_descriptions WHERE dump_descriptions.base_key = d.base_key) AS description,
-          (SELECT m.slug
-           FROM dump_files linked_dump
-           JOIN pak_files linked_file ON linked_file.sha256 = linked_dump.sha256
-           JOIN releases linked_release ON linked_release.id = linked_file.release_id
-           JOIN mods m ON m.id = linked_release.mod_id
-           WHERE linked_dump.base_key = d.base_key
-           ORDER BY linked_release.published_at DESC, linked_release.id DESC
-           LIMIT 1) AS pak_list_slug
+          (SELECT description FROM dump_descriptions WHERE dump_descriptions.base_key = d.base_key) AS description
         FROM dump_files d
         ${clause}
         GROUP BY d.base_key
@@ -94,16 +86,30 @@ export async function onRequestGet({ request, env }) {
 
     const groups = groupResult.results || [];
     let filesByBase = new Map();
+    const pakListByBase = new Map();
     const keys = groups.map((group) => group.base_key);
     if (keys.length) {
       const placeholders = keys.map(() => "?").join(",");
-      const { results: files } = await env.DB.prepare(`
-        SELECT base_key, base_name, version, prerelease, filename, size_bytes, r2_key,
+      const [{ results: files }, { results: catalogFiles }] = await Promise.all([
+        env.DB.prepare(`
+        SELECT base_key, base_name, version, prerelease, filename, size_bytes, r2_key, sha256,
           posted_by, source_message_url, source_guild
         FROM dump_files WHERE base_key IN (${placeholders})
-      `).bind(...keys).all();
+        `).bind(...keys).all(),
+        // Scan catalog hashes once, rather than repeating the join for every dump group.
+        env.DB.prepare(`
+          SELECT f.sha256, m.slug
+          FROM pak_files f
+          JOIN releases r ON r.id = f.release_id
+          JOIN mods m ON m.id = r.mod_id
+          ORDER BY r.published_at DESC, r.id DESC
+        `).bind().all(),
+      ]);
       filesByBase = new Map(keys.map((key) => [key, []]));
+      const basesByHash = new Map();
       for (const file of files || []) {
+        if (!basesByHash.has(file.sha256)) basesByHash.set(file.sha256, new Set());
+        basesByHash.get(file.sha256).add(file.base_key);
         filesByBase.get(file.base_key)?.push({
           filename: file.filename,
           version: file.version || "",
@@ -114,6 +120,11 @@ export async function onRequestGet({ request, env }) {
           sourceUrl: file.source_guild === PUBLIC_DUMP_GUILD ? (file.source_message_url || "") : "",
         });
       }
+      for (const file of catalogFiles || []) {
+        for (const key of basesByHash.get(file.sha256) || []) {
+          if (!pakListByBase.has(key)) pakListByBase.set(key, file.slug);
+        }
+      }
     }
 
     return json({
@@ -121,7 +132,7 @@ export async function onRequestGet({ request, env }) {
         name: group.base_name,
         fileCount: Number(group.file_count || 0),
         description: group.description || "Description unavailable.",
-        pakListUrl: group.pak_list_slug ? `/index.html?mod=${encodeURIComponent(group.pak_list_slug)}` : "",
+        pakListUrl: pakListByBase.has(group.base_key) ? `/index.html?mod=${encodeURIComponent(pakListByBase.get(group.base_key))}` : "",
         files: (filesByBase.get(group.base_key) || []).sort(compareDumpFiles),
       })),
       total: countResult?.total || 0,
