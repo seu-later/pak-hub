@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('Zip', 'Sets the Zipline Gun usable component’s interaction priority to -101 when the Zip actor begins play.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

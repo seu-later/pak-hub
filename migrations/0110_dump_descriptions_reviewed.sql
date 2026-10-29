@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('No_Carve_Exploders', 'Sets the Exploder explosion crater dimensions to zero, preventing its explosion from carving terrain while retaining its damage call.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

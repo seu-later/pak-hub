@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { onRequestPost } from "./import.js";
+import { syncPakListFiles } from "../_lib/dump-sync.js";
 
 test("moving a root release into a later thread removes its empty standalone mod", async () => {
   const database = new DatabaseSync(":memory:");
@@ -151,4 +152,102 @@ test("Discord post migration backfills root metadata and sender for existing row
   assert.equal(post.post_content, "Sample Mod\nInitial message");
   assert.equal(database.prepare("SELECT COUNT(*) AS count FROM import_state").get().count, 0);
   database.close();
+});
+
+test("Pak List files are copied to the dump with private-source protection and descriptions", async () => {
+  const database = new DatabaseSync(":memory:");
+  for (const migration of [
+    "0001_initial.sql", "0002_import_state.sql", "0003_discord_posts.sql", "0004_dump.sql",
+    "0005_dump_credits.sql", "0006_dump_descriptions.sql", "0007_dump_descriptions_new_entries.sql",
+    "0008_user_facing_dump_descriptions.sql", "0009_dump_descriptions_held_and_fallbacks.sql",
+    "0010_dump_descriptions_mike.sql", "0011_dump_family_merges.sql", "0012_dump_descriptions_arthur_lin.sql",
+    "0013_dump_descriptions_selected_local.sql", "0014_dump_allow_duplicate_filenames.sql",
+    "0015_dump_credits_from_pak_list.sql", "0016_dump_descriptions_pak_list.sql",
+  ]) database.exec(readFileSync(new URL(`../../migrations/${migration}`, import.meta.url), "utf8"));
+
+  const adapter = {
+    prepare(sql) {
+      const statement = database.prepare(sql);
+      return {
+        bind(...values) {
+          return {
+            run: async () => statement.run(...values),
+            first: async () => statement.get(...values) || null,
+            all: async () => ({ results: statement.all(...values) }),
+          };
+        },
+        run: async () => statement.run(),
+        first: async () => statement.get() || null,
+        all: async () => ({ results: statement.all() }),
+      };
+    },
+    async batch(statements) {
+      for (const statement of statements) await statement.run();
+    },
+  };
+  const uploaded = [];
+  const env = {
+    DB: adapter,
+    DUMP: {
+      async put(key, body, options) {
+        uploaded.push({ key, body, options });
+      },
+    },
+  };
+  const oldFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(new Uint8Array([1, 2, 3, 4]), {
+    status: 200,
+    headers: { "content-length": "4" },
+  });
+
+  try {
+    const hash = "b".repeat(64);
+    const result = await syncPakListFiles({
+      env,
+      uploader: "raw_user",
+      sourceMessageUrl: "https://discord.com/channels/123456789012345678/123456789012345679/123456789012345680",
+      summary: "Adds a fresh widget to the HUD",
+      files: [{
+        filename: "NoAmmoBar.pak",
+        size: 4,
+        sha256: hash,
+        downloadUrl: "https://github.com/owner/repo/releases/download/tag/NoAmmoBar.pak",
+      }, {
+        filename: "FreshWidget.pak",
+        size: 4,
+        sha256: "c".repeat(64),
+        downloadUrl: "https://github.com/owner/repo/releases/download/tag/FreshWidget.pak",
+      }],
+    });
+
+    assert.deepEqual(result, { imported: 2, skipped: 0 });
+    assert.equal(uploaded.length, 2);
+    const row = database.prepare("SELECT base_name, filename, posted_by, source_message_url, source_guild FROM dump_files").get();
+    assert.deepEqual({ ...row }, {
+      base_name: "NoAmmoBar",
+      filename: "NoAmmoBar.pak",
+      posted_by: "raw_user",
+      source_message_url: null,
+      source_guild: "123456789012345678",
+    });
+    assert.equal(database.prepare("SELECT description FROM dump_descriptions WHERE base_key = 'noammobar'").get().description, "Removes the ammo/supply bar HUD element.");
+
+    const second = await syncPakListFiles({
+      env,
+      uploader: "raw_user",
+      sourceMessageUrl: "https://discord.com/channels/878318716801155233/123456789012345679/123456789012345680",
+      files: [{
+        filename: "NoAmmoBar.pak",
+        size: 4,
+        sha256: hash,
+        downloadUrl: "https://github.com/owner/repo/releases/download/tag/NoAmmoBar.pak",
+      }],
+    });
+    assert.deepEqual(second, { imported: 0, skipped: 1 });
+    assert.equal(uploaded.length, 2);
+    assert.equal(database.prepare("SELECT description FROM dump_descriptions WHERE base_key = 'freshwidget'").get().description, "Adds a fresh widget to the HUD.");
+  } finally {
+    globalThis.fetch = oldFetch;
+    database.close();
+  }
 });

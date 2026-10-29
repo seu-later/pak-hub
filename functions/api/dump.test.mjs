@@ -256,6 +256,43 @@ test("dump groups support newest and oldest ordering", async () => {
   database.close();
 });
 
+test("dump groups support reverse name and file-count ordering", async () => {
+  const { database, DB } = setup();
+  const reverseName = await (await getDump({
+    env: { DB },
+    request: new Request("https://example.com/api/dump?sort=name-desc"),
+  })).json();
+  const mostFiles = await (await getDump({
+    env: { DB },
+    request: new Request("https://example.com/api/dump?sort=most-files"),
+  })).json();
+  const fewestFiles = await (await getDump({
+    env: { DB },
+    request: new Request("https://example.com/api/dump?sort=fewest-files"),
+  })).json();
+
+  assert.deepEqual(reverseName.groups.map((group) => group.name), ["custom-difficulty2", "blueepc", "Anti-Asthma"]);
+  assert.deepEqual(mostFiles.groups.map((group) => group.name), ["Anti-Asthma", "custom-difficulty2", "blueepc"]);
+  assert.deepEqual(fewestFiles.groups.map((group) => group.name), ["blueepc", "Anti-Asthma", "custom-difficulty2"]);
+  database.close();
+});
+
+test("dump search matches uploaders and descriptions", async () => {
+  const { database, DB } = setup();
+  const uploader = await (await getDump({
+    env: { DB },
+    request: new Request("https://example.com/api/dump?q=quiet_miner"),
+  })).json();
+  const description = await (await getDump({
+    env: { DB },
+    request: new Request("https://example.com/api/dump?q=debris"),
+  })).json();
+
+  assert.deepEqual(uploader.groups.map((group) => group.name), ["Anti-Asthma"]);
+  assert.deepEqual(description.groups.map((group) => group.name), ["Anti-Asthma"]);
+  database.close();
+});
+
 test("dump file download rejects bad keys and streams stored objects", async () => {
   const { database, DB } = setup();
   const missing = await getDumpFile({ env: { DB, DUMP: { get: async () => null } }, params: { key: "../mods" } });

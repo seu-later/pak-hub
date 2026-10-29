@@ -1,22 +1,25 @@
 (() => {
   const desktopViewport = window.matchMedia("(min-width: 701px)");
-  const loader = document.getElementById("site-loader");
-  const loaderCount = document.getElementById("site-loader-count");
-  const loaderLine = document.getElementById("site-loader-line");
-  const loaderTrack = document.querySelector(".site-loader-track");
-  const images = Array.from(document.images);
   let catalogReady = !document.querySelector("#mod-rows, #dump-rows");
-  let fontsReady = !document.fonts;
   let lenis = null;
   const previews = new WeakMap();
   let sceneStarted = false;
   let sceneController = null;
   let sceneRevision = 0;
   let selectedKey = null;
+  const rowJobs = new WeakMap();
 
   function motionEnabled() {
     // Motion is part of Pak Hub's identity on both previews and production.
     return true;
+  }
+
+  function clipPageContent() {
+    const main = document.querySelector("main");
+    const header = document.querySelector(".site-header");
+    if (!main || !header) return;
+    const overlap = Math.max(0, header.getBoundingClientRect().bottom - main.getBoundingClientRect().top);
+    main.style.clipPath = `inset(${overlap}px 0 0)`;
   }
 
   function moveIndicator(group, indicator, target, animate = true, duration = 0.34) {
@@ -36,6 +39,48 @@
       if (!animate) { void indicator.offsetWidth; indicator.style.transition = ""; }
     }
     indicator.classList.add("is-positioned");
+  }
+
+  function replaceRows(container, fragment, animate = false) {
+    const key = (button) => button.dataset.slug || button.dataset.key;
+    const oldButtons = Array.from(container.querySelectorAll(".mod-select"));
+    const positions = new Map(animate ? oldButtons.map((button) => [key(button), button.getBoundingClientRect()]) : []);
+    rowJobs.get(container)?.forEach((cancel) => cancel());
+    rowJobs.delete(container);
+    container.classList.remove("rows-reordering");
+    container.replaceChildren(fragment);
+    if (!animate || !positions.size) return;
+    const visible = (box) => box.top < (window.innerHeight || Infinity) && (box.bottom ?? box.top + 1) > 0;
+    const moves = Array.from(container.querySelectorAll(".mod-select")).map((button) => {
+      const previous = positions.get(key(button));
+      const next = button.getBoundingClientRect();
+      if (!visible(next)) return { button, x: 0, y: 0 };
+      return { button, x: previous && visible(previous) ? previous.left - next.left : 0,
+        y: previous && visible(previous) ? previous.top - next.top : 8 };
+    }).filter(({ x, y }) => Math.abs(x) + Math.abs(y) > 1);
+    if (!moves.length) return;
+    const jobs = [];
+    let remaining = moves.length;
+    rowJobs.set(container, jobs);
+    container.classList.add("rows-reordering");
+    const finish = () => {
+      if (--remaining === 0 && rowJobs.get(container) === jobs) {
+        rowJobs.delete(container);
+        container.classList.remove("rows-reordering");
+      }
+    };
+    for (const { button, x, y } of moves) {
+      if (window.gsap) {
+        const tween = window.gsap.fromTo(button, { x, y }, { x: 0, y: 0, duration: 0.24,
+          ease: "power3.out", overwrite: true, clearProps: "transform", onComplete: finish });
+        jobs.push(() => { tween.kill(); button.style.transform = ""; });
+      } else {
+        const animation = button.animate([{ transform: `translate(${x}px, ${y}px)` }, { transform: "translate(0, 0)" }],
+          { duration: 240, easing: "cubic-bezier(.22,1,.36,1)" });
+        animation.finished.then(finish).catch(() => {});
+        jobs.push(() => animation.cancel());
+      }
+    }
   }
 
   /* A single accessible dossier, with at most two temporary visual layers. */
@@ -131,7 +176,7 @@
     if (!host) return;
     sceneStarted = true;
     const revision = ++sceneRevision;
-    const load = () => import("./scene.js?v=20261014mist2").then((module) => {
+    const load = () => import("./scene.js?v=20261015skyclear1").then((module) => {
       if (revision !== sceneRevision || !motionEnabled() || !desktopViewport.matches) return;
       sceneController = module.initializeScene(host, motionEnabled, () => {
         if (revision === sceneRevision) { sceneController = null; sceneStarted = false; }
@@ -200,8 +245,7 @@
     nav.addEventListener("focusout", (event) => {
       if (!navigating && !nav.contains(event.relatedTarget)) positionIndicator(current);
     });
-    /* Same-tab press: swallow the reload (which would replay the full
-     * loader) and answer with a tap pulse on the link + indicator. */
+    /* Same-tab press: avoid a full document reload and answer with a tap pulse. */
     nav.addEventListener("click", (event) => {
       const link = event.target.closest("a");
       if (!link || !nav.contains(link) || !link.hasAttribute("aria-current")) return;
@@ -274,7 +318,7 @@
       if (!content || !page.querySelector(".primary-nav")) throw new Error("Invalid page response");
       return { main: content, title: page.title, bodyClass: page.body.className, scroll: 0, scripts: Array.from(page.querySelectorAll("script[src]"))
         .map((script) => new URL(script.getAttribute("src"), destination.href))
-        .filter((url) => /\/(preview-data|app|dump)\.js$/.test(url.pathname)) };
+        .filter((url) => /\/(preview-data|app|dump|bitfix)\.js$/.test(url.pathname)) };
     }
     async function showView(destination, pending, push = true) {
       try {
@@ -288,7 +332,6 @@
         main = view.main;
         document.title = view.title;
         document.body.className = view.bodyClass;
-        document.body.classList.add("site-ready");
         nav.querySelectorAll("a").forEach((link) => {
           if (routePath(link.href) === path) link.setAttribute("aria-current", "page");
           else link.removeAttribute("aria-current");
@@ -366,6 +409,10 @@
     });
   }
 
+  window.addEventListener("scroll", clipPageContent, { passive: true });
+  window.addEventListener("resize", clipPageContent, { passive: true });
+  document.addEventListener("pakhub:route-ready", clipPageContent);
+  clipPageContent();
   syncLenis();
   initializePreviewBack();
   initializeNavIndicator();
@@ -378,6 +425,7 @@
 
   window.PakHubMotion = {
     swapPreview,
+    replaceRows,
     moveIndicator,
     motionEnabled,
     select,
@@ -388,86 +436,4 @@
     },
   };
   if (catalogReady) startScene();
-
-  if (!loader) {
-    document.body.classList.add("site-ready");
-    return;
-  }
-
-  loader.hidden = false;
-  document.body.classList.add("site-loading");
-  const shell = document.querySelector(".app-shell");
-  if (shell) shell.inert = true;
-
-  const startedAt = performance.now();
-  const assetCount = images.length + (document.fonts ? 1 : 0);
-  let pageReady = document.readyState === "complete";
-  let displayedProgress = 0;
-  let forcedComplete = false;
-  let exiting = false;
-  let lastFrame = startedAt;
-  let completedAt = null;
-
-  if (document.fonts) {
-    document.fonts.ready.then(() => {
-      fontsReady = true;
-    });
-  }
-  window.addEventListener("load", () => {
-    pageReady = true;
-  }, { once: true });
-
-  function targetProgress() {
-    const readyAssets = images.filter((image) => image.complete).length + (fontsReady && document.fonts ? 1 : 0);
-    const assetProgress = assetCount ? readyAssets / assetCount * 90 : 90;
-    const allReady = pageReady && catalogReady && readyAssets === assetCount;
-    return { progress: forcedComplete || allReady ? 100 : Math.min(90, assetProgress), allReady };
-  }
-
-  function exitLoader() {
-    if (exiting) return;
-    exiting = true;
-    function finish() {
-      loader.remove();
-      if (shell) shell.inert = false;
-      document.body.classList.remove("site-loading");
-      document.body.classList.add("site-ready");
-    }
-    loader.classList.add("is-leaving");
-    if (window.gsap) {
-      loader.classList.add("is-animated");
-      window.gsap.timeline({ onComplete: finish })
-        .to(loader.querySelector(".site-loader-row"), { opacity: 0, duration: 0.18, ease: "power2.in" }, 0)
-        .to(loader.querySelector(".site-loader-background"), { opacity: 0, duration: 0.54, ease: "power2.inOut" }, 0.08);
-    } else {
-      window.setTimeout(finish, 620);
-    }
-  }
-
-  function tick(now) {
-    if (!loader.isConnected || exiting) return;
-    if (now - startedAt >= 4500) forcedComplete = true;
-    const target = targetProgress();
-    // A readable 0% hold and time-based build stay consistent on high-refresh displays.
-    const pace = Math.min(100, Math.max(0, (now - startedAt - 220) / 1850) * 100);
-    const desired = Math.min(target.progress, pace);
-    displayedProgress += Math.max(0, desired - displayedProgress) * (1 - Math.exp(-(now - lastFrame) / 90));
-    lastFrame = now;
-    if ((target.allReady || forcedComplete) && pace === 100 && displayedProgress >= 99.3 && completedAt === null) {
-      completedAt = now;
-      displayedProgress = 100;
-    }
-    const roundedProgress = completedAt === null ? Math.min(99, Math.floor(displayedProgress)) : 100;
-    loaderCount.textContent = String(roundedProgress) + "%";
-    loaderTrack.style.setProperty("--loader-progress", String(displayedProgress) + "%");
-    loaderLine.style.width = String(displayedProgress) + "%";
-
-    if (completedAt !== null && now - completedAt >= 120) {
-      exitLoader();
-      return;
-    }
-    window.requestAnimationFrame(tick);
-  }
-
-  window.requestAnimationFrame(tick);
 })();

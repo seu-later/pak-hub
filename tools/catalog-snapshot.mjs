@@ -6,6 +6,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { onRequestGet as getMods } from "../functions/api/mods.js";
 import { onRequestGet as getMod } from "../functions/api/mods/[slug].js";
 import { onRequestGet as getDump } from "../functions/api/dump.js";
+import { reviewedUpdates } from "./dump-descriptions.mjs";
 
 if (!process.argv[2]) throw new Error("Provide the D1 SQL export path.");
 const database = new DatabaseSync(":memory:");
@@ -36,6 +37,9 @@ const mods = await pages(getMods, "/api/mods", "mods");
 const details = {};
 for (const mod of mods) details[mod.slug] = await payload(getMod, `/api/mods/${mod.slug}`, { slug: mod.slug });
 const groups = await pages(getDump, "/api/dump", "groups");
+const { reviews } = JSON.parse(readFileSync(new URL("../docs/dump-descriptions-reviewed.json", import.meta.url), "utf8"));
+const descriptions = new Map(reviewedUpdates(groups, reviews).map((row) => [row.baseKey, row.description]));
+for (const group of groups) if (descriptions.has(group.name.toLowerCase())) group.description = descriptions.get(group.name.toLowerCase());
 const snapshot = { generatedAt: new Date().toISOString(), mods, details, groups };
 const directory = new URL("../functions/_data/", import.meta.url);
 mkdirSync(directory, { recursive: true });

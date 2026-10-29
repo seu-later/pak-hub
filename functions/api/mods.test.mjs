@@ -88,6 +88,24 @@ async function importRootAndReply(context) {
   })).status, 201);
 }
 
+test("catalog supports reverse names and file counts across the whole result set", async () => {
+  const context = setup();
+  await importRootAndReply(context);
+  context.database.exec(`INSERT INTO mods (slug, name, root_posted_at) VALUES
+    ('alpha', 'Alpha', '2026-10-07T00:00:00.000Z'),
+    ('zeta', 'Zeta', '2026-10-09T00:00:00.000Z')`);
+  for (const [sort, expected] of [
+    ['name-desc', ['zeta', context.base.slug, 'alpha']],
+    ['most-files', [context.base.slug, 'alpha', 'zeta']],
+    ['fewest-files', ['alpha', 'zeta', context.base.slug]],
+  ]) {
+    const payload = await (await getMods({ env: context.env,
+      request: new Request(`https://example.com/api/mods?sort=${sort}`) })).json();
+    assert.deepEqual(payload.mods.map((mod) => mod.slug), expected);
+  }
+  context.database.close();
+});
+
 test("catalog search finds pak filenames and shows the root post sender without release fields", async () => {
   const context = setup();
   await importRootAndReply(context);
@@ -111,6 +129,12 @@ test("catalog search finds pak filenames and shows the root post sender without 
     request: new Request("https://example.com/api/mods?q=MinerTwo"),
   });
   assert.equal((await senderResponse.json()).total, 1);
+
+  const linkedResponse = await getMods({
+    env: context.env,
+    request: new Request("https://example.com/api/mods?slug=revolver-sound-replacement"),
+  });
+  assert.equal((await linkedResponse.json()).mods[0].slug, "revolver-sound-replacement");
   context.database.close();
 });
 

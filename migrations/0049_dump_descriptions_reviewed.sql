@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('fbs_1', 'Adds a sphere actor at each Fat Boy radiation-cloud location and keeps it until that cloud’s lifetime ends.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

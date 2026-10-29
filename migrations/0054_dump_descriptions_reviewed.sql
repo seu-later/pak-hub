@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('dynamicweaponandlightingmodifications_english', 'Adds saved Mod Hub controls for weapon stats, flashlights, and flares, including recoil, fire rate, ammo, heat, light range, and flare cooldown.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

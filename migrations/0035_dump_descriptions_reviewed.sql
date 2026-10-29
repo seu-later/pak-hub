@@ -1,0 +1,2 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('sabo_singlehack', 'Completes the remaining hacking generators when one finishes in a Sabotage mission.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;
+INSERT INTO dump_descriptions (base_key, description) VALUES ('sabo_singlehack_stagefix', 'Completes the remaining hacking generators and advances the Sabotage objective to stage 3.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

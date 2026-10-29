@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('irm rebalance mod 260919', 'Rebalances base stats, upgrades, and overclocks across many weapon families, changing damage, ammo, firing and reload behavior, and overclock bonuses or penalties.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

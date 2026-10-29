@@ -1,0 +1,2 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('missionhax_p', 'Changes mission generation to 16 missions per zone, six extra biomes, and much higher mutator and warning settings.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;
+INSERT INTO dump_descriptions (base_key, description) VALUES ('modhub', 'Adds a ModHub menu for browsing and opening pages registered by other mods, with a configurable hotkey.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

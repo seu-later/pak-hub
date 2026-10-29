@@ -195,7 +195,8 @@ test("city responds smoothly to pointer movement while scroll leaves its offset 
   const positions = site.meshes.slice(0, 2).map((mesh) => [...mesh.position.values]);
   const distantMove = positions[0][0] - neutral[0][0];
   const wallMove = positions[1][0] - neutral[1][0];
-  assert.ok(distantMove > 3);
+  assert.ok(distantMove > 10);
+  assert.ok(wallMove > 26);
   assert.ok(wallMove > distantMove * 2);
   const offset = parseFloat(site.properties.get("--scene-x"));
   site.window.scrollY = 1200;
@@ -285,6 +286,26 @@ test("the static city stays visible until the first WebGL frame is painted", asy
   site.step();
   assert.equal(site.classes.has("scene-ready"), true);
   assert.ok(site.renderer.renders > 0);
+});
+
+test("searchlight stays on in About, follows an aim, and leaves no light on other routes", async () => {
+  const site = await setup();
+  site.document.getElementById = (id) => id === "about-city" ? {} : null;
+  site.document.emit("pakhub:route-ready");
+  for (let i = 0; i < 60; i += 1) site.step();
+  assert.ok(site.meshes[0].material.uniforms.lightPower.value > 0.99);
+  site.document.emit("pakhub:searchlight", { detail: { x: 0.25, y: 0.7, on: true } });
+  for (let i = 0; i < 60; i += 1) site.step();
+  const city = site.meshes[0].material.uniforms;
+  const mist = site.meshes[3].material.uniforms;
+  assert.ok(Math.abs(city.lightTarget.value.x - 0.25) < 0.001);
+  assert.ok(Math.abs(city.lightTarget.value.y - 0.3) < 0.001);
+  assert.ok(city.lightPower.value > 0.99);
+  assert.equal(city.lightPower, mist.lightPower);
+  site.document.getElementById = () => null;
+  site.document.emit("pakhub:route-ready");
+  for (let i = 0; i < 60; i += 1) site.step();
+  assert.ok(city.lightPower.value < 0.001);
 });
 
 test("losing motion during a pending frame disposes the active scene", async () => {

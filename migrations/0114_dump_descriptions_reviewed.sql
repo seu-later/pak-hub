@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('alwaysallowhaz5_2', 'Removes the minimum player-rank gate for joining Hazard 5 servers through the server list; full servers remain unavailable.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

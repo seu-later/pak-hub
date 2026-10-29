@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('NoAnimationVisible', 'Makes the enemy target HUD intro nearly instant (5×→999×); the temperature widget also changes its animation threshold from >0 to >-1 and its triggered intro rate from 3×→999×.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

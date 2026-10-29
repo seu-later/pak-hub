@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('unified_weapon_balance', 'Rebalances weapons and upgrades across the arsenal, changing base damage, ammo, recoil/spread, overclocks, upgrade combinations, and status-effect values across many weapon families.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

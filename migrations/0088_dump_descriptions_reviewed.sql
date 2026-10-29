@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('ssas', 'When Facility Power Station shield generators are present, assigns the Drop Pod a randomized target point near a generator and turns it toward a generator.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

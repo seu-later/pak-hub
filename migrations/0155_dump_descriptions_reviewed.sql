@@ -1,0 +1,2 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('nodwarfcollisionleads', 'Lets Leadbursters pass through dwarves on the client, including when hosting.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;
+INSERT INTO dump_descriptions (base_key, description) VALUES ('xzschatmanager_nomusic', 'Removes music playback from XZS Chat Manager by removing its music-file paths.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

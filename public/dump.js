@@ -1,14 +1,19 @@
-/* Pak Dump: searchable list of loose pak/zip files grouped by base mod name.
+let searchTools;
+const searchReady = import("./search.js?v=20261017search2").then((module) => { searchTools = module; });
+
+/* Pak Archive: searchable list of loose pak/zip files grouped by base mod name.
  * Group payloads ship with the list response, so selecting a row only swaps
  * the side box to that group's description and version files. */
 
 const state = {
   query: "",
   sort: "newest",
+  loadedSort: "newest",
   page: 1,
   total: 0,
   groups: [],
   selectedKey: null,
+  selectedGroup: null,
   loading: false,
   searchOpen: false,
   error: "",
@@ -56,10 +61,13 @@ function groupKey(group) {
   return group.name.toLowerCase();
 }
 
-function ensureSelection() {
-  if (state.groups.some((group) => groupKey(group) === state.selectedKey)) return false;
+function ensureSelection(preserve = false) {
+  const selected = state.groups.find((group) => groupKey(group) === state.selectedKey);
+  if (selected) { state.selectedGroup = selected; return false; }
+  if (preserve && state.selectedGroup) return false;
   const previousKey = state.selectedKey;
-  state.selectedKey = state.groups[0] ? groupKey(state.groups[0]) : null;
+  state.selectedGroup = state.groups[0] || null;
+  state.selectedKey = state.selectedGroup ? groupKey(state.selectedGroup) : null;
   return previousKey !== state.selectedKey;
 }
 
@@ -78,7 +86,7 @@ function renderArchiveState() {
     for (let index = 0; index < 3; index += 1) skeleton.append(node("span", "skeleton-row"));
     content.append(skeleton);
   } else {
-    content.append(node("h2", "", state.error ? "Unavailable" : "Empty"));
+    content.append(node("h2", "", state.error ? "Unavailable" : state.query.trim() ? "No results" : "Empty"));
     if (state.error) {
       const retry = node("button", "retry-button", "Retry");
       retry.type = "button";
@@ -92,16 +100,31 @@ function renderArchiveState() {
 function renderSortState() {
   elements.archiveToolbar.querySelectorAll(".sort-button").forEach((button) => {
     const isActive = button.dataset.sort === state.sort ||
-      (button.dataset.sort === "newest" && state.sort === "oldest");
+      (button.dataset.sort === "name" && state.sort === "name-desc") ||
+      (button.dataset.sort === "newest" && state.sort === "oldest") ||
+      (button.dataset.sort === "most-files" && state.sort === "fewest-files");
     button.setAttribute("aria-pressed", String(isActive));
-    if (button.dataset.sort === "newest") {
+    if (button.dataset.sort === "name") {
+      const caret = button.querySelector(".sort-caret");
+      const descending = state.sort === "name-desc";
+      button.querySelector(".sort-label").textContent = "Name";
+      if (caret) caret.dataset.direction = descending ? "descending" : "ascending";
+      button.setAttribute("aria-label", `Sort by pak name from ${descending ? "Z to A" : "A to Z"}`);
+    } else if (button.dataset.sort === "newest") {
       const label = button.querySelector(".sort-label");
       const caret = button.querySelector(".sort-caret");
       const oldest = state.sort === "oldest";
-      if (label) label.textContent = oldest ? "Oldest" : "Newest";
+      if (label) label.textContent = oldest ? "Oldest" : state.query.trim() ? "Relevance" : "Newest";
       if (caret) caret.dataset.direction = oldest ? "oldest" : "newest";
-      button.setAttribute("aria-label", `Sort by ${oldest ? "oldest" : "newest"} file`);
+      button.setAttribute("aria-label", !oldest && state.query.trim() ? "Sort by relevance" : `Sort by ${oldest ? "oldest" : "newest"}`);
+    } else if (button.dataset.sort === "most-files") {
+      const caret = button.querySelector(".sort-caret");
+      const fewest = state.sort === "fewest-files";
+      button.querySelector(".sort-label").textContent = "Files";
+      if (caret) caret.dataset.direction = fewest ? "ascending" : "descending";
+      button.setAttribute("aria-label", `Sort by ${fewest ? "fewest" : "most"} files`);
     }
+    button.title = button.getAttribute("aria-label");
   });
   updateSortIndicator();
 }
@@ -129,7 +152,9 @@ function renderGroupRow(group, index) {
   let hoverTimer = 0;
   button.addEventListener("pointerenter", () => {
     window.clearTimeout(hoverTimer);
-    hoverTimer = window.setTimeout(() => previewGroup(groupKey(group)), HOVER_PREVIEW_DELAY);
+    hoverTimer = window.setTimeout(() => {
+      if (button.isConnected && !elements.rows.classList.contains("rows-reordering")) previewGroup(groupKey(group));
+    }, HOVER_PREVIEW_DELAY);
   });
   button.addEventListener("pointerleave", () => window.clearTimeout(hoverTimer));
   button.addEventListener("focus", () => previewGroup(groupKey(group)));
@@ -193,7 +218,7 @@ function renderVersionFile(file) {
 }
 
 function renderPreviewPanel() {
-  const group = state.groups.find((item) => groupKey(item) === state.selectedKey);
+  const group = state.groups.find((item) => groupKey(item) === state.selectedKey) || state.selectedGroup;
   if (elements.rows.isConnected !== false) window.PakHubMotion.select(group ? groupKey(group) : null);
   const dossier = node("article", "mod-dossier preview-dossier-content");
 
@@ -219,19 +244,19 @@ function renderPreviewPanel() {
     for (let index = 0; index < 3; index += 1) skeleton.append(node("span", "skeleton-row"));
     dossier.append(skeleton);
   } else if (state.error) {
-    dossier.append(node("p", "preview-empty-detail", "The pak dump could not be loaded."));
+    dossier.append(node("p", "preview-empty-detail", "The pak archive could not be loaded."));
     const retry = node("button", "retry-button", "Retry");
     retry.type = "button";
     retry.dataset.action = "retry-catalog";
     dossier.append(retry);
   } else {
-    dossier.append(node("p", "preview-empty-detail", "No dump files match this search."));
+    dossier.append(node("p", "preview-empty-detail", "No archive files match this search."));
   }
 
   window.PakHubMotion.swapPreview(elements.detailPanelContent, dossier, state.selectedKey || "empty");
 }
 
-function renderGroups() {
+function renderGroups({ reorder = false, preservePreview = false } = {}) {
   const focusedButton = document.activeElement?.matches(".mod-select")
     ? document.activeElement : null;
   const focusedKey = focusedButton?.dataset.key;
@@ -253,8 +278,9 @@ function renderGroups() {
   }
   const fragment = document.createDocumentFragment();
   state.groups.forEach((group, index) => fragment.append(renderGroupRow(group, index)));
-  elements.rows.replaceChildren(fragment);
-  renderPreviewPanel();
+  if (window.PakHubMotion.replaceRows) window.PakHubMotion.replaceRows(elements.rows, fragment, reorder);
+  else elements.rows.replaceChildren(fragment);
+  if (!preservePreview) renderPreviewPanel();
   renderArchiveState();
   if (focusedKey) {
     const buttons = elements.rows.querySelectorAll(".mod-select");
@@ -266,6 +292,7 @@ function previewGroup(key) {
   if (state.selectedKey === key) return;
   if (!state.groups.some((group) => groupKey(group) === key)) return;
   state.selectedKey = key;
+  state.selectedGroup = state.groups.find((group) => groupKey(group) === key);
   renderPreviewPanel();
   elements.rows.querySelectorAll(".ledger-row").forEach((row) => {
     const selected = row.querySelector(".mod-select")?.dataset.key === key;
@@ -290,21 +317,30 @@ function observeLoadSentinel() {
   loadObserver.observe(elements.sentinel);
 }
 
-async function loadGroups({ append = false, auto = false } = {}) {
+async function loadGroups({ append = false, auto = false, reorder = false } = {}) {
+  await searchReady;
   if (demo) {
-    const trimmedQuery = state.query.trim().toLowerCase();
-    let groups = window.PakHubPreview.groups.filter((group) => !trimmedQuery ||
-      [group.name, group.description, ...group.files.map((file) => file.filename)].some((value) => value.toLowerCase().includes(trimmedQuery)));
+    const search = searchTools.parseSearch(state.query);
+    const filenames = (group) => group.files.map((file) => file.filename);
+    let groups = window.PakHubPreview.groups.filter((group) => searchTools.matchesSearch(search,
+      [group.description, ...group.files.map((file) => file.postedBy)], [group.name, ...filenames(group)]));
     groups = [...groups].sort(state.sort === "name" ? (a, b) => a.name.localeCompare(b.name) :
-      state.sort === "oldest" ? (a, b) => a.postedAt.localeCompare(b.postedAt) : (a, b) => b.postedAt.localeCompare(a.postedAt));
+      state.sort === "name-desc" ? (a, b) => b.name.localeCompare(a.name) :
+        state.sort === "oldest" ? (a, b) => a.postedAt.localeCompare(b.postedAt) :
+          state.sort === "most-files" ? (a, b) => b.fileCount - a.fileCount || a.name.localeCompare(b.name) :
+            state.sort === "fewest-files" ? (a, b) => a.fileCount - b.fileCount || a.name.localeCompare(b.name) :
+              (a, b) => b.postedAt.localeCompare(a.postedAt));
+    if (state.query.trim() && state.sort === "newest") groups.sort((a, b) =>
+      searchTools.searchRank(search, a.name, filenames(a)) - searchTools.searchRank(search, b.name, filenames(b)));
     state.groups = groups;
     state.total = groups.length;
     state.hasMore = false;
     state.loading = false;
     state.error = "";
     state.moreError = false;
-    ensureSelection();
-    renderGroups();
+    state.loadedSort = state.sort;
+    const selectionChanged = ensureSelection(reorder);
+    renderGroups({ reorder, preservePreview: reorder && !selectionChanged });
     window.PakHubMotion.catalogReady();
     return;
   }
@@ -316,7 +352,8 @@ async function loadGroups({ append = false, auto = false } = {}) {
   state.loading = true;
   state.error = "";
   if (!append) state.moreError = false;
-  renderGroups();
+  if (reorder) renderSortState();
+  else renderGroups();
 
   const params = new URLSearchParams({ sort: state.sort, page: String(page) });
   const trimmedQuery = state.query.trim();
@@ -328,7 +365,7 @@ async function loadGroups({ append = false, auto = false } = {}) {
       signal: state.catalogController.signal,
     });
     const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || "The pak dump could not be loaded.");
+    if (!response.ok) throw new Error(payload.error || "The pak archive could not be loaded.");
     if (request !== state.catalogRequest) return;
     const newGroups = payload.groups || [];
     state.groups = append ? [...state.groups, ...newGroups] : newGroups;
@@ -338,16 +375,18 @@ async function loadGroups({ append = false, auto = false } = {}) {
     state.loading = false;
     state.error = "";
     state.moreError = false;
-    ensureSelection();
-    renderGroups();
+    state.loadedSort = state.sort;
+    const selectionChanged = ensureSelection(reorder);
+    renderGroups({ reorder, preservePreview: reorder && !selectionChanged });
     if (!append) window.PakHubMotion?.catalogReady();
     if (append && auto) announce(`${newGroups.length} more pack groups loaded.`);
   } catch (error) {
     if (error.name === "AbortError" || request !== state.catalogRequest) return;
     state.loading = false;
+    if (reorder) state.sort = state.loadedSort;
     if (append) state.moreError = true;
-    else state.error = error.message || "The pak dump could not be loaded. Try again shortly.";
-    renderGroups();
+    else state.error = error.message || "The pak archive could not be loaded. Try again shortly.";
+    renderGroups({ preservePreview: reorder });
     if (!append) window.PakHubMotion?.catalogReady();
   }
 }
@@ -410,9 +449,10 @@ elements.search.addEventListener("keydown", (event) => {
 });
 
 function updateSort(sort) {
-  state.sort = sort === "newest" ? state.sort === "newest" ? "oldest" : "newest" : sort;
-  state.page = 1;
-  loadGroups();
+  state.sort = sort === "name" ? state.sort === "name" ? "name-desc" : "name" :
+    sort === "newest" ? state.sort === "newest" ? "oldest" : "newest" :
+      state.sort === "most-files" ? "fewest-files" : "most-files";
+  loadGroups({ reorder: true });
 }
 
 document.querySelectorAll(".sort-button").forEach((button) => {

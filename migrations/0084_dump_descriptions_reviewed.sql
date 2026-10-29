@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('xzschatmanager_v1_1_3_withoutthestupidfuckingmusicthatsdrivingmecrazyplaying', 'Adds an XZS chat overlay with player messages, synchronized player icons, avatar-image downloads, and language switching.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

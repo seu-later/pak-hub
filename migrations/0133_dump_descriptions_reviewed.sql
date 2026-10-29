@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('sakuramods_fastdeposit', 'Adds an Alt+F toggle for faster resource deposits; it only triggers while carrying resources, not already depositing, and below 150 ms ping.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

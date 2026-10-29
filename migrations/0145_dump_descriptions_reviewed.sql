@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('mods_p', 'Adds shared Mod Hub UI and settings hooks for gameplay, performance, keybindings, and logs, with related server-browser and Space Rig integration.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

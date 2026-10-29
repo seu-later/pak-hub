@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('cpptest_p', 'Test mod that repeatedly posts “Hello from a C++ generated Blueprint” as an in-game message.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

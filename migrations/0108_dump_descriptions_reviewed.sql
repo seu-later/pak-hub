@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('customrooms_big', 'Adds custom cave rooms, redirects mission DNA to custom size tags, and changes Extraction, Deep Scan, and Motherlode/Star room pools.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('customcavelayouts43.pak', 'Adds Mod Hub controls for selecting mission layouts, starting rooms, and hot drops, and retags cave rooms into custom size pools for procedural generation.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

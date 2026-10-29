@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('dea_a01', 'Adds 13 custom enemy variants: a Glasher Grunt, colored/stagger Spitters, Bouncer/Ice/Spawner Shooters, a Slobber, Trundle Mactera, Grooter, Fanatic, and Shotgun Menace.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('elytrasmodmanager', 'Provides Elytra’s shared mod framework: Mod Hub configuration pages, typed option registration, save/state helpers, and local or replicated singleton utilities.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

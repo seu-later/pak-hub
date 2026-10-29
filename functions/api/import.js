@@ -1,4 +1,5 @@
 import { equalSecret, json, unavailable } from "../_lib/http.js";
+import { syncPakListFiles } from "../_lib/dump-sync.js";
 
 const MAX_BODY_BYTES = 64000;
 const MAX_FILE_SIZE = 2147483647;
@@ -60,7 +61,7 @@ async function readPayload(request) {
   }
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   if (!env.DB) return unavailable();
   if (!env.PAK_HUB_IMPORT_TOKEN) return json({ error: "The import endpoint is not configured." }, 503);
 
@@ -194,6 +195,23 @@ export async function onRequestPost({ request, env }) {
     if (previousRelease && previousRelease.mod_id !== mod.id) {
       await env.DB.prepare("DELETE FROM mods WHERE id = ? AND NOT EXISTS (SELECT 1 FROM releases WHERE mod_id = ?)")
         .bind(previousRelease.mod_id, previousRelease.mod_id).run();
+    }
+
+    if (env.DUMP && typeof waitUntil === "function") {
+      waitUntil(syncPakListFiles({
+        env,
+        files: normalizedFiles.map((file) => ({
+          filename: file.filename,
+          size: file.size,
+          sha256: file.sha256,
+          downloadUrl: file.downloadUrl,
+        })),
+        uploader,
+        sourceMessageUrl,
+        summary,
+      }).catch((error) => {
+        console.error("Pak List to Pack Dump sync failed", error);
+      }));
     }
 
     return json({ ok: true, slug, post_id: release.id, file_count: normalizedFiles.length }, 201, { "cache-control": "no-store" });

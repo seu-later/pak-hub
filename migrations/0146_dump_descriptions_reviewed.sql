@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('dea_a', 'Adds Donnie’s Enemy Addon variants, including Glasher, Guardian, and Clubber Grunts, modified Spitters and Shooters, and alternate Mactera and Bomber types.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

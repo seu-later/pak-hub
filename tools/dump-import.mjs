@@ -132,6 +132,13 @@ function sqlEscape(value) {
   return String(value).replace(/'/g, "''");
 }
 
+function insertStatement(record) {
+  return "INSERT INTO dump_files (base_key, base_name, version, prerelease, filename, size_bytes, sha256, r2_key) SELECT " +
+    `'${sqlEscape(record.baseKey)}', '${sqlEscape(record.base)}', '${sqlEscape(record.version)}', ${record.prerelease}, ` +
+    `'${sqlEscape(record.filename)}', ${record.size}, '${record.sha}', '${record.r2Key}' ` +
+    `WHERE NOT EXISTS (SELECT 1 FROM dump_files WHERE sha256 = '${sqlEscape(record.sha)}');`;
+}
+
 async function sha256File(filePath) {
   const hash = createHash("sha256");
   for await (const chunk of createReadStream(filePath)) hash.update(chunk);
@@ -225,11 +232,7 @@ async function main() {
   console.log(`Grouped into ${groups.size} base names.`);
 
   await fs.writeFile(manifestPath, `${JSON.stringify({ bucket, records }, null, 2)}\n`);
-  const statements = records.map((record) => (
-    "INSERT OR IGNORE INTO dump_files (base_key, base_name, version, prerelease, filename, size_bytes, sha256, r2_key) VALUES (" +
-    `'${sqlEscape(record.baseKey)}', '${sqlEscape(record.base)}', '${sqlEscape(record.version)}', ${record.prerelease}, ` +
-    `'${sqlEscape(record.filename)}', ${record.size}, '${record.sha}', '${record.r2Key}');`
-  ));
+  const statements = records.map(insertStatement);
   await fs.writeFile(sqlPath, `${statements.join("\n")}\n`);
   console.log(`Wrote ${manifestPath} and ${sqlPath} (${records.length} rows).`);
 
@@ -266,11 +269,7 @@ async function main() {
     /* Only rows whose files actually landed are inserted. */
     const usable = done.size ? records.filter((record) => done.has(record.r2Key)) : records;
     const skipped = records.length - usable.length;
-    const statements = usable.map((record) => (
-      "INSERT OR IGNORE INTO dump_files (base_key, base_name, version, prerelease, filename, size_bytes, sha256, r2_key) VALUES (" +
-      `'${sqlEscape(record.baseKey)}', '${sqlEscape(record.base)}', '${sqlEscape(record.version)}', ${record.prerelease}, ` +
-      `'${sqlEscape(record.filename)}', ${record.size}, '${record.sha}', '${record.r2Key}');`
-    ));
+    const statements = usable.map(insertStatement);
     await fs.writeFile(sqlPath, `${statements.join("\n")}\n`);
     console.log(`Applying ${usable.length} rows${skipped ? ` (${skipped} missing from R2, excluded)` : ""}.`);
     await execFileAsync(WRANGLER, ["d1", "execute", "pak-hub", ...REMOTE, "--file", quote(sqlPath)], { maxBuffer: 64 * 1024 * 1024, shell: SHELL });

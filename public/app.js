@@ -1,3 +1,6 @@
+let searchTools;
+const searchReady = import("./search.js?v=20261017search2").then((module) => { searchTools = module; });
+
 const demoMods = [
   {
     slug: "revolver-sound-demo",
@@ -70,10 +73,12 @@ const state = {
   demo: previewMode === "1" || (localPreview && previewMode !== "0"),
   query: "",
   sort: "newest",
+  loadedSort: "newest",
   page: 1,
   total: 0,
   mods: [],
   selectedSlug: null,
+  selectedMod: null,
   linkedModSlug: linkedModSlug ? linkedModSlug.slice(0, 100) : "",
   detail: null,
   detailStatus: "idle",
@@ -198,10 +203,13 @@ function cancelDetailRequest() {
   state.detailRequest += 1;
 }
 
-function ensureSelection() {
-  if (state.mods.some((mod) => mod.slug === state.selectedSlug)) return false;
+function ensureSelection(preserve = false) {
+  const selected = state.mods.find((mod) => mod.slug === state.selectedSlug);
+  if (selected) { state.selectedMod = selected; return false; }
+  if (preserve && state.selectedMod) return false;
   const previousSlug = state.selectedSlug;
-  state.selectedSlug = state.mods[0]?.slug || null;
+  state.selectedMod = state.mods[0] || null;
+  state.selectedSlug = state.selectedMod?.slug || null;
   state.detail = null;
   state.detailStatus = state.selectedSlug ? "loading" : "idle";
   if (previousSlug !== state.selectedSlug) cancelDetailRequest();
@@ -223,7 +231,7 @@ function renderArchiveState() {
     for (let index = 0; index < 3; index += 1) skeleton.append(node("span", "skeleton-row"));
     content.append(skeleton);
   } else {
-    content.append(node("h2", "", state.error ? "Unavailable" : "Empty"));
+    content.append(node("h2", "", state.error ? "Unavailable" : state.query.trim() ? "No results" : "Empty"));
     if (state.error) {
       const retry = node("button", "retry-button", "Retry");
       retry.type = "button";
@@ -237,19 +245,32 @@ function renderArchiveState() {
 function renderSortState() {
   elements.archiveToolbar.querySelectorAll(".sort-button").forEach((button) => {
     const isActive = button.dataset.sort === state.sort ||
-      (button.dataset.sort === "newest" && state.sort === "oldest");
+      (button.dataset.sort === "name" && state.sort === "name-desc") ||
+      (button.dataset.sort === "newest" && state.sort === "oldest") ||
+      (button.dataset.sort === "most-files" && state.sort === "fewest-files");
     button.setAttribute("aria-pressed", String(isActive));
-    if (button.dataset.sort === "newest") {
+    if (button.dataset.sort === "name") {
+      const descending = state.sort === "name-desc";
+      button.querySelector(".sort-label").textContent = "Name";
+      button.querySelector(".sort-caret").dataset.direction = descending ? "descending" : "ascending";
+      button.setAttribute("aria-label", `Sort by pak name from ${descending ? "Z to A" : "A to Z"}`);
+    } else if (button.dataset.sort === "newest") {
       const label = button.querySelector(".sort-label");
       const caret = button.querySelector(".sort-caret");
       const oldest = state.sort === "oldest";
-      if (label) label.textContent = oldest ? "Oldest" : "Newest";
+      if (label) label.textContent = oldest ? "Oldest" : state.query.trim() ? "Relevance" : "Newest";
       if (caret) caret.dataset.direction = oldest ? "oldest" : "newest";
-      button.setAttribute("aria-label", `Sort by ${oldest ? "oldest" : "newest"} post`);
+      button.setAttribute("aria-label", !oldest && state.query.trim() ? "Sort by relevance" : `Sort by ${oldest ? "oldest" : "newest"}`);
+    } else if (button.dataset.sort === "most-files") {
+      const fewest = state.sort === "fewest-files";
+      button.querySelector(".sort-label").textContent = "Files";
+      button.querySelector(".sort-caret").dataset.direction = fewest ? "ascending" : "descending";
+      button.setAttribute("aria-label", `Sort by ${fewest ? "fewest" : "most"} files`);
     }
+    button.title = button.getAttribute("aria-label");
     const header = button.closest("th");
     if (header) header.setAttribute("aria-sort", isActive
-      ? state.sort === "oldest" ? "ascending" : "descending"
+      ? ["name", "oldest", "fewest-files"].includes(state.sort) ? "ascending" : "descending"
       : "none");
   });
   updateSortIndicator(sortIndicatorPlaced);
@@ -286,7 +307,9 @@ function renderModRow(mod, index) {
   let hoverTimer = 0;
   button.addEventListener("pointerenter", () => {
     window.clearTimeout(hoverTimer);
-    hoverTimer = window.setTimeout(() => previewMod(mod.slug), HOVER_PREVIEW_DELAY);
+    hoverTimer = window.setTimeout(() => {
+      if (button.isConnected && !elements.rows.classList.contains("rows-reordering")) previewMod(mod.slug);
+    }, HOVER_PREVIEW_DELAY);
   });
   button.addEventListener("pointerleave", () => window.clearTimeout(hoverTimer));
   button.addEventListener("focus", () => previewMod(mod.slug));
@@ -483,7 +506,7 @@ function renderSelectionState() {
 }
 
 function renderPreviewPanel() {
-  const mod = state.mods.find((item) => item.slug === state.selectedSlug);
+  const mod = state.mods.find((item) => item.slug === state.selectedSlug) || state.selectedMod;
   if (elements.rows.isConnected !== false) window.PakHubMotion.select(mod?.slug || null);
   elements.detailPanel.setAttribute("aria-busy", String(Boolean(mod && state.detailStatus === "loading")));
   elements.detailPanelContent.inert = Boolean(mod && state.detailStatus === "loading");
@@ -523,7 +546,7 @@ function renderPreviewPanel() {
   window.PakHubMotion.swapPreview(elements.detailPanelContent, dossier, state.selectedSlug || "empty");
 }
 
-function renderCatalog() {
+function renderCatalog({ reorder = false, preservePreview = false } = {}) {
   const focusedButton = document.activeElement?.matches(".mod-select")
     ? document.activeElement : null;
   const focusedSlug = focusedButton?.dataset.slug;
@@ -548,8 +571,9 @@ function renderCatalog() {
     const modRow = renderModRow(mod, index);
     fragment.append(modRow);
   });
-  elements.rows.replaceChildren(fragment);
-  renderPreviewPanel();
+  if (window.PakHubMotion.replaceRows) window.PakHubMotion.replaceRows(elements.rows, fragment, reorder);
+  else elements.rows.replaceChildren(fragment);
+  if (!preservePreview) renderPreviewPanel();
   renderArchiveState();
   if (focusedSlug) {
     const buttons = elements.rows.querySelectorAll(".mod-select");
@@ -558,7 +582,7 @@ function renderCatalog() {
 }
 
 async function loadDetails(slug) {
-  const mod = state.mods.find((item) => item.slug === slug);
+  const mod = state.mods.find((item) => item.slug === slug) || (state.selectedSlug === slug ? state.selectedMod : null);
   if (!mod) return;
   if (state.detailController) state.detailController.abort();
   state.detailController = null;
@@ -613,6 +637,7 @@ function previewMod(slug, { scroll = false } = {}) {
   }
   const modName = state.mods.find((mod) => mod.slug === slug)?.name || "Pak post";
   state.selectedSlug = slug;
+  state.selectedMod = mod;
   state.detail = null;
   state.detailStatus = "loading";
   markSeen(slug);
@@ -636,18 +661,28 @@ function observeLoadSentinel() {
   loadObserver.observe(elements.sentinel);
 }
 
-async function loadCatalog({ append = false, auto = false } = {}) {
+async function loadCatalog({ append = false, auto = false, reorder = false } = {}) {
+  await searchReady;
   if (!append) state.autoPages = 0;
   if (state.demo) {
-    const query = state.query.trim().toLocaleLowerCase();
-    let mods = catalogDemoMods.filter((mod) => !query ||
-      [mod.name, mod.postedBy, mod.initialPost.content, ...mod.initialPost.files.map((file) => file.filename),
-        ...mod.threadPosts.flatMap((post) => [post.content, ...post.files.map((file) => file.filename)])]
-        .some((value) => value.toLocaleLowerCase().includes(query))).map(normalizeMod);
+    const search = searchTools.parseSearch(state.query);
+    const posts = (mod) => [mod.initialPost, ...mod.threadPosts];
+    const filenames = (mod) => posts(mod).flatMap((post) => post.files.map((file) => file.filename));
+    let mods = catalogDemoMods.filter((mod) => searchTools.matchesSearch(search,
+      [mod.postedBy, mod.summary, ...posts(mod).flatMap((post) => [post.content, post.postedBy])],
+      [mod.name, ...filenames(mod)])).map(normalizeMod);
     if (state.sort === "name") mods.sort((a, b) => a.name.localeCompare(b.name));
+    else if (state.sort === "name-desc") mods.sort((a, b) => b.name.localeCompare(a.name));
+    else if (state.sort === "most-files") mods.sort((a, b) => b.fileCount - a.fileCount || a.name.localeCompare(b.name));
+    else if (state.sort === "fewest-files") mods.sort((a, b) => a.fileCount - b.fileCount || a.name.localeCompare(b.name));
     else if (state.sort === "oldest") mods.sort(compareByDate);
     else mods.sort((a, b) => compareByDate(b, a));
 
+    if (state.query.trim() && state.sort === "newest") {
+      const bySlug = new Map(catalogDemoMods.map((mod) => [mod.slug, mod]));
+      mods.sort((a, b) => searchTools.searchRank(search, a.name, filenames(bySlug.get(a.slug))) -
+        searchTools.searchRank(search, b.name, filenames(bySlug.get(b.slug))));
+    }
     state.mods = mods;
     state.total = mods.length;
     state.page = 1;
@@ -655,8 +690,9 @@ async function loadCatalog({ append = false, auto = false } = {}) {
     state.loading = false;
     state.error = "";
     state.moreError = false;
-    const selectionChanged = ensureSelection();
-    renderCatalog();
+    state.loadedSort = state.sort;
+    const selectionChanged = ensureSelection(reorder);
+    renderCatalog({ reorder, preservePreview: reorder && !selectionChanged });
     if (selectionChanged && state.selectedSlug) loadDetails(state.selectedSlug);
     window.PakHubMotion?.catalogReady();
     return;
@@ -669,7 +705,8 @@ async function loadCatalog({ append = false, auto = false } = {}) {
   state.loading = true;
   state.error = "";
   if (!append) state.moreError = false;
-  renderCatalog();
+  if (reorder) renderSortState();
+  else renderCatalog();
 
   const params = new URLSearchParams({ sort: state.sort, page: String(page) });
   const trimmedQuery = state.query.trim();
@@ -693,25 +730,28 @@ async function loadCatalog({ append = false, auto = false } = {}) {
     state.error = "";
     state.moreError = false;
     state.linkedModSlug = "";
-    const selectionChanged = ensureSelection();
-    renderCatalog();
+    state.loadedSort = state.sort;
+    const selectionChanged = ensureSelection(reorder);
+    renderCatalog({ reorder, preservePreview: reorder && !selectionChanged });
     if (!append) window.PakHubMotion?.catalogReady();
     if (append && auto) announce(`${newMods.length} more pak posts loaded.`);
     if (selectionChanged && state.selectedSlug) loadDetails(state.selectedSlug);
   } catch (error) {
     if (error.name === "AbortError" || request !== state.catalogRequest) return;
     state.loading = false;
+    if (reorder) state.sort = state.loadedSort;
     if (append) state.moreError = true;
     else state.error = error.message || "The catalog could not be loaded. Try again shortly.";
-    renderCatalog();
+    renderCatalog({ preservePreview: reorder });
     if (!append) window.PakHubMotion?.catalogReady();
   }
 }
 
 function updateSort(sort) {
-  state.sort = sort === "newest" ? state.sort === "newest" ? "oldest" : "newest" : sort;
-  state.page = 1;
-  loadCatalog();
+  state.sort = sort === "name" ? state.sort === "name" ? "name-desc" : "name" :
+    sort === "newest" ? state.sort === "newest" ? "oldest" : "newest" :
+      state.sort === "most-files" ? "fewest-files" : "most-files";
+  loadCatalog({ reorder: true });
 }
 
 let searchTimer = 0;

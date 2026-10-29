@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('viewmodeldecoupler', 'Decouples selected Breach Cutter, EPC, and Hurricane projectiles from the weapon viewmodel by repositioning them to the first-person camera direction.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

@@ -24,3 +24,8 @@ pak-dump-credits-progress.txt
 
 # Local exporter output
 EU-pak-mods/
+
+# Private package analysis: downloaded archives, original context and exports
+.dump-audit/
+tools/dump-audit-cue/bin/
+tools/dump-audit-cue/obj/

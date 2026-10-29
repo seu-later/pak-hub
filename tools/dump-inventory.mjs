@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { open, readFile, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 
 const [, , inputPath, outputPath, unrealPakPath = "UnrealPak.exe"] = process.argv;
@@ -9,9 +9,13 @@ if (!inputPath || !outputPath) {
   process.exitCode = 1;
 }
 
-function listPackage(packagePath) {
-  const command = /\.zip$/i.test(packagePath) ? "tar.exe" : unrealPakPath;
-  const args = /\.zip$/i.test(packagePath) ? ["-tf", packagePath] : [packagePath, "-List"];
+async function listPackage(packagePath) {
+  const handle = await open(packagePath, "r");
+  const signature = Buffer.alloc(4);
+  try { await handle.read(signature, 0, 4, 0); } finally { await handle.close(); }
+  const isZip = signature.subarray(0, 2).toString("ascii") === "PK";
+  const command = isZip ? "tar.exe" : unrealPakPath;
+  const args = isZip ? ["-tf", packagePath] : [packagePath, "-List"];
 
   return new Promise((resolve) => {
     const child = spawn(command, args, { windowsHide: true });
@@ -27,7 +31,7 @@ function listPackage(packagePath) {
         : [...output.matchAll(/LogPakFile: Display: "([^"]+)"/g)].map((match) => match[1]);
       resolve({
         files,
-        error: code === 0 ? "" : Buffer.concat(errors).toString("utf8").trim() || `exit ${code}`,
+        error: code === 0 ? "" : Buffer.concat(errors).toString("utf8").trim() || output.match(/PakFile was frozen[^\r\n]+/)?.[0] || `exit ${code}`,
       });
     });
   });

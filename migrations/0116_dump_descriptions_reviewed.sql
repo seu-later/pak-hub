@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('customcavelayouts01', 'Adds an alternate procedural cave generator that selects rooms from mission DNA and branches on mission length.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

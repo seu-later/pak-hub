@@ -1,0 +1,2 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('metalslugost', 'Replaces mission, wave, loading-screen, and menu music cues with custom tracks.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;
+INSERT INTO dump_descriptions (base_key, description) VALUES ('lovegrinding', 'Replaces Refinery pipe-grinding sounds with a Dwarf voice clip.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

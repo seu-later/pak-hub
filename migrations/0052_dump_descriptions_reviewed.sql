@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('phero2chem', 'Makes the Pheromone grenade apply the Crossbow Chemical Explosion status effect within a 400-unit radius, guaranteeing two targets and then affecting every second target.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

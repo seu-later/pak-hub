@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#030806">
+    <meta name="description" content="Download Bitfix and Lua patches for Deep Rock Galactic.">
+    <title>Pak Hub</title>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20261015terminal1">
+    <script src="scene-position.js?v=20261014handoff2"></script>
+    <link rel="preload" href="assets/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/WhiteRabbit.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="assets/city-still.webp" as="image" media="(max-width: 700px)">
+    <link rel="preload" href="assets/city-far-still.webp" as="image" media="(min-width: 701px)">
+    <link rel="preload" href="assets/city-near-still.webp" as="image" media="(min-width: 701px)">
+    <link rel="stylesheet" href="assets/lenis.css?v=1.3.26">
+    <link rel="stylesheet" href="styles.css?v=20261027bitfix2">
+    <script src="assets/lenis.min.js?v=1.3.26" defer></script>
+    <script src="assets/gsap.min.js?v=3.15.0" defer></script>
+    <script src="site-motion.js?v=20261027bitfix1" defer></script>
+    <script src="about-searchlight.js?v=20261015clearnav1" defer></script>
+    <script src="bitfix.js?v=20261027bitfix2" defer></script>
+  </head>
+  <body class="view-list view-bitfix">
+    <div class="scene-background" aria-hidden="true">
+      <div class="scene-fallback"></div>
+      <div id="scene-canvas"></div>
+      <div class="scene-handoff"></div>
+    </div>
+    <a class="skip-link" href="#bitfix">Skip to Bitfix</a>
+    <div class="app-shell">
+      <header class="site-header">
+        <div class="header-inner">
+          <nav class="primary-nav" aria-label="Primary navigation">
+            <a href="index.html">Pak List</a>
+            <a href="dump.html">Pak Archive</a>
+            <a href="bitfix.html" aria-current="page">Bitfix</a>
+            <a href="dependencies.html">Dependencies</a>
+            <a href="about.html">About</a>
+            <span class="nav-indicator" aria-hidden="true"></span>
+          </nav>
+        </div>
+      </header>
+
+      <main id="bitfix" class="catalog-stage" aria-labelledby="page-title">
+        <div class="catalog-inner">
+          <h1 id="page-title" class="visually-hidden">Bitfix</h1>
+          <section class="archive-shell" aria-label="Bitfix mods">
+            <div id="archive-toolbar" class="archive-toolbar">
+              <h2 class="archive-title">Bitfix</h2>
+              <div class="archive-heading-group">
+                <button id="search-toggle" class="search-toggle" type="button" aria-label="Open search" aria-expanded="false" aria-controls="search-form">
+                  <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.7 4.7"></path></svg>
+                  <svg class="close-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+                </button>
+              </div>
+              <form id="search-form" class="search-bar" role="search" aria-hidden="true">
+                <label class="visually-hidden" for="search-field">Search Bitfix mods</label>
+                <input id="search-field" name="q" type="search" title="All words must match." maxlength="100" autocomplete="off" tabindex="-1">
+                <button id="clear-search" class="clear-search" type="button" aria-label="Clear search" tabindex="-1" hidden>
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"></path></svg>
+                </button>
+              </form>
+              <div class="archive-controls">
+                <div class="sort-controls" role="group" aria-label="Sort Bitfix mods">
+                  <button class="sort-button" type="button" data-sort="name" aria-label="Sort by mod name"><span class="sort-label">Name</span> <span class="sort-caret" data-direction="ascending" aria-hidden="true"></span></button>
+                  <button class="sort-button" type="button" data-sort="newest" aria-label="Sort by newest"><span class="sort-label">Newest</span> <span class="sort-caret" aria-hidden="true"></span></button>
+                  <button class="sort-button" type="button" data-sort="most-files" aria-label="Sort by file count"><span class="sort-label">Files</span> <span class="sort-caret" aria-hidden="true"></span></button>
+                  <span class="sort-indicator" aria-hidden="true"></span>
+                </div>
+                <span id="result-count" class="result-count" role="status" aria-live="polite"></span>
+              </div>
+            </div>
+            <div class="bitfix-install-strip" aria-labelledby="bitfix-install-title">
+              <h3 id="bitfix-install-title" class="bitfix-install-title">How to install</h3>
+              <div class="bitfix-install">
+                <p>
+                  <a class="pak-download" href="downloads/bitfix/d3d9.dll" download="d3d9.dll" aria-label="Download Bitfix d3d9.dll">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5v2zm7-18a1 1 0 0 0-1 1v8.17L8.41 8.6 7 10.01l5 5 5-5-1.41-1.41L13 11.17V3a1 1 0 0 0-1-1z"/></svg>
+                    <span>d3d9.dll</span>
+                  </a>
+                  <span>in</span> <code>FSD\Binaries\Win64</code>
+                </p>
+                <p><span>Lua files in</span> <code>FSD\Binaries\Win64\bitfix</code></p>
+              </div>
+            </div>
+            <div class="catalog-workspace" aria-label="Bitfix mod browser">
+              <section class="catalog-list-panel" aria-label="Bitfix mod list">
+                <div class="list-columns" aria-hidden="true"><span class="column-name">Name</span><span class="column-count">Files</span></div>
+                <div class="list-view">
+                  <table class="ledger-table" aria-label="Bitfix Lua files">
+                    <thead class="visually-hidden"><tr><th scope="col">Lua mod</th></tr></thead>
+                    <tbody id="bitfix-rows"></tbody>
+                  </table>
+                </div>
+              </section>
+              <aside id="detail-panel" class="detail-panel" data-lenis-prevent aria-label="Bitfix mod preview" tabindex="-1">
+                <div class="preview-panel-controls"><button type="button" class="preview-back">Back to list</button></div>
+                <div id="detail-panel-content"></div>
+              </aside>
+            </div>
+          </section>
+          <p id="bitfix-status" class="visually-hidden" role="status" aria-live="polite"></p>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

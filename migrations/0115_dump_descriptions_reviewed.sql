@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('customcavelayouts', 'Adds custom procedural cave layouts; newer builds also provide Mod Hub controls for mission layouts, starting rooms, and hot drops.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('remove_all_particles_and_some_weaponsntools_s5', 'Removes or simplifies many particle effects across weapons, enemies, objectives, hazards, and environments.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

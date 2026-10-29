@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('customrooms_50.pak', 'Adds custom procedural rooms and routes Extraction, Salvage, and Motherlode/Star generation to those room sets; Escort shaft rooms are tagged for the custom Escort pool.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

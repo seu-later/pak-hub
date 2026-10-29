@@ -1,38 +1,48 @@
 import { json, unavailable } from "../_lib/http.js";
+import { parseSearch } from "../../public/search.js";
+import { searchCondition, searchOrder } from "../_lib/search.js";
 
 export async function onRequestGet({ request, env }) {
   if (!env.DB) return unavailable();
 
   const url = new URL(request.url);
   const search = (url.searchParams.get("q") || "").trim().slice(0, 100);
+  const requestedSlug = (url.searchParams.get("slug") || "").trim().slice(0, 100);
   const requestedSort = url.searchParams.get("sort");
-  const sort = ["name", "oldest"].includes(requestedSort) ? requestedSort : "newest";
+  const sort = ["name", "name-desc", "oldest", "most-files", "fewest-files"].includes(requestedSort) ? requestedSort : "newest";
   const page = Math.max(1, Math.min(500, Number.parseInt(url.searchParams.get("page") || "1", 10) || 1));
   const pageSize = 48;
   const where = [];
   const values = [];
 
+  if (/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(requestedSlug)) {
+    where.push("m.slug = ?");
+    values.push(requestedSlug);
+  }
+
   if (search) {
-    const escaped = search.replace(/[\\%_]/g, "\\$&");
-    where.push(`(
-      m.name LIKE ? ESCAPE '\\' OR m.summary LIKE ? ESCAPE '\\' OR
-      m.root_post_content LIKE ? ESCAPE '\\' OR m.uploader_name LIKE ? ESCAPE '\\' OR
-      EXISTS (
-        SELECT 1 FROM releases r JOIN pak_files f ON f.release_id = r.id
-        WHERE r.mod_id = m.id AND (
-          f.original_filename LIKE ? ESCAPE '\\' OR r.posted_by LIKE ? ESCAPE '\\' OR
-          r.post_content LIKE ? ESCAPE '\\'
-        )
-      )
-    )`);
-    values.push(...Array(7).fill(`%${escaped}%`));
+    const match = searchCondition(parseSearch(search), (field) => `
+      ${field("m.name", true)} OR ${field("m.summary")} OR ${field("m.root_post_content")} OR ${field("m.uploader_name")}
+      OR EXISTS (SELECT 1 FROM releases r WHERE r.mod_id = m.id AND (
+        ${field("r.posted_by")} OR ${field("r.post_content")} OR EXISTS (
+          SELECT 1 FROM pak_files f WHERE f.release_id = r.id AND ${field("f.original_filename", true)}
+        )))`);
+    where.push(match.sql);
+    values.push(...match.values);
   }
 
   const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
-  const orderBy = sort === "name" ? "m.name COLLATE NOCASE ASC"
-    : sort === "oldest" ? "m.root_posted_at ASC, m.name COLLATE NOCASE ASC"
-      : "m.root_posted_at DESC, m.name COLLATE NOCASE ASC";
+  const orderBy = {
+    name: "m.name COLLATE NOCASE ASC, m.slug ASC",
+    "name-desc": "m.name COLLATE NOCASE DESC, m.slug ASC",
+    "most-files": "file_count DESC, m.name COLLATE NOCASE ASC, m.slug ASC",
+    "fewest-files": "file_count ASC, m.name COLLATE NOCASE ASC, m.slug ASC",
+    oldest: "m.root_posted_at ASC, m.name COLLATE NOCASE ASC, m.slug ASC",
+    newest: "m.root_posted_at DESC, m.name COLLATE NOCASE ASC, m.slug ASC",
+  }[sort];
   const offset = (page - 1) * pageSize;
+  const relevance = search && sort === "newest" ? searchOrder(parseSearch(search), "m.name", (field) =>
+    `EXISTS (SELECT 1 FROM releases r JOIN pak_files f ON f.release_id = r.id WHERE r.mod_id = m.id AND ${field("f.original_filename", true)})`) : null;
 
   try {
     const [countResult, modsResult] = await Promise.all([
@@ -46,9 +56,9 @@ export async function onRequestGet({ request, env }) {
             WHERE r.mod_id = m.id AND r.source_message_id != COALESCE(m.root_message_id, '')) AS thread_file_count
         FROM mods m
         ${clause}
-        ORDER BY ${orderBy}
+        ORDER BY ${relevance ? `${relevance.sql}, ` : ""}${orderBy}
         LIMIT ? OFFSET ?
-      `).bind(...values, pageSize, offset).all(),
+      `).bind(...values, ...(relevance?.values || []), pageSize, offset).all(),
     ]);
 
     return json({

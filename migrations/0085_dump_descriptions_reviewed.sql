@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('generaloptimizer', 'Adjusts enemy and objective update intervals; versions 2.00 and later also remove dead enemy actors after a short delay and reduce collision, physics, and shadow work on selected cave debris.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

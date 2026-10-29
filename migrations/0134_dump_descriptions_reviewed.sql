@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('alwayssprint_p', 'Maintains the running state while use-item is held; it also contains a SteamID-gated path that writes a local text file and opens a browser URL.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

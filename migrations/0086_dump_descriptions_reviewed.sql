@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('genoptest', 'Adds configurable performance handlers that adjust enemy and objective update intervals, reduce selected enemy and cave-debris processing, and clean up dead enemy actors after a short delay.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

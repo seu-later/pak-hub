@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('CustomCaveLayouts43', 'Adds custom cave rooms and retags existing rooms as CustomBig or CustomMedium so the Custom Layouts pool can select them.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

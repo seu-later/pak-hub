@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('balance', 'Adds around 120 custom weapon overclocks and their schematics, while rebalancing weapon stats and upgrade values across many classes.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

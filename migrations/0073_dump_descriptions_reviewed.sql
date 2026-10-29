@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('transflamethrower', 'Downscales four Flamethrower and explosion effect textures from 2048×2048 to 1024×1024.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

@@ -48,6 +48,35 @@ function setup(reduced = false, desktop = false, fixtures = {}, options = {}) {
   return { panel, scrollPanel, document, window, events, lenisOptions, motion: window.PakHubMotion, swap: (next, key) => swap(panel, next, key) };
 }
 
+test("row reordering uses prior positions and cancels interrupted motion", async () => {
+  const { motion } = setup();
+  const row = (slug, top) => {
+    const button = new Element();
+    button.dataset.slug = slug;
+    button.getBoundingClientRect = () => ({ left: 0, top });
+    return button;
+  };
+  const container = new Element();
+  const classes = new Set();
+  container.classList = { add: (name) => classes.add(name), remove: (name) => classes.delete(name) };
+  container.buttons = [row("a", 0), row("b", 50)];
+  container.querySelectorAll = () => container.buttons;
+  container.replaceChildren = (buttons) => { container.buttons = buttons; };
+  const first = [row("b", 0), row("a", 50)];
+  motion.replaceRows(container, first, true);
+  assert.equal(first[0].animations[0].frames[0].transform, "translate(0px, 50px)");
+  assert.equal(first[1].animations[0].options.duration, 240);
+  const latest = [row("a", 0), row("b", 50)];
+  motion.replaceRows(container, latest, true);
+  assert.ok(first.every((button) => button.animations[0].cancelled));
+  first.forEach((button) => button.animations[0].finish());
+  await Promise.resolve();
+  assert.ok(classes.has("rows-reordering"));
+  latest.forEach((button) => button.animations[0].finish());
+  await Promise.resolve();
+  assert.ok(!classes.has("rows-reordering"));
+});
+
 test("sort underline travels on hover and returns to the pressed choice", () => {
   const handlers = {};
   const active = new Element();

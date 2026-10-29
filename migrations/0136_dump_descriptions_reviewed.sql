@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('vwarevertntpstacks', 'Rebalances weapon and upgrade stats across the arsenal, changing values such as damage, ammo, fire rate, spread, handling, and status-effect behavior.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

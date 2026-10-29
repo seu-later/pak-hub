@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('sdfandraymarchskins', 'Adds SDF-patterned weapon paintjobs and their material variants to the Custom Vanity Framework.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

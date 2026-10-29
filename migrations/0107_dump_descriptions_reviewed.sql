@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('customrooms_73_mixed.pak', 'Adds custom cave rooms, retags vanilla rooms into custom size pools, and gives linear Extraction a 558-room generator pool.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

@@ -1,4 +1,6 @@
 import { json, unavailable } from "../_lib/http.js";
+import { parseSearch } from "../../public/search.js";
+import { searchCondition, searchOrder } from "../_lib/search.js";
 
 /* Message links are emitted only for the allowlisted public server. Private
  * rows carry the handle with no URL, and guild ids never leave the server. */
@@ -43,30 +45,37 @@ export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
   const search = (url.searchParams.get("q") || "").trim().slice(0, 100);
   const requestedSort = url.searchParams.get("sort");
-  const sort = ["name", "oldest"].includes(requestedSort) ? requestedSort : "newest";
+  const sort = ["name", "name-desc", "oldest", "most-files", "fewest-files"].includes(requestedSort) ? requestedSort : "newest";
   const page = Math.max(1, Math.min(500, Number.parseInt(url.searchParams.get("page") || "1", 10) || 1));
   const pageSize = 48;
   const where = [];
   const values = [];
 
   if (search) {
-    const escaped = search.replace(/[\\%_]/g, "\\$&");
-    where.push(`(
-      d.base_name LIKE ? ESCAPE '\\' OR EXISTS (
-        SELECT 1 FROM dump_files g
-        WHERE g.base_key = d.base_key AND g.filename LIKE ? ESCAPE '\\'
-      )
-    )`);
-    values.push(`%${escaped}%`, `%${escaped}%`);
+    const match = searchCondition(parseSearch(search), (field) => `
+      ${field("d.base_name", true)} OR EXISTS (SELECT 1 FROM dump_files g
+        WHERE g.base_key = d.base_key AND (${field("g.filename", true)} OR ${field("g.posted_by")}))
+      OR EXISTS (SELECT 1 FROM dump_descriptions description
+        WHERE description.base_key = d.base_key AND ${field("description.description")})`);
+    where.push(match.sql);
+    values.push(...match.values);
   }
 
   const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
   const orderBy = sort === "name"
     ? "MIN(d.base_name) COLLATE NOCASE ASC"
-    : sort === "oldest"
-      ? "MAX(d.id) ASC, MIN(d.base_name) COLLATE NOCASE ASC"
-      : "MAX(d.id) DESC, MIN(d.base_name) COLLATE NOCASE ASC";
+    : sort === "name-desc"
+      ? "MIN(d.base_name) COLLATE NOCASE DESC"
+      : sort === "most-files"
+        ? "COUNT(*) DESC, MIN(d.base_name) COLLATE NOCASE ASC"
+        : sort === "fewest-files"
+          ? "COUNT(*) ASC, MIN(d.base_name) COLLATE NOCASE ASC"
+          : sort === "oldest"
+            ? "MAX(d.id) ASC, MIN(d.base_name) COLLATE NOCASE ASC"
+            : "MAX(d.id) DESC, MIN(d.base_name) COLLATE NOCASE ASC";
   const offset = (page - 1) * pageSize;
+  const relevance = search && sort === "newest" ? searchOrder(parseSearch(search), "d.base_name", (field) =>
+    `EXISTS (SELECT 1 FROM dump_files g WHERE g.base_key = d.base_key AND ${field("g.filename", true)})`) : null;
 
   try {
     const [countResult, groupResult] = await Promise.all([
@@ -79,9 +88,9 @@ export async function onRequestGet({ request, env }) {
         FROM dump_files d
         ${clause}
         GROUP BY d.base_key
-        ORDER BY ${orderBy}
+        ORDER BY ${relevance ? `${relevance.sql}, ` : ""}${orderBy}
         LIMIT ? OFFSET ?
-      `).bind(...values, pageSize, offset).all(),
+      `).bind(...values, ...(relevance?.values || []), pageSize, offset).all(),
     ]);
 
     const groups = groupResult.results || [];

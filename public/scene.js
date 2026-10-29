@@ -12,25 +12,56 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
   camera.position.z = 1000;
   const geometry = new THREE.PlaneGeometry(1, 1);
   const textures = [];
-  const uniforms = { map: { value: null }, pulse: { value: 0 }, lightX: { value: 0.8 }, search: { value: 0 }, clock: { value: 0 } };
+  const searchlightUniforms = {
+    lightTarget: { value: new THREE.Vector2() }, lightPower: { value: 0 },
+    viewport: { value: new THREE.Vector2() },
+  };
+  const searchlightShader = `uniform vec2 lightTarget;
+    uniform float lightPower;
+    uniform vec2 viewport;
+    float searchlightAt(vec2 uv) {
+      vec2 aspect = vec2(viewport.x / viewport.y, 1.0);
+      vec2 origin = vec2(0.5, -0.01);
+      vec2 direction = normalize((lightTarget - origin) * aspect + vec2(0.0001));
+      vec2 offset = (uv - origin) * aspect;
+      float reach = dot(offset, direction);
+      float distance = abs(offset.x * direction.y - offset.y * direction.x);
+      float spread = 0.012 + max(reach, 0.0) * 0.17;
+      float cone = exp(-pow(distance / spread, 2.0)) * smoothstep(0.0, 0.012, reach)
+        * (1.0 - smoothstep(0.65, 1.6, reach));
+      vec2 spotOffset = (uv - lightTarget) * aspect;
+      float spot = exp(-dot(spotOffset, spotOffset) * 32.0);
+      return (cone * 0.8 + spot * 0.6) * lightPower;
+    }`;
+  const uniforms = { ...searchlightUniforms, map: { value: null }, pulse: { value: 0 }, lightX: { value: 0.8 }, search: { value: 0 }, clock: { value: 0 } };
   const cityMaterial = new THREE.ShaderMaterial({
     transparent: true,
     depthWrite: false,
     uniforms,
     vertexShader: `varying vec2 vUv;
-      void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      varying vec2 worldPosition;
+      void main() {
+        vUv = uv;
+        vec4 world = modelMatrix * vec4(position, 1.0);
+        worldPosition = world.xy;
+        gl_Position = projectionMatrix * viewMatrix * world;
+      }`,
     fragmentShader: `uniform sampler2D map;
       uniform float pulse;
       uniform float lightX;
       uniform float search;
       uniform float clock;
       varying vec2 vUv;
+      varying vec2 worldPosition;
+      ${searchlightShader}
       void main() {
         vec3 city = texture2D(map, vUv).rgb * vec3(0.68, 1.02, 0.72);
         float windowLight = smoothstep(0.012, 0.15, dot(city, vec3(0.2126, 0.7152, 0.0722)));
         float band = exp(-pow((vUv.x - lightX) * 12.0, 2.0));
         city += vec3(0.012, 0.09, 0.032) * band * pulse * windowLight;
         city += vec3(0.002, 0.009, 0.003) * search * (1.0 - vUv.x) * windowLight;
+        float beam = searchlightAt(worldPosition / viewport + 0.5);
+        city += vec3(0.075, 0.12, 0.095) * beam * (0.12 + windowLight);
         float grain = fract(sin(dot(floor(vUv * vec2(2171.0, 724.0)), vec2(12.9898, 78.233))) * 43758.5453);
         city += (grain - 0.5) * 0.002;
         vec2 windowCell = floor(vUv * vec2(160.0, 90.0));
@@ -120,7 +151,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
   const mistWakes = Array.from({ length: 6 }, () => new THREE.Vector4(-2, -2, 0, 0));
   const mistMaterial = new THREE.ShaderMaterial({
     transparent: true, depthWrite: false,
-    uniforms: { ...rainUniforms, clock: uniforms.clock,
+    uniforms: { ...rainUniforms, ...searchlightUniforms, clock: uniforms.clock,
       wakes: { value: mistWakes }, aspect: { value: 1 }, viewOffset: { value: new THREE.Vector2() } },
     vertexShader: `varying vec2 vUv;
       varying vec2 worldPosition;
@@ -139,6 +170,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
       uniform vec2 viewOffset;
       varying vec2 vUv;
       varying vec2 worldPosition;
+      ${searchlightShader}
       float hash(vec2 p) {
         return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
       }
@@ -164,15 +196,26 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
         vec2 nearUv = vUv + viewOffset * 0.65 - flow * 0.42;
         float farNoise = wisps(farUv * vec2(5.0 * aspect, 11.0) + vec2(clock * 0.012, -clock * 0.006));
         float nearNoise = wisps(nearUv * vec2(3.5 * aspect, 18.0) + vec2(-clock * 0.018, clock * 0.008));
-        float lower = exp(-pow((nearUv.y - 0.23 - (nearNoise - 0.5) * 0.12) * 12.0, 2.0));
-        float upper = exp(-pow((farUv.y - 0.39 - (farNoise - 0.5) * 0.09) * 17.0, 2.0));
-        float alpha = lower * smoothstep(0.25, 0.8, nearNoise) * 0.075
-          + upper * smoothstep(0.25, 0.78, farNoise) * 0.045;
+        float lower = exp(-pow((nearUv.y - 0.28 - (nearNoise - 0.5) * 0.2) * 3.2, 2.0));
+        float upper = exp(-pow((farUv.y - 0.64 - (farNoise - 0.5) * 0.17) * 2.7, 2.0));
+        float ambientBeam = exp(-pow((farUv.x - 0.14 - farUv.y * 0.62 - sin(clock * 0.06) * 0.12)
+          / (0.035 + (1.0 - vUv.y) * 0.14), 2.0));
+        ambientBeam *= (0.5 + 0.5 * sin(clock * 0.09 + 0.7)) * (1.0 - smoothstep(0.88, 1.0, vUv.y));
+        float beam = searchlightAt(vUv);
+        float skyCloud = wisps(farUv * vec2(3.0 * aspect, 7.0) + vec2(clock * 0.009, -clock * 0.004));
+        float skyReveal = smoothstep(0.42, 0.78, vUv.y) * smoothstep(0.02, 0.9, beam);
+        float alpha = 0.025 + lower * (0.025 + smoothstep(0.2, 0.8, nearNoise) * 0.13)
+          + upper * (0.02 + smoothstep(0.2, 0.78, farNoise) * 0.1)
+          + ambientBeam * farNoise * 0.035 + beam * (0.025 + nearNoise * 0.045)
+          + skyReveal * (0.07 + skyCloud * 0.18);
         vec2 wallUv = (worldPosition - foregroundOffset) / foregroundSize + 0.5;
         if (wallUv.x >= 0.0 && wallUv.x <= 1.0 && wallUv.y >= 0.0 && wallUv.y <= 1.0) {
           alpha *= 1.0 - smoothstep(0.01, 0.1, texture2D(foregroundMap, wallUv).a);
         }
-        gl_FragColor = vec4(mix(vec3(0.10, 0.16, 0.14), vec3(0.23, 0.27, 0.25), nearNoise), alpha);
+        vec3 fog = mix(vec3(0.17, 0.24, 0.20), vec3(0.31, 0.38, 0.33), nearNoise);
+        fog += vec3(0.12, 0.15, 0.12) * beam;
+        fog = mix(fog, vec3(0.32, 0.41, 0.36), skyReveal * 0.7);
+        gl_FragColor = vec4(fog, alpha);
         #include <colorspace_fragment>
       }`,
   });
@@ -185,6 +228,9 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     x: (parseFloat(rootStyle.getPropertyValue("--scene-x")) || 0) / 8,
     y: (parseFloat(rootStyle.getPropertyValue("--scene-y")) || 0) / 6,
     scroll: 0, light: 0.8, search: 0,
+    aimX: (parseFloat(rootStyle.getPropertyValue("--searchlight-x")) || 42) / 100,
+    aimY: 1 - (parseFloat(rootStyle.getPropertyValue("--searchlight-y")) || 46) / 100,
+    lightPower: 0,
   };
   const current = { ...target };
   let atmosphereTime = parseFloat(rootStyle.getPropertyValue("--scene-clock")) || 0;
@@ -210,21 +256,23 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     if (!motionEnabled()) { stop(); return; }
     const delta = Math.min(Math.max(time - lastTime, 0), 32);
     lastTime = time;
-    const amount = 1 - Math.exp(-delta / 85);
+    const amount = 1 - Math.exp(-delta / 60);
     for (const key of Object.keys(current)) {
       current[key] += (target[key] - current[key]) * amount;
     }
     // The fallback mirrors each layer's offset during the document handoff.
     rootStyle.setProperty("--scene-x", `${current.x * 8}px`);
     rootStyle.setProperty("--scene-y", `${current.y * 6}px`);
-    city.position.set(current.x * 4, -height / 2 + cityHeight / 2 + current.y * 3 - 6, 0);
-    foreground.position.set(current.x * 10 - 8, -height / 2 + cityHeight / 2 + current.y * 7 - 12, 50);
+    city.position.set(current.x * 14, -height / 2 + cityHeight / 2 + current.y * 9 - 14, 0);
+    foreground.position.set(current.x * 36 - 8, -height / 2 + cityHeight / 2 + current.y * 22 - 28, 50);
     rainUniforms.foregroundOffset.value.set(foreground.position.x, foreground.position.y);
     rainUniforms.foregroundSize.value.set(cityWidth + 32, cityHeight + 16);
     const elapsed = time - pulseStart;
     uniforms.pulse.value = elapsed >= 0 && elapsed < 680 ? (1 - Math.exp(-elapsed / 90)) * Math.exp(-elapsed / 190) * 1.8 : 0;
     uniforms.lightX.value = current.light;
     uniforms.search.value = current.search;
+    uniforms.lightTarget.value.set(current.aimX, current.aimY);
+    uniforms.lightPower.value = current.lightPower;
     atmosphereTime += delta / 1000;
     uniforms.clock.value = atmosphereTime;
     foregroundUniforms.viewX.value = current.x;
@@ -266,12 +314,13 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     camera.left = -width / 2; camera.right = width / 2;
     camera.top = height / 2; camera.bottom = -height / 2;
     camera.updateProjectionMatrix();
-    cityWidth = Math.max(width + 32, Math.min(height * 1.65, 1500));
+    cityWidth = Math.max(width + 96, Math.min(height * 1.65, 1500));
     cityHeight = cityWidth / (2171 / 724);
     city.scale.set(cityWidth, cityHeight, 1);
     foreground.scale.set(cityWidth + 32, cityHeight + 16, 1);
     mist.scale.set(width, height, 1);
     mistMaterial.uniforms.aspect.value = width / height;
+    searchlightUniforms.viewport.value.set(width, height);
     drops.forEach((drop, index) => {
       drop.x = ((index * 0.61803398875) % 1 - 0.5) * width;
       drop.y = ((index * 0.41421356237) % 1 - 0.5) * height;
@@ -310,6 +359,12 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     target.light = 0.55 + [...String(key)].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 17 / 40;
     pulseStart = performance.now();
     wake(true);
+  }
+  function aimSearchlight(event) {
+    target.aimX = event.detail.x;
+    target.aimY = 1 - event.detail.y;
+    target.lightPower = event.detail.on ? 1 : 0;
+    wake();
   }
   function pause() {
     cancelAnimationFrame(frame); frame = 0;
@@ -350,6 +405,8 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     toolbar = document.getElementById("archive-toolbar");
     if (toolbar) searchObserver?.observe(toolbar, { attributes: true, attributeFilter: ["class"] });
     syncSearch();
+    target.lightPower = document.getElementById("about-city") ? 1 : 0;
+    wake();
   }
   routeChanged();
   document.addEventListener("pakhub:route-ready", routeChanged);
@@ -365,6 +422,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
     window.removeEventListener("pagehide", pagehide);
     window.removeEventListener("pageshow", pageshow);
     document.removeEventListener("pakhub:selection", select);
+    document.removeEventListener("pakhub:searchlight", aimSearchlight);
     document.removeEventListener("pakhub:route-ready", routeChanged);
     document.removeEventListener("visibilitychange", visibility);
     renderer.domElement.removeEventListener("webglcontextlost", contextLost);
@@ -386,6 +444,7 @@ export function initializeScene(host, motionEnabled, onStop = () => {}) {
   window.addEventListener("pagehide", pagehide);
   window.addEventListener("pageshow", pageshow);
   document.addEventListener("pakhub:selection", select);
+  document.addEventListener("pakhub:searchlight", aimSearchlight);
   document.addEventListener("visibilitychange", visibility);
   const loader = new THREE.TextureLoader();
   function texture(path) {

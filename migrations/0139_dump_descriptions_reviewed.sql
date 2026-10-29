@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('rudemissioncontrol', 'Adds an alternate Mission Control voice pack with hundreds of audio assets, profile settings, and separate muted and placeholder voice tables.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

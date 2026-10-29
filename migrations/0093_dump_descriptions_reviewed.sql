@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('customrooms_55_mixed_fixed_PE', 'Adds custom procedural cave rooms and expands room pools for Extraction, Refinery, Salvage, and Motherlode/Star missions.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

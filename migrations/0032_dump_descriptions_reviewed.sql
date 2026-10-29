@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('pickaxe', 'Sets the pickaxe''s stagger chance to 100%; another archive variant adds a Pickaxe page to Mod Hub.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

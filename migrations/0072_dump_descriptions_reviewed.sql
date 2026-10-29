@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('peachautosprint', 'Raises base movement speed to 1.45×, reduces several weapon and environmental slowdowns, and makes the Pistol A automatic.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

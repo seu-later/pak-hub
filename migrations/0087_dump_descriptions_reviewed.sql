@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('dontcaretaker', 'Lowers the volume of 12 Caretaker cues, including wake-up, pain, and death sounds; the changed cue multipliers range from 0.3 to 0.6.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

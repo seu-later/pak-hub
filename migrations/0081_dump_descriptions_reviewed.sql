@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('pipelinepriorityfix', 'Sets pipe-grinding interaction priority to 4 and Refinery pipe-start priority to 5; other pipe segment actions use priority 2.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

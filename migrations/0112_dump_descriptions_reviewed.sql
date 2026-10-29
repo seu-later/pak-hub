@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('TransparentLaserMark', 'Makes the small HUD bracket window’s normal border fully transparent; its alternate gold highlight color remains visible.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

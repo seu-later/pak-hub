@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('test_p', 'Test balance pack that broadly retunes weapon stats, upgrades, overclocks, and projectiles; other archived versions also change Hazard 5/Deep Dive settings, enemy stats, and the active-enemy cap.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

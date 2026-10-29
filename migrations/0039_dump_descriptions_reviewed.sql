@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('destroyer', 'Randomly destroys a level actor every 5 or 30 seconds, depending on the archive variant; the slower variant logs the actor name.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

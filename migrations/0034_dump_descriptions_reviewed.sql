@@ -1,0 +1,2 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('moreplayerslist', 'Expands the in-mission team display to 1,234 units high so the player list can show more entries.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;
+INSERT INTO dump_descriptions (base_key, description) VALUES ('notsoinstantequipmentswitch', 'Sets animated equipment’s equip duration to 0.2 seconds for a less instantaneous weapon switch.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

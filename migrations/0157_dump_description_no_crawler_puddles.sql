@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('no_crawler_puddles', 'Makes Core Spawn Crawler puddles disappear almost immediately; the two versions use 0.01- and 0.001-second lifetimes.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

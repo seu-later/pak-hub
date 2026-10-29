@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('eee', 'Adds a large roster of custom enemy types and variants, including modified spiders, specialized shooting plants, custom Nexuses, and enemy breeders.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

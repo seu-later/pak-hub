@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('michwarnings', 'Adds a Death Magnetic cave event: randomly placed iron chunks trigger a Beer Ambush wave when removed.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

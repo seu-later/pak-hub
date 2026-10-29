@@ -1,0 +1,2 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('nodorettasound', 'Mutes 24 Doretta/Drilldozer audio cues; Doretta’s petting voice cue remains audible.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;
+INSERT INTO dump_descriptions (base_key, description) VALUES ('nodorettasoundbuttakingdamage', 'Mutes 23 Doretta/Drilldozer cues, keeps the petting voice, and leaves the vehicle-taking-damage cue unmodified.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

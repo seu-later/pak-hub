@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('drillstest', 'Adds F1/F2 drill measurements for velocity, distance, mining rate, fuel use, heat, and drill speed.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

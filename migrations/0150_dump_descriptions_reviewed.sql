@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('fsd-windowsnoeditor', 'Archive of Deep Rock Galactic cooked game assets, including enemy, weapon, environment, and mission content; it is not a standalone gameplay mod.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

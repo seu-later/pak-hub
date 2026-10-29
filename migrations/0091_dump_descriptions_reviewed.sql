@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('clutterbegone', 'Hides cave visuals by assigning its translucent m_invis material to 70 foliage, debris, and plague meshes, and removing material-parent overrides from biome and decal assets.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

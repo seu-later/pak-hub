@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('fsd-windowsnoeditor功能 结算展示难度代码_p', 'Displays the selected difficulty name in mission selection and the Deep Dive completion header.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

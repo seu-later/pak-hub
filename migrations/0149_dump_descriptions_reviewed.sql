@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('custom-difficulty2', 'Lets players create, save, delete, and select custom difficulty profiles using mutators for enemy and player settings and spawn behavior; includes an in-game difficulty editor.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

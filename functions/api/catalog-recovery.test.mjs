@@ -7,6 +7,19 @@ import { onRequestGet as download } from "./dump-file/[key].js";
 const request = (path) => new Request(`https://example.com${path}`);
 const quota = () => new Response('{"error":"Unavailable"}', { status: 503 });
 
+test("snapshot honors reverse names and both file-count directions on both catalogs", async () => {
+  for (const [path, key] of [["mods", "mods"], ["dump", "groups"]]) {
+    const descending = await snapshotResponse(request(`/api/${path}?sort=name-desc`)).json();
+    const lower = (name) => name.replace(/[A-Z]/g, (letter) => letter.toLowerCase());
+    assert.ok(descending[key].every((row, index, rows) => !index || lower(rows[index - 1].name) >= lower(row.name)));
+    for (const sort of ["most-files", "fewest-files"]) {
+      const payload = await snapshotResponse(request(`/api/${path}?sort=${sort}`)).json();
+      assert.ok(payload[key].every((row, index, rows) => !index ||
+        (sort === "most-files" ? rows[index - 1].fileCount >= row.fileCount : rows[index - 1].fileCount <= row.fileCount)));
+    }
+  }
+});
+
 test("database failure preserves public catalog browsing, search and post details", async () => {
   const response = await onRequest({ request: request("/api/mods?q=LootSansSummerName.pak"), next: async () => quota() });
   assert.equal(response.status, 200);

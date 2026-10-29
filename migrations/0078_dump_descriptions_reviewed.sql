@@ -1,0 +1,1 @@
+INSERT INTO dump_descriptions (base_key, description) VALUES ('reliablelandscape', 'Disables bloom, motion blur, ambient occlusion, light shafts, volumetric fog, and shadows; hides selected cave debris, terrain shadows, spent flares, and turret debris.') ON CONFLICT(base_key) DO UPDATE SET description=excluded.description, updated_at=CURRENT_TIMESTAMP;

@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#030806">
     <meta name="description" content="The core dependencies commonly needed for modded difficulty play in Deep Rock Galactic.">
-    <title>Pak Hub — Dependencies</title>
+    <title>Pak Hub</title>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=20261015terminal1">
     <script src="scene-position.js?v=20261014handoff2"></script>
     <link rel="preload" href="assets/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="assets/WhiteRabbit.ttf" as="font" type="font/ttf" crossorigin>
@@ -13,11 +14,12 @@
     <link rel="preload" href="assets/city-far-still.webp" as="image" media="(min-width: 701px)">
     <link rel="preload" href="assets/city-near-still.webp" as="image" media="(min-width: 701px)">
     <link rel="stylesheet" href="assets/lenis.css?v=1.3.26">
-    <link rel="stylesheet" href="styles.css?v=20261014plainlinks1">
+    <link rel="stylesheet" href="styles.css?v=20261027bitfix1">
     <script src="assets/lenis.min.js?v=1.3.26" defer></script>
     <script src="assets/gsap.min.js?v=3.15.0" defer></script>
     <script src="post-format.js?v=20261014posts1" defer></script>
-    <script src="site-motion.js?v=20261014sametap1" defer></script>
+    <script src="site-motion.js?v=20261027bitfix1" defer></script>
+    <script src="about-searchlight.js?v=20261015clearnav1" defer></script>
   </head>
   <body class="view-list view-dependencies">
     <div class="scene-background" aria-hidden="true">
@@ -26,23 +28,13 @@
       <div class="scene-handoff"></div>
     </div>
     <a class="skip-link" href="#dependencies">Skip to dependencies</a>
-    <div id="site-loader" class="site-loader" role="status" aria-label="Loading Pak Hub" hidden>
-      <div class="site-loader-background"></div>
-      <div class="site-loader-row" aria-hidden="true">
-        <span class="site-loader-brand">PAK<span>_HUB</span></span>
-        <span id="site-loader-count" class="site-loader-count">0%</span>
-        <div class="site-loader-track">
-          <span id="site-loader-line" class="site-loader-line"></span>
-          <span class="site-loader-head"></span>
-        </div>
-      </div>
-    </div>
     <div class="app-shell">
       <header class="site-header">
         <div class="header-inner">
           <nav class="primary-nav" aria-label="Primary navigation">
             <a href="index.html">Pak List</a>
-            <a href="dump.html">Pak Dump</a>
+            <a href="dump.html">Pak Archive</a>
+            <a href="bitfix.html">Bitfix</a>
             <a href="dependencies.html" aria-current="page">Dependencies</a>
             <a href="about.html">About</a>
             <span class="nav-indicator" aria-hidden="true"></span>
